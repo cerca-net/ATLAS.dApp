@@ -1,0 +1,3 @@
+# command-line-arguments
+cmd\main.go:304:25: transactionManager.HasTransaction undefined (type *blockchain.TransactionManager has no field or method HasTransaction)
+cmd\main.go:691:23: transactionManager.RemoveExpiredTransactions undefined (type *blockchain.TransactionManager has no field or method RemoveExpiredTransactions)

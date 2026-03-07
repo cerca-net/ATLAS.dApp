@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Governance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e0 100%);
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(72, 187, 120, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(66, 153, 225, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .governance-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            color: #1a202c;
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 50%, #718096 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.01em;
+        }
+        .back-btn {
+            background: rgba(45, 55, 72, 0.8);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 22px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(45, 55, 72, 0.9);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        .main-panel, .side-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px 18px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.08),
+                0 8px 16px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-width: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-panel:hover, .side-panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.12),
+                0 12px 24px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+        .main-panel h4, .side-panel h4, .panel-title, .main-panel label, .side-panel label {
+            font-size: 0.98rem;
+        }
+        .panel-title {
+            color: #2d3748;
+            margin-bottom: 12px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+        .proposal-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .proposal-item {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 12px 10px;
+            margin-bottom: 8px;
+            border-left: 4px solid #4299e1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .proposal-item:hover {
+            transform: translateX(5px) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .proposal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+        .proposal-id {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        .proposal-state {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #4299e1;
+        }
+        .proposal-details {
+            font-size: 0.9rem;
+            color: #444;
+            margin-bottom: 3px;
+        }
+        .vote-form {
+            margin-top: 10px;
+            background: #f7fafc;
+            padding: 7px;
+            border-radius: 6px;
+        }
+        .form-group {
+            margin-bottom: 6px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 2px;
+            color: #1e3c72;
+            font-weight: 500;
+            font-size: 0.92rem;
+        }
+        .form-control {
+            width: 90%;
+            max-width: 260px;
+            min-width: 120px;
+            box-sizing: border-box;
+            padding: 4px 6px;
+            border: 1.2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            margin-bottom: 4px;
+            text-align: center;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #1e3c72;
+        }
+        .btn {
+            padding: 7px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.2);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(66, 153, 225, 0.3);
+        }
+        .status-message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+        
+        /* Privacy Section Styles */
+        .privacy-section {
+            margin-top: 20px;
+        }
+        .privacy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+            margin-bottom: 0;
+        }
+        .privacy-grid.compact {
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+            margin-bottom: 0;
+        }
+        .privacy-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 8px 10px;
+            min-width: 0;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .privacy-card h4 {
+            color: #1e3c72;
+            margin-bottom: 6px;
+            font-size: 0.92rem;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .status.show {
+            transform: translateX(0);
+        }
+        
+        .status.success {
+            background: #28a745;
+        }
+        
+        .status.error {
+            background: #dc3545;
+        }
+        
+        .status.info {
+            background: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Governance</h1>
+            <a href="index.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+        <div class="governance-grid">
+            <div class="main-panel">
+                <div class="panel-title" style="margin-bottom: 20px;">🏛️ Governance Overview</div>
+                <div class="governance-overview">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div class="governance-card" style="background: #f8f9fa; border-radius: 10px; padding: 15px; border: 1px solid #e9ecef;">
+                            <h4 style="color: #1e3c72; margin-bottom: 10px; font-size: 1rem;">📊 Governance Statistics</h4>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Active Proposals:</span>
+                                    <span id="active-proposals" style="font-weight: bold; color: #4299e1;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Total Voters:</span>
+                                    <span id="total-voters" style="font-weight: bold; color: #4299e1;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Voting Power:</span>
+                                    <span id="total-voting-power" style="font-weight: bold; color: #4299e1;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Quorum Required:</span>
+                                    <span id="quorum-required" style="font-weight: bold; color: #4299e1;">-</span>
+                                </div>
+                            </div>
+                            <button onclick="loadGovernanceStats()" class="btn" style="margin-top: 10px; width: 100%;">🔄 Refresh Stats</button>
+                        </div>
+                        <div class="governance-card" style="background: #f8f9fa; border-radius: 10px; padding: 15px; border: 1px solid #e9ecef;">
+                            <h4 style="color: #1e3c72; margin-bottom: 10px; font-size: 1rem;">⚙️ Governance Parameters</h4>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Min Proposal Duration:</span>
+                                    <span id="min-duration" style="font-weight: bold; color: #4299e1;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Max Proposal Duration:</span>
+                                    <span id="max-duration" style="font-weight: bold; color: #4299e1;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Min Stake to Propose:</span>
+                                    <span id="min-stake" style="font-weight: bold; color: #4299e1;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Voting Threshold:</span>
+                                    <span id="voting-threshold" style="font-weight: bold; color: #4299e1;">-</span>
+                                </div>
+                            </div>
+                            <button onclick="loadGovernanceParams()" class="btn" style="margin-top: 10px; width: 100%;">⚙️ Load Parameters</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="main-panel">
+                <div class="panel-title" style="margin-bottom: 20px;">💰 DAO Treasury</div>
+                <div class="treasury-section">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="treasury-card" style="background: #f8f9fa; border-radius: 10px; padding: 15px; border: 1px solid #e9ecef;">
+                            <h4 style="color: #1e3c72; margin-bottom: 10px; font-size: 1rem;">💼 Treasury Overview</h4>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Total Balance:</span>
+                                    <span id="treasury-balance" style="font-weight: bold; color: #28a745;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Pending Proposals:</span>
+                                    <span id="pending-proposals" style="font-weight: bold; color: #ffc107;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.9rem;">Executed This Month:</span>
+                                    <span id="executed-month" style="font-weight: bold; color: #28a745;">-</span>
+                                </div>
+                            </div>
+                            <button onclick="loadTreasuryInfo()" class="btn" style="margin-top: 10px; width: 100%;">💰 Load Treasury</button>
+                        </div>
+                        <div class="treasury-card" style="background: #f8f9fa; border-radius: 10px; padding: 15px; border: 1px solid #e9ecef;">
+                            <h4 style="color: #1e3c72; margin-bottom: 10px; font-size: 1rem;">🎯 Treasury Actions</h4>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <button onclick="showTreasuryTransfer()" class="btn" style="font-size: 0.85rem; padding: 8px;">💸 Transfer Funds</button>
+                                <button onclick="showTreasuryAllocation()" class="btn" style="font-size: 0.85rem; padding: 8px;">📊 Allocate Budget</button>
+                                <button onclick="showTreasuryReport()" class="btn" style="font-size: 0.85rem; padding: 8px;">📋 Generate Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="side-panel">
+                <div class="panel-title">Proposals</div>
+                <div id="proposal-list" class="proposal-list"></div>
+                <div style="display: flex; flex-direction: row; gap: 10px; margin-top: 10px;">
+                    <div style="flex:1; background: #f7fafc; border-radius: 8px; border: 1px solid #e9ecef; padding: 8px 8px; min-width: 0;">
+                        <div class="panel-title" style="margin-top:0; font-size:1rem; padding-bottom:4px;">Submit Proposal</div>
+                        <form id="proposal-form">
+                            <div class="form-group">
+                                <label for="proposer">Proposer Address</label>
+                                <input type="text" id="proposer" class="form-control" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <input type="text" id="description" class="form-control" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="actions">Actions (JSON or text)</label>
+                                <input type="text" id="actions" class="form-control" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="duration">Voting Duration (blocks)</label>
+                                <input type="number" id="duration" class="form-control" value="10" min="1" required />
+                            </div>
+                            <button type="submit" class="btn">Submit Proposal</button>
+                        </form>
+                        <div id="proposal-status" class="status-message" style="display:none;"></div>
+                    </div>
+                    <div style="flex:1; background: #f7fafc; border-radius: 8px; border: 1px solid #e9ecef; padding: 8px 8px; min-width: 0;">
+                        <div class="panel-title" style="margin-top:0; font-size:1rem; padding-bottom:4px;">Vote on Proposal</div>
+                        <form id="vote-form" class="vote-form">
+                            <div class="form-group">
+                                <label for="vote-proposal-id">Proposal ID</label>
+                                <input type="text" id="vote-proposal-id" class="form-control" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="voter">Voter Address</label>
+                                <input type="text" id="voter" class="form-control" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="choice">Choice</label>
+                                <select id="choice" class="form-control">
+                                    <option value="for">For</option>
+                                    <option value="against">Against</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="weight">Voting Power (Weight)</label>
+                                <input type="number" id="weight" class="form-control" value="1" min="1" required />
+                            </div>
+                            <button type="submit" class="btn">Cast Vote</button>
+                        </form>
+                        <div id="vote-status" class="status-message" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_BASE = `http://localhost:${window.currentApiPort || 8080}`;
+        async function loadProposals() {
+            const list = document.getElementById('proposal-list');
+            list.innerHTML = '<em>Loading proposals...</em>';
+            try {
+                const resp = await fetch(`${API_BASE}/governance/proposals`);
+                const proposals = await resp.json();
+                if (!proposals.length) {
+                    list.innerHTML = '<div>No proposals found.</div>';
+                    return;
+                }
+                list.innerHTML = '';
+                proposals.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = 'proposal-item';
+                    item.innerHTML = `
+                        <div class="proposal-header">
+                            <span class="proposal-id">${p.ID}</span>
+                            <span class="proposal-state">${p.State}</span>
+                        </div>
+                        <div class="proposal-details">${p.Description}</div>
+                        <div class="proposal-details"><strong>For:</strong> ${p.VotesFor} | <strong>Against:</strong> ${p.VotesAgainst}</div>
+                        <div class="proposal-details"><strong>Start:</strong> ${p.StartBlock} | <strong>End:</strong> ${p.EndBlock}</div>
+                    `;
+                    item.onclick = () => {
+                        document.getElementById('vote-proposal-id').value = p.ID;
+                    };
+                    list.appendChild(item);
+                });
+            } catch (err) {
+                list.innerHTML = '<div class="status-error">Failed to load proposals.</div>';
+            }
+        }
+        document.getElementById('proposal-form').onsubmit = async function(e) {
+            e.preventDefault();
+            const proposer = document.getElementById('proposer').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const actions = document.getElementById('actions').value.trim();
+            const duration = parseInt(document.getElementById('duration').value, 10);
+            const status = document.getElementById('proposal-status');
+            status.style.display = 'none';
+            try {
+                const resp = await fetch(`${API_BASE}/governance/submit-proposal`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ proposer, description, actions, duration })
+                });
+                const data = await resp.json();
+                if (data.status && data.status.toLowerCase().includes('submitted')) {
+                    status.textContent = 'Proposal submitted!';
+                    status.className = 'status-message status-success';
+                    status.style.display = 'block';
+                    loadProposals();
+                } else {
+                    status.textContent = data.status || 'Failed to submit proposal.';
+                    status.className = 'status-message status-error';
+                    status.style.display = 'block';
+                }
+            } catch (err) {
+                status.textContent = 'Failed to submit proposal.';
+                status.className = 'status-message status-error';
+                status.style.display = 'block';
+            }
+        };
+        document.getElementById('vote-form').onsubmit = async function(e) {
+            e.preventDefault();
+            const proposalID = document.getElementById('vote-proposal-id').value.trim();
+            const voter = document.getElementById('voter').value.trim();
+            const choice = document.getElementById('choice').value;
+            const weight = parseInt(document.getElementById('weight').value, 10);
+            const status = document.getElementById('vote-status');
+            status.style.display = 'none';
+            try {
+                const resp = await fetch(`${API_BASE}/governance/vote`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ proposalID, voter, choice, weight })
+                });
+                const data = await resp.json();
+                if (data.status && data.status.toLowerCase().includes('cast')) {
+                    status.textContent = 'Vote cast!';
+                    status.className = 'status-message status-success';
+                    status.style.display = 'block';
+                    loadProposals();
+                } else {
+                    status.textContent = data.status || 'Failed to cast vote.';
+                    status.className = 'status-message status-error';
+                    status.style.display = 'block';
+                }
+            } catch (err) {
+                status.textContent = 'Failed to cast vote.';
+                status.className = 'status-message status-error';
+                status.style.display = 'block';
+            }
+        };
+        
+        // Privacy Functions
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status') || createStatusElement();
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.classList.add('show');
+            setTimeout(() => status.classList.remove('show'), 3000);
+        }
+        
+        function createStatusElement() {
+            const status = document.createElement('div');
+            status.id = 'status';
+            status.className = 'status';
+            document.body.appendChild(status);
+            return status;
+        }
+        
+        async function encryptData() {
+            const data = document.getElementById('encrypt-data').value;
+            const password = document.getElementById('encrypt-password').value;
+            const resultDiv = document.getElementById('encrypt-result');
+            
+            if (!data) {
+                showStatus('Please enter data to encrypt', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/privacy/encrypt`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data, password })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `Encrypted Data: ${result.encrypted_data}\nKey: ${result.key}`;
+                    resultDiv.className = 'result success';
+                    resultDiv.style.display = 'block';
+                    showStatus('Data encrypted successfully!', 'success');
+                } else {
+                    resultDiv.innerHTML = `Error: ${result.error}`;
+                    resultDiv.className = 'result error';
+                    resultDiv.style.display = 'block';
+                    showStatus('Encryption failed', 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                showStatus('Encryption failed', 'error');
+            }
+        }
+        
+        async function decryptData() {
+            const data = document.getElementById('decrypt-data').value;
+            const password = document.getElementById('decrypt-password').value;
+            const resultDiv = document.getElementById('decrypt-result');
+            
+            if (!data) {
+                showStatus('Please enter encrypted data', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/privacy/decrypt`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ encrypted_data: data, password })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `Decrypted Data: ${result.decrypted_data}`;
+                    resultDiv.className = 'result success';
+                    resultDiv.style.display = 'block';
+                    showStatus('Data decrypted successfully!', 'success');
+                } else {
+                    resultDiv.innerHTML = `Error: ${result.error}`;
+                    resultDiv.className = 'result error';
+                    resultDiv.style.display = 'block';
+                    showStatus('Decryption failed', 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                showStatus('Decryption failed', 'error');
+            }
+        }
+        
+        async function createProof() {
+            const data = document.getElementById('proof-data').value;
+            const resultDiv = document.getElementById('proof-result');
+            
+            if (!data) {
+                showStatus('Please enter data for proof', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/privacy/create-proof`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `Proof Created: ${result.proof}\nPublic Inputs: ${result.public_inputs}`;
+                    resultDiv.className = 'result success';
+                    resultDiv.style.display = 'block';
+                    showStatus('Zero-knowledge proof created!', 'success');
+                } else {
+                    resultDiv.innerHTML = `Error: ${result.error}`;
+                    resultDiv.className = 'result error';
+                    resultDiv.style.display = 'block';
+                    showStatus('Proof creation failed', 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                showStatus('Proof creation failed', 'error');
+            }
+        }
+        
+        async function verifyProof() {
+            const proof = document.getElementById('verify-proof').value;
+            const resultDiv = document.getElementById('verify-result');
+            
+            if (!proof) {
+                showStatus('Please enter proof to verify', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/privacy/verify-proof`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ proof })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `Verification Result: ${result.valid ? 'Valid' : 'Invalid'}\nDetails: ${result.details}`;
+                    resultDiv.className = `result ${result.valid ? 'success' : 'error'}`;
+                    resultDiv.style.display = 'block';
+                    showStatus(result.valid ? 'Proof verified successfully!' : 'Proof verification failed', result.valid ? 'success' : 'error');
+                } else {
+                    resultDiv.innerHTML = `Error: ${result.error}`;
+                    resultDiv.className = 'result error';
+                    resultDiv.style.display = 'block';
+                    showStatus('Proof verification failed', 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                showStatus('Proof verification failed', 'error');
+            }
+        }
+        
+        async function gdprDelete() {
+            const address = document.getElementById('gdpr-address').value;
+            const resultDiv = document.getElementById('gdpr-result');
+            
+            if (!address) {
+                showStatus('Please enter user address', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/privacy/gdpr-delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `GDPR Delete Result: ${result.status}\nDeleted Records: ${result.deleted_count}`;
+                    resultDiv.className = 'result success';
+                    resultDiv.style.display = 'block';
+                    showStatus('GDPR delete completed!', 'success');
+                } else {
+                    throw new Error(result.error || 'Assignment failed');
+                }
+            } catch (error) {
+                showStatus('Assignment failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function gdprAnonymize() {
+            const address = document.getElementById('gdpr-address').value;
+            const resultDiv = document.getElementById('gdpr-result');
+            
+            if (!address) {
+                showStatus('Please enter user address', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/privacy/gdpr-anonymize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `GDPR Anonymize Result: ${result.status}\nAnonymized Records: ${result.anonymized_count}`;
+                    resultDiv.className = 'result success';
+                    resultDiv.style.display = 'block';
+                    showStatus('GDPR anonymization completed!', 'success');
+                } else {
+                    resultDiv.innerHTML = `Error: ${result.error}`;
+                    resultDiv.className = 'result error';
+                    resultDiv.style.display = 'block';
+                    showStatus('GDPR anonymization failed', 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                showStatus('GDPR anonymization failed', 'error');
+            }
+        }
+        
+        // New Governance Functions
+        async function loadGovernanceStats() {
+            try {
+                const response = await fetch(`${API_BASE}/governance/stats`);
+                const stats = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('active-proposals').textContent = stats.activeProposals || 0;
+                    document.getElementById('total-voters').textContent = stats.totalVoters || 0;
+                    document.getElementById('total-voting-power').textContent = stats.totalVotingPower || 0;
+                    document.getElementById('quorum-required').textContent = stats.quorumRequired || 0;
+                    showStatus('Governance stats loaded successfully!', 'success');
+                } else {
+                    throw new Error(stats.error || 'Failed to load governance stats');
+                }
+            } catch (error) {
+                showStatus('Failed to load governance stats: ' + error.message, 'error');
+            }
+        }
+
+        async function loadGovernanceParams() {
+            try {
+                const response = await fetch(`${API_BASE}/governance/parameters`);
+                const params = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('min-duration').textContent = params.minDuration || 0;
+                    document.getElementById('max-duration').textContent = params.maxDuration || 0;
+                    document.getElementById('min-stake').textContent = params.minStake || 0;
+                    document.getElementById('voting-threshold').textContent = params.votingThreshold || 0;
+                    showStatus('Governance parameters loaded successfully!', 'success');
+                } else {
+                    throw new Error(params.error || 'Failed to load governance parameters');
+                }
+            } catch (error) {
+                showStatus('Failed to load governance parameters: ' + error.message, 'error');
+            }
+        }
+
+        async function loadTreasuryInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/governance/treasury`);
+                const treasury = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('treasury-balance').textContent = treasury.balance || 0;
+                    document.getElementById('pending-proposals').textContent = treasury.pendingProposals || 0;
+                    document.getElementById('executed-month').textContent = treasury.executedThisMonth || 0;
+                    showStatus('Treasury info loaded successfully!', 'success');
+                } else {
+                    throw new Error(treasury.error || 'Failed to load treasury info');
+                }
+            } catch (error) {
+                showStatus('Failed to load treasury info: ' + error.message, 'error');
+            }
+        }
+
+        function showTreasuryTransfer() {
+            showStatus('Treasury transfer functionality coming soon!', 'info');
+        }
+
+        function showTreasuryAllocation() {
+            showStatus('Treasury allocation functionality coming soon!', 'info');
+        }
+
+        function showTreasuryReport() {
+            showStatus('Treasury report functionality coming soon!', 'info');
+        }
+
+        // Load initial data
+        loadProposals();
+        loadGovernanceStats();
+        loadGovernanceParams();
+        loadTreasuryInfo();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,78 @@
+# =============================================================================
+# Cerca Network - Production Docker Compose
+# =============================================================================
+# Usage: docker compose up -d
+# =============================================================================
+
+version: "3.9"
+
+services:
+  # ---------------------------------------------------------------------------
+  # ATLAS Blockchain Node
+  # ---------------------------------------------------------------------------
+  blockchain:
+    build:
+      context: ./ATLAS.BC0.0.1
+      dockerfile: Dockerfile
+    container_name: cerca-blockchain
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - blockchain-data:/data
+    environment:
+      - API_PORT=8080
+      - DATABASE_PATH=/data/blockchain.db
+      - NODE_KEY_PATH=/data/nodekey.priv
+      - LOG_LEVEL=info
+      - NETWORK_MODE=production
+    networks:
+      - cerca-network
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # CercaEnd Frontend
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./cercaend
+      dockerfile: Dockerfile
+      args:
+        - BLOCKCHAIN_API_URL=http://blockchain:8080
+    container_name: cerca-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      blockchain:
+        condition: service_healthy
+    networks:
+      - cerca-network
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+# -----------------------------------------------------------------------------
+# Networks
+# -----------------------------------------------------------------------------
+networks:
+  cerca-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# -----------------------------------------------------------------------------
+# Volumes
+# -----------------------------------------------------------------------------
+volumes:
+  blockchain-data:
+    driver: local

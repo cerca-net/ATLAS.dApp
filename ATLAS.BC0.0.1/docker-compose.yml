@@ -1,0 +1,60 @@
+# =============================================================================
+# ATLAS Blockchain - Docker Compose for Multi-Environment Deployment
+# =============================================================================
+# Usage:
+#   Staging:    docker compose --profile staging up -d
+#   Production: docker compose --profile production up -d
+# =============================================================================
+
+services:
+  # ─── Staging Node ───────────────────────────────────────────────────
+  atlas-staging:
+    build: .
+    container_name: atlas-staging
+    profiles: [ "staging" ]
+    ports:
+      - "8080:8080" # API
+      - "8000:8000" # P2P
+    volumes:
+      - staging-data:/data
+    environment:
+      - LOG_LEVEL=debug
+      - API_PORT=8080
+    command: [ "./blockchain", "-datadir", "/data", "-api", "8080", "-port", "8000", "-validator" ]
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/status" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── Production Node ───────────────────────────────────────────────
+  atlas-production:
+    build: .
+    container_name: atlas-production
+    profiles: [ "production" ]
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+    volumes:
+      - production-data:/data
+    environment:
+      - LOG_LEVEL=info
+      - API_PORT=8080
+    command: [ "./blockchain", "-datadir", "/data", "-api", "8080", "-port", "8000", "-validator" ]
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+
+volumes:
+  staging-data:
+  production-data:

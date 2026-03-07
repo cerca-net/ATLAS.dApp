@@ -1,0 +1,56 @@
+# =============================================================================
+# Cerca Network - Development/Devnet Docker Compose
+# =============================================================================
+# Usage: docker compose -f docker-compose.devnet.yml up -d
+# =============================================================================
+
+version: "3.9"
+
+services:
+  # ---------------------------------------------------------------------------
+  # ATLAS Blockchain Node (Devnet)
+  # ---------------------------------------------------------------------------
+  blockchain:
+    build:
+      context: ./ATLAS.BC0.0.1
+      dockerfile: Dockerfile
+    container_name: cerca-blockchain-devnet
+    ports:
+      - "8080:8080"
+    env_file:
+      - devnet.env
+    volumes:
+      - ./devnet-data:/data
+    networks:
+      - cerca-devnet
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # CercaEnd Frontend (Devnet)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./cercaend
+      dockerfile: Dockerfile
+      args:
+        - BLOCKCHAIN_API_URL=http://blockchain:8080
+    container_name: cerca-frontend-devnet
+    ports:
+      - "3000:80"
+    depends_on:
+      blockchain:
+        condition: service_healthy
+    networks:
+      - cerca-devnet
+
+# -----------------------------------------------------------------------------
+# Networks
+# -----------------------------------------------------------------------------
+networks:
+  cerca-devnet:
+    driver: bridge

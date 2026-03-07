@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATLAS Identity Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e0 100%);
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(66, 153, 225, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(72, 187, 120, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            color: #1a202c;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 50%, #718096 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.01em;
+        }
+
+        .back-btn {
+            background: rgba(45, 55, 72, 0.8);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 22px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(45, 55, 72, 0.9);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .identity-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            min-height: calc(100vh - 150px);
+        }
+
+        .sidebar, .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.08),
+                0 8px 16px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar:hover, .main-content:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.12),
+                0 12px 24px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .nav-menu {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .nav-menu li {
+            margin-bottom: 10px;
+        }
+
+        .nav-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(66, 153, 225, 0.1);
+            color: #4299e1;
+            transform: translateX(5px);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .nav-menu a::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+        }
+
+        .nav-menu a[data-section="profile"]::before { content: '👤'; }
+        .nav-menu a[data-section="kyc"]::before { content: '🆔'; }
+        .nav-menu a[data-section="privacy"]::before { content: '🔒'; }
+        .nav-menu a[data-section="verification"]::before { content: '✅'; }
+        .nav-menu a[data-section="activity"]::before { content: '📊'; }
+        .nav-menu a[data-section="reputation"]::before { content: '⭐'; }
+
+        .profile-summary {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0 auto 15px;
+        }
+
+        .profile-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .profile-status {
+            display: inline-block;
+            background: rgba(72, 187, 120, 0.1);
+            color: #48bb78;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(66, 153, 225, 0.1);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.9);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(66, 153, 225, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #718096, #4a5568);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 8px 25px rgba(113, 128, 150, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+        }
+
+        .btn-warning:hover {
+            box-shadow: 0 8px 25px rgba(237, 137, 54, 0.3);
+        }
+
+        .kyc-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .kyc-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .kyc-icon.verified {
+            background: rgba(72, 187, 120, 0.1);
+            color: #48bb78;
+        }
+
+        .kyc-icon.pending {
+            background: rgba(237, 137, 54, 0.1);
+            color: #ed8936;
+        }
+
+        .kyc-icon.unverified {
+            background: rgba(245, 101, 101, 0.1);
+            color: #f56565;
+        }
+
+        .kyc-info {
+            flex: 1;
+        }
+
+        .kyc-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 2px;
+        }
+
+        .kyc-description {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .privacy-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .privacy-info {
+            flex: 1;
+        }
+
+        .privacy-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .privacy-description {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #cbd5e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #48bb78;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(66, 153, 225, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4299e1;
+            font-size: 1.2rem;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 2px;
+        }
+
+        .activity-time {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .reputation-score {
+            text-align: center;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #4299e1;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            font-size: 1.1rem;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .score-description {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .identity-layout {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👤 ATLAS Identity Management</h1>
+            <a href="index.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="identity-layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <ul class="nav-menu">
+                    <li><a href="#" data-section="profile" class="active">👤 Profile</a></li>
+                    <li><a href="#" data-section="kyc">🆔 KYC Verification</a></li>
+                    <li><a href="#" data-section="privacy">🔒 Privacy Settings</a></li>
+                    <li><a href="#" data-section="verification">✅ Identity Verification</a></li>
+                    <li><a href="#" data-section="activity">📊 Activity History</a></li>
+                    <li><a href="#" data-section="reputation">⭐ Reputation Score</a></li>
+                </ul>
+
+                <div class="profile-summary">
+                    <div class="profile-avatar" id="profile-avatar">U</div>
+                    <div class="profile-name" id="profile-name">User</div>
+                    <div class="profile-status" id="profile-status">Verified</div>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="reputation-score">850</div>
+                            <div class="stat-label">Reputation</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="verification-level">Level 3</div>
+                            <div class="stat-label">Verification</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Profile Section -->
+                <div id="profile-section" class="section active">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">👤 Profile Information</h2>
+                    <div id="profile-content">
+                        <div class="loading">Loading profile...</div>
+                    </div>
+                </div>
+
+                <!-- KYC Section -->
+                <div id="kyc-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">🆔 KYC Verification</h2>
+                    <div id="kyc-content">
+                        <div class="loading">Loading KYC status...</div>
+                    </div>
+                </div>
+
+                <!-- Privacy Section -->
+                <div id="privacy-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">🔒 Privacy Settings</h2>
+                    <div id="privacy-content">
+                        <div class="loading">Loading privacy settings...</div>
+                    </div>
+                </div>
+
+                <!-- Verification Section -->
+                <div id="verification-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">✅ Identity Verification</h2>
+                    <div id="verification-content">
+                        <div class="loading">Loading verification options...</div>
+                    </div>
+                </div>
+
+                <!-- Activity Section -->
+                <div id="activity-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">📊 Activity History</h2>
+                    <div id="activity-content">
+                        <div class="loading">Loading activity history...</div>
+                    </div>
+                </div>
+
+                <!-- Reputation Section -->
+                <div id="reputation-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">⭐ Reputation Score</h2>
+                    <div id="reputation-content">
+                        <div class="loading">Loading reputation data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script>
+        // Global variables
+        let currentUser = null;
+        let userProfile = {};
+        let kycStatus = {};
+        let privacySettings = {};
+
+        // Initialize the identity management platform
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeIdentityPlatform();
+            setupNavigation();
+        });
+
+        function initializeIdentityPlatform() {
+            currentUser = localStorage.getItem('currentUser') || 'user123';
+            loadUserProfile();
+            loadKYCStatus();
+            loadPrivacySettings();
+            loadVerificationOptions();
+            loadActivityHistory();
+            loadReputationData();
+        }
+
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.nav-menu a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.getElementById(sectionName + '-section').classList.add('active');
+        }
+
+        async function loadUserProfile() {
+            const profileContainer = document.getElementById('profile-content');
+            profileContainer.innerHTML = '<div class="loading">Loading profile...</div>';
+
+            try {
+                // Mock profile data
+                userProfile = {
+                    username: 'ATLAS User',
+                    email: 'user@atlas.com',
+                    fullName: 'John Doe',
+                    bio: 'Blockchain enthusiast and ATLAS community member',
+                    location: 'New York, USA',
+                    website: 'https://atlasuser.com',
+                    socialLinks: {
+                        twitter: '@atlasuser',
+                        github: 'atlasuser',
+                        linkedin: 'atlasuser'
+                    },
+                    joinDate: '2024-01-15',
+                    lastActive: '2025-01-20'
+                };
+
+                renderUserProfile();
+                updateProfileSummary();
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        function renderUserProfile() {
+            const profileContainer = document.getElementById('profile-content');
+            
+            profileContainer.innerHTML = `
+                <div class="card">
+                    <h3>Basic Information</h3>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" value="${userProfile.username}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" value="${userProfile.fullName}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" value="${userProfile.email}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" value="${userProfile.location}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Website</label>
+                        <input type="url" value="${userProfile.website}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Bio</label>
+                        <textarea class="form-input" rows="3">${userProfile.bio}</textarea>
+                    </div>
+                    <button class="btn" onclick="updateProfile()">Update Profile</button>
+                </div>
+                
+                <div class="card">
+                    <h3>Social Links</h3>
+                    <div class="form-group">
+                        <label>Twitter</label>
+                        <input type="text" value="${userProfile.socialLinks.twitter}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>GitHub</label>
+                        <input type="text" value="${userProfile.socialLinks.github}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>LinkedIn</label>
+                        <input type="text" value="${userProfile.socialLinks.linkedin}" class="form-input">
+                    </div>
+                    <button class="btn" onclick="updateSocialLinks()">Update Social Links</button>
+                </div>
+            `;
+        }
+
+        function updateProfileSummary() {
+            document.getElementById('profile-avatar').textContent = userProfile.username.charAt(0).toUpperCase();
+            document.getElementById('profile-name').textContent = userProfile.username;
+            document.getElementById('reputation-score').textContent = '850';
+            document.getElementById('verification-level').textContent = 'Level 3';
+        }
+
+        async function loadKYCStatus() {
+            const kycContainer = document.getElementById('kyc-content');
+            kycContainer.innerHTML = '<div class="loading">Loading KYC status...</div>';
+
+            try {
+                kycStatus = {
+                    personalInfo: { status: 'verified', date: '2024-01-20' },
+                    identityDocument: { status: 'verified', date: '2024-01-20' },
+                    addressProof: { status: 'verified', date: '2024-01-20' },
+                    financialInfo: { status: 'pending', date: '2024-01-25' },
+                    sourceOfFunds: { status: 'unverified', date: null }
+                };
+
+                renderKYCStatus();
+            } catch (error) {
+                console.error('Error loading KYC status:', error);
+            }
+        }
+
+        function renderKYCStatus() {
+            const kycContainer = document.getElementById('kyc-content');
+            
+            const kycItems = [
+                { key: 'personalInfo', title: 'Personal Information', description: 'Basic personal details verification' },
+                { key: 'identityDocument', title: 'Identity Document', description: 'Government-issued ID verification' },
+                { key: 'addressProof', title: 'Address Proof', description: 'Residential address verification' },
+                { key: 'financialInfo', title: 'Financial Information', description: 'Bank account and financial details' },
+                { key: 'sourceOfFunds', title: 'Source of Funds', description: 'Income and fund source verification' }
+            ];
+
+            kycContainer.innerHTML = `
+                <div class="card">
+                    <h3>KYC Verification Status</h3>
+                    ${kycItems.map(item => {
+                        const status = kycStatus[item.key];
+                        const statusClass = status.status === 'verified' ? 'verified' : 
+                                          status.status === 'pending' ? 'pending' : 'unverified';
+                        const statusIcon = status.status === 'verified' ? '✅' : 
+                                         status.status === 'pending' ? '⏳' : '❌';
+                        
+                        return `
+                            <div class="kyc-status">
+                                <div class="kyc-icon ${statusClass}">${statusIcon}</div>
+                                <div class="kyc-info">
+                                    <div class="kyc-title">${item.title}</div>
+                                    <div class="kyc-description">${item.description}</div>
+                                    ${status.date ? `<div class="kyc-description">Verified: ${status.date}</div>` : ''}
+                                </div>
+                                ${status.status === 'unverified' ? 
+                                    `<button class="btn btn-secondary" onclick="startKYC('${item.key}')">Start Verification</button>` : 
+                                    status.status === 'pending' ? 
+                                    `<button class="btn btn-warning" onclick="checkKYCStatus('${item.key}')">Check Status</button>` :
+                                    `<button class="btn btn-success" disabled>Verified</button>`
+                                }
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div class="card">
+                    <h3>KYC Benefits</h3>
+                    <ul style="color: #4a5568; line-height: 1.6;">
+                        <li>Higher transaction limits</li>
+                        <li>Access to advanced DeFi features</li>
+                        <li>Enhanced security and fraud protection</li>
+                        <li>Priority customer support</li>
+                        <li>Governance voting rights</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        async function loadPrivacySettings() {
+            const privacyContainer = document.getElementById('privacy-content');
+            privacyContainer.innerHTML = '<div class="loading">Loading privacy settings...</div>';
+
+            try {
+                privacySettings = {
+                    profileVisibility: true,
+                    activityVisibility: false,
+                    allowDirectMessages: true,
+                    showOnlineStatus: true,
+                    dataSharing: false,
+                    analyticsTracking: true,
+                    marketingEmails: false,
+                    thirdPartySharing: false
+                };
+
+                renderPrivacySettings();
+            } catch (error) {
+                console.error('Error loading privacy settings:', error);
+            }
+        }
+
+        function renderPrivacySettings() {
+            const privacyContainer = document.getElementById('privacy-content');
+            
+            const privacyOptions = [
+                { key: 'profileVisibility', title: 'Public Profile', description: 'Allow others to view your profile' },
+                { key: 'activityVisibility', title: 'Activity Visibility', description: 'Show your activity to others' },
+                { key: 'allowDirectMessages', title: 'Direct Messages', description: 'Allow others to send you messages' },
+                { key: 'showOnlineStatus', title: 'Online Status', description: 'Show when you are online' },
+                { key: 'dataSharing', title: 'Data Sharing', description: 'Share data with ATLAS partners' },
+                { key: 'analyticsTracking', title: 'Analytics Tracking', description: 'Allow analytics and usage tracking' },
+                { key: 'marketingEmails', title: 'Marketing Emails', description: 'Receive marketing communications' },
+                { key: 'thirdPartySharing', title: 'Third-party Sharing', description: 'Share data with third parties' }
+            ];
+
+            privacyContainer.innerHTML = `
+                <div class="card">
+                    <h3>Privacy Controls</h3>
+                    ${privacyOptions.map(option => `
+                        <div class="privacy-option">
+                            <div class="privacy-info">
+                                <div class="privacy-title">${option.title}</div>
+                                <div class="privacy-description">${option.description}</div>
+                            </div>
+                            <div class="toggle-switch ${privacySettings[option.key] ? 'active' : ''}" 
+                                 onclick="togglePrivacy('${option.key}')"></div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="card">
+                    <h3>Data Management</h3>
+                    <button class="btn btn-secondary" onclick="exportData()">Export My Data</button>
+                    <button class="btn btn-warning" onclick="anonymizeData()">Anonymize Data</button>
+                    <button class="btn" style="background: #e53e3e;" onclick="deleteAccount()">Delete Account</button>
+                </div>
+            `;
+        }
+
+        async function loadVerificationOptions() {
+            const verificationContainer = document.getElementById('verification-content');
+            verificationContainer.innerHTML = '<div class="loading">Loading verification options...</div>';
+
+            try {
+                const verificationOptions = [
+                    { name: 'Email Verification', status: 'verified', icon: '📧' },
+                    { name: 'Phone Verification', status: 'verified', icon: '📱' },
+                    { name: 'Two-Factor Authentication', status: 'active', icon: '🔐' },
+                    { name: 'Social Media Verification', status: 'pending', icon: '🌐' },
+                    { name: 'Professional Verification', status: 'unverified', icon: '💼' },
+                    { name: 'Community Verification', status: 'unverified', icon: '👥' }
+                ];
+
+                verificationContainer.innerHTML = `
+                    <div class="card">
+                        <h3>Identity Verification Methods</h3>
+                        ${verificationOptions.map(option => {
+                            const statusClass = option.status === 'verified' || option.status === 'active' ? 'verified' : 
+                                              option.status === 'pending' ? 'pending' : 'unverified';
+                            const statusIcon = option.status === 'verified' || option.status === 'active' ? '✅' : 
+                                             option.status === 'pending' ? '⏳' : '❌';
+                            
+                            return `
+                                <div class="kyc-status">
+                                    <div class="kyc-icon ${statusClass}">${option.icon}</div>
+                                    <div class="kyc-info">
+                                        <div class="kyc-title">${option.name}</div>
+                                        <div class="kyc-description">Status: ${option.status}</div>
+                                    </div>
+                                    ${option.status === 'unverified' ? 
+                                        `<button class="btn btn-secondary" onclick="startVerification('${option.name}')">Verify</button>` : 
+                                        option.status === 'pending' ? 
+                                        `<button class="btn btn-warning" onclick="checkVerificationStatus('${option.name}')">Check</button>` :
+                                        `<button class="btn btn-success" disabled>Verified</button>`
+                                    }
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading verification options:', error);
+            }
+        }
+
+        async function loadActivityHistory() {
+            const activityContainer = document.getElementById('activity-content');
+            activityContainer.innerHTML = '<div class="loading">Loading activity history...</div>';
+
+            try {
+                const activities = [
+                    { type: 'login', title: 'Logged in', time: '2 hours ago', icon: '🔐' },
+                    { type: 'transaction', title: 'Sent 100 ATLAS', time: '1 day ago', icon: '💸' },
+                    { type: 'stake', title: 'Staked 500 ATLAS', time: '3 days ago', icon: '🔒' },
+                    { type: 'governance', title: 'Voted on proposal #123', time: '1 week ago', icon: '🗳️' },
+                    { type: 'social', title: 'Created a post', time: '1 week ago', icon: '📝' },
+                    { type: 'defi', title: 'Added liquidity to ATLAS/USDC', time: '2 weeks ago', icon: '💧' }
+                ];
+
+                activityContainer.innerHTML = `
+                    <div class="card">
+                        <h3>Recent Activity</h3>
+                        ${activities.map(activity => `
+                            <div class="activity-item">
+                                <div class="activity-icon">${activity.icon}</div>
+                                <div class="activity-info">
+                                    <div class="activity-title">${activity.title}</div>
+                                    <div class="activity-time">${activity.time}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Activity Statistics</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                            <div style="text-align: center; padding: 15px; background: rgba(66, 153, 225, 0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 600; color: #4299e1;">15</div>
+                                <div style="font-size: 0.9rem; color: #718096;">Transactions</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: rgba(72, 187, 120, 0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 600; color: #48bb78;">8</div>
+                                <div style="font-size: 0.9rem; color: #718096;">Governance Votes</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: rgba(237, 137, 54, 0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 600; color: #ed8936;">23</div>
+                                <div style="font-size: 0.9rem; color: #718096;">Social Posts</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading activity history:', error);
+            }
+        }
+
+        async function loadReputationData() {
+            const reputationContainer = document.getElementById('reputation-content');
+            reputationContainer.innerHTML = '<div class="loading">Loading reputation data...</div>';
+
+            try {
+                const reputationData = {
+                    score: 850,
+                    level: 'Trusted',
+                    badges: ['Early Adopter', 'Active Voter', 'DeFi User', 'Social Contributor'],
+                    metrics: {
+                        transactions: 45,
+                        governanceVotes: 12,
+                        socialContributions: 28,
+                        communityHelps: 15
+                    }
+                };
+
+                reputationContainer.innerHTML = `
+                    <div class="reputation-score">
+                        <div class="score-value">${reputationData.score}</div>
+                        <div class="score-label">${reputationData.level}</div>
+                        <div class="score-description">Your reputation score based on activity and community contributions</div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Reputation Badges</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            ${reputationData.badges.map(badge => `
+                                <div style="background: rgba(66, 153, 225, 0.1); color: #4299e1; padding: 8px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+                                    ${badge}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Reputation Metrics</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                            <div style="text-align: center; padding: 15px; background: rgba(66, 153, 225, 0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 600; color: #4299e1;">${reputationData.metrics.transactions}</div>
+                                <div style="font-size: 0.9rem; color: #718096;">Transactions</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: rgba(72, 187, 120, 0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 600; color: #48bb78;">${reputationData.metrics.governanceVotes}</div>
+                                <div style="font-size: 0.9rem; color: #718096;">Governance Votes</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: rgba(237, 137, 54, 0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 600; color: #ed8936;">${reputationData.metrics.socialContributions}</div>
+                                <div style="font-size: 0.9rem; color: #718096;">Social Posts</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 600; color: #667eea;">${reputationData.metrics.communityHelps}</div>
+                                <div style="font-size: 0.9rem; color: #718096;">Community Helps</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading reputation data:', error);
+            }
+        }
+
+        // Identity management functions
+        function updateProfile() {
+            showMessage('Profile updated successfully!', 'success');
+        }
+
+        function updateSocialLinks() {
+            showMessage('Social links updated successfully!', 'success');
+        }
+
+        function startKYC(kycType) {
+            showMessage(`Starting ${kycType} verification...`, 'success');
+        }
+
+        function checkKYCStatus(kycType) {
+            showMessage(`Checking ${kycType} status...`, 'success');
+        }
+
+        function togglePrivacy(setting) {
+            privacySettings[setting] = !privacySettings[setting];
+            renderPrivacySettings();
+            showMessage(`Privacy setting updated!`, 'success');
+        }
+
+        function exportData() {
+            showMessage('Data export initiated!', 'success');
+        }
+
+        function anonymizeData() {
+            showMessage('Data anonymization initiated!', 'success');
+        }
+
+        function deleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                showMessage('Account deletion initiated!', 'success');
+            }
+        }
+
+        function startVerification(verificationType) {
+            showMessage(`Starting ${verificationType}...`, 'success');
+        }
+
+        function checkVerificationStatus(verificationType) {
+            showMessage(`Checking ${verificationType} status...`, 'success');
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.right = '20px';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.style.padding = '15px 20px';
+            messageDiv.style.borderRadius = '8px';
+            messageDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html> 

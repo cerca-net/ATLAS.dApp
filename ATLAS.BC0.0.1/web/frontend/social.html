@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATLAS Social Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e0 100%);
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(72, 187, 120, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(66, 153, 225, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            color: #1a202c;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 50%, #718096 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.01em;
+        }
+
+        .back-btn {
+            background: rgba(45, 55, 72, 0.8);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 22px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(45, 55, 72, 0.9);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .social-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            min-height: calc(100vh - 150px);
+        }
+
+        .sidebar, .main-content, .right-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.08),
+                0 8px 16px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar:hover, .main-content:hover, .right-sidebar:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.12),
+                0 12px 24px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .nav-menu {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .nav-menu li {
+            margin-bottom: 10px;
+        }
+
+        .nav-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .nav-menu a::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .nav-menu a[data-section="feed"]::before { content: '📰'; }
+        .nav-menu a[data-section="create"]::before { content: '✏️'; }
+        .nav-menu a[data-section="profile"]::before { content: '👤'; }
+        .nav-menu a[data-section="trending"]::before { content: '🔥'; }
+        .nav-menu a[data-section="moderation"]::before { content: '🛡️'; }
+
+        .post-form {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .post-input {
+            width: 100%;
+            min-height: 100px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            background: rgba(255,255,255,0.9);
+            transition: all 0.3s ease;
+        }
+
+        .post-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .post-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .post-option {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .post-option:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .post-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .post-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .feed-item {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .feed-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+
+        .post-author {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 2px;
+        }
+
+        .post-time {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .post-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .post-actions-bar {
+            display: flex;
+            gap: 20px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            color: #718096;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .action-btn.liked {
+            color: #e53e3e;
+        }
+
+        .comments-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .comment {
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .comment-content {
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .trending-topics {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .trending-topic {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .trending-topic:last-child {
+            border-bottom: none;
+        }
+
+        .topic-name {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .topic-count {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .profile-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0 auto 15px;
+        }
+
+        .profile-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        .moderation-panel {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .moderation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .moderation-item:last-child {
+            border-bottom: none;
+        }
+
+        .moderation-action {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.9);
+            margin-bottom: 20px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 1200px) {
+            .social-layout {
+                grid-template-columns: 250px 1fr 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .social-layout {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 ATLAS Social Platform</h1>
+            <a href="index.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="social-layout">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <ul class="nav-menu">
+                    <li><a href="#" data-section="feed" class="active">📰 Social Feed</a></li>
+                    <li><a href="#" data-section="create">✏️ Create Post</a></li>
+                    <li><a href="#" data-section="trending">🔥 Trending Topics</a></li>
+                    <li><a href="#" data-section="moderation">🛡️ Content Moderation</a></li>
+                </ul>
+
+                <div class="profile-section">
+                    <div class="profile-avatar" id="profile-avatar">U</div>
+                    <div class="profile-name" id="profile-name">User</div>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="posts-count">0</div>
+                            <div class="stat-label">Posts</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="followers-count">0</div>
+                            <div class="stat-label">Followers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="following-count">0</div>
+                            <div class="stat-label">Following</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Social Feed Section -->
+                <div id="feed-section" class="section active">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">📰 Social Feed</h2>
+                    <div id="social-feed">
+                        <div class="loading">Loading social feed...</div>
+                    </div>
+                </div>
+
+                <!-- Create Post Section -->
+                <div id="create-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">✏️ Create New Post</h2>
+                    <div class="post-form">
+                        <textarea id="post-content" class="post-input" placeholder="What's on your mind? Share your thoughts with the ATLAS community..."></textarea>
+                        <div class="post-actions">
+                            <div class="post-options">
+                                <div class="post-option" onclick="togglePrivacy()">🌍 Public</div>
+                                <div class="post-option" onclick="addHashtag()"># Add Hashtag</div>
+                                <div class="post-option" onclick="addImage()">📷 Add Image</div>
+                            </div>
+                            <button class="post-btn" onclick="createPost()">Post</button>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- Trending Topics Section -->
+                <div id="trending-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">🔥 Trending Topics</h2>
+                    <div id="trending-topics">
+                        <div class="loading">Loading trending topics...</div>
+                    </div>
+                </div>
+
+                <!-- Content Moderation Section -->
+                <div id="moderation-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">🛡️ Content Moderation</h2>
+                    <div id="moderation-panel">
+                        <div class="loading">Loading moderation queue...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="right-sidebar">
+                <input type="text" class="search-box" placeholder="🔍 Search posts..." id="search-input">
+                
+                <h3 style="margin-bottom: 15px; color: #2d3748;">🔥 Trending Now</h3>
+                <ul class="trending-topics" id="trending-sidebar">
+                    <div class="loading">Loading trends...</div>
+                </ul>
+
+                <h3 style="margin-bottom: 15px; color: #2d3748; margin-top: 30px;">👥 Suggested Users</h3>
+                <div id="suggested-users">
+                    <div class="loading">Loading suggestions...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script>
+        // Global variables
+        let currentUser = null;
+        let posts = [];
+        let trendingTopics = [];
+
+        // Initialize the social platform
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSocialPlatform();
+            setupNavigation();
+        });
+
+        function initializeSocialPlatform() {
+            // Get current user from localStorage or API
+            currentUser = localStorage.getItem('currentUser') || 'user123';
+            
+            // Load initial data
+            loadSocialFeed();
+            loadTrendingTopics();
+            loadUserProfile();
+            loadModerationQueue();
+        }
+
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.nav-menu a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    // Show corresponding section
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
+        }
+
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName + '-section').classList.add('active');
+            
+            // Load section-specific data
+            switch(sectionName) {
+                case 'feed':
+                    loadSocialFeed();
+                    break;
+                case 'trending':
+                    loadTrendingTopics();
+                    break;
+                case 'moderation':
+                    loadModerationQueue();
+                    break;
+            }
+        }
+
+        async function loadSocialFeed() {
+            const feedContainer = document.getElementById('social-feed');
+            feedContainer.innerHTML = '<div class="loading">Loading social feed...</div>';
+
+            try {
+                const response = await fetch(`http://localhost:${window.currentApiPort || 8080}/social/feed`);
+                if (response.ok) {
+                    const data = await response.json();
+                    posts = data.posts || [];
+                    renderSocialFeed(posts);
+                } else {
+                    // Mock data for demonstration
+                    posts = generateMockPosts();
+                    renderSocialFeed(posts);
+                }
+            } catch (error) {
+                console.error('Error loading social feed:', error);
+                // Mock data for demonstration
+                posts = generateMockPosts();
+                renderSocialFeed(posts);
+            }
+        }
+
+        function renderSocialFeed(posts) {
+            const feedContainer = document.getElementById('social-feed');
+            
+            if (posts.length === 0) {
+                feedContainer.innerHTML = '<div class="loading">No posts yet. Be the first to post!</div>';
+                return;
+            }
+
+            feedContainer.innerHTML = posts.map(post => `
+                <div class="feed-item" data-post-id="${post.id}">
+                    <div class="post-header">
+                        <div class="post-avatar">${post.author.charAt(0).toUpperCase()}</div>
+                        <div>
+                            <div class="post-author">${post.author}</div>
+                            <div class="post-time">${formatTime(post.timestamp)}</div>
+                        </div>
+                    </div>
+                    <div class="post-content">${post.content}</div>
+                    <div class="post-actions-bar">
+                        <button class="action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                            ❤️ ${post.likes || 0}
+                        </button>
+                        <button class="action-btn" onclick="showComments('${post.id}')">
+                            💬 ${post.comments ? post.comments.length : 0}
+                        </button>
+                        <button class="action-btn" onclick="sharePost('${post.id}')">
+                            🔄 Share
+                        </button>
+                        <button class="action-btn" onclick="reportPost('${post.id}')">
+                            ⚠️ Report
+                        </button>
+                    </div>
+                    <div class="comments-section" id="comments-${post.id}" style="display: none;">
+                        ${renderComments(post.comments || [])}
+                        <div style="margin-top: 10px;">
+                            <input type="text" placeholder="Add a comment..." class="post-input" style="height: 40px;" 
+                                   onkeypress="if(event.key === 'Enter') addComment('${post.id}', this.value)">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderComments(comments) {
+            if (!comments || comments.length === 0) {
+                return '<div style="color: #718096; font-style: italic;">No comments yet.</div>';
+            }
+
+            return comments.map(comment => `
+                <div class="comment">
+                    <div class="comment-author">${comment.author}</div>
+                    <div class="comment-content">${comment.content}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadTrendingTopics() {
+            try {
+                const response = await fetch(`http://localhost:${window.currentApiPort || 8080}/social/trending`);
+                if (response.ok) {
+                    const data = await response.json();
+                    trendingTopics = data.topics || [];
+                } else {
+                    // Mock data
+                    trendingTopics = [
+                        { name: '#ATLAS', count: 1250 },
+                        { name: '#Blockchain', count: 890 },
+                        { name: '#DeFi', count: 756 },
+                        { name: '#SocialFi', count: 432 },
+                        { name: '#Governance', count: 321 }
+                    ];
+                }
+                renderTrendingTopics();
+            } catch (error) {
+                console.error('Error loading trending topics:', error);
+                // Mock data
+                trendingTopics = [
+                    { name: '#ATLAS', count: 1250 },
+                    { name: '#Blockchain', count: 890 },
+                    { name: '#DeFi', count: 756 },
+                    { name: '#SocialFi', count: 432 },
+                    { name: '#Governance', count: 321 }
+                ];
+                renderTrendingTopics();
+            }
+        }
+
+        function renderTrendingTopics() {
+            const mainContainer = document.getElementById('trending-topics');
+            const sidebarContainer = document.getElementById('trending-sidebar');
+
+            const topicsHTML = trendingTopics.map(topic => `
+                <li class="trending-topic">
+                    <span class="topic-name">${topic.name}</span>
+                    <span class="topic-count">${topic.count}</span>
+                </li>
+            `).join('');
+
+            if (mainContainer) mainContainer.innerHTML = topicsHTML;
+            if (sidebarContainer) sidebarContainer.innerHTML = topicsHTML;
+        }
+
+
+
+        async function loadModerationQueue() {
+            const moderationContainer = document.getElementById('moderation-panel');
+            moderationContainer.innerHTML = '<div class="loading">Loading moderation queue...</div>';
+
+            // Mock moderation data
+            const moderationItems = [
+                { id: 1, type: 'post', content: 'Inappropriate content detected', author: 'user456', action: 'review' },
+                { id: 2, type: 'comment', content: 'Spam comment', author: 'user789', action: 'review' }
+            ];
+
+            moderationContainer.innerHTML = moderationItems.map(item => `
+                <div class="moderation-item">
+                    <div>
+                        <div style="font-weight: 600;">${item.type.toUpperCase()}</div>
+                        <div style="font-size: 0.9rem; color: #718096;">${item.content}</div>
+                        <div style="font-size: 0.8rem; color: #a0aec0;">by ${item.author}</div>
+                    </div>
+                    <button class="moderation-action" onclick="moderateContent(${item.id}, 'approve')">Approve</button>
+                    <button class="moderation-action" onclick="moderateContent(${item.id}, 'reject')">Reject</button>
+                </div>
+            `).join('');
+        }
+
+        // Post interaction functions
+        async function createPost() {
+            const content = document.getElementById('post-content').value.trim();
+            if (!content) {
+                alert('Please enter some content for your post.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:${window.currentApiPort || 8080}/social/post/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        author: currentUser,
+                        content: content,
+                        visibility: 'public',
+                        category: 'general'
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('post-content').value = '';
+                    showMessage('Post created successfully!', 'success');
+                    loadSocialFeed(); // Refresh feed
+                } else {
+                    showMessage('Failed to create post. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Error creating post:', error);
+                showMessage('Failed to create post. Please try again.', 'error');
+            }
+        }
+
+        async function toggleLike(postId) {
+            try {
+                const post = posts.find(p => p.id === postId);
+                const action = post.liked ? 'unlike' : 'like';
+                
+                const response = await fetch(`http://localhost:${window.currentApiPort || 8080}/social/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        postId: postId,
+                        user: currentUser
+                    })
+                });
+
+                if (response.ok) {
+                    // Update local state
+                    post.liked = !post.liked;
+                    post.likes = post.liked ? (post.likes || 0) + 1 : (post.likes || 1) - 1;
+                    renderSocialFeed(posts);
+                }
+            } catch (error) {
+                console.error('Error toggling like:', error);
+            }
+        }
+
+        function showComments(postId) {
+            const commentsSection = document.getElementById(`comments-${postId}`);
+            commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function addComment(postId, content) {
+            if (!content.trim()) return;
+
+            try {
+                const response = await fetch(`http://localhost:${window.currentApiPort || 8080}/social/comment/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        postId: postId,
+                        author: currentUser,
+                        content: content
+                    })
+                });
+
+                if (response.ok) {
+                    // Refresh comments
+                    loadSocialFeed();
+                }
+            } catch (error) {
+                console.error('Error adding comment:', error);
+            }
+        }
+
+        async function reportPost(postId) {
+            try {
+                const response = await fetch(`http://localhost:${window.currentApiPort || 8080}/social/report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        postId: postId,
+                        reporter: currentUser,
+                        reason: 'Inappropriate content'
+                    })
+                });
+
+                if (response.ok) {
+                    showMessage('Post reported successfully.', 'success');
+                }
+            } catch (error) {
+                console.error('Error reporting post:', error);
+            }
+        }
+
+        // Utility functions
+        function generateMockPosts() {
+            return [
+                {
+                    id: '1',
+                    author: 'ATLAS User',
+                    content: 'Just deployed my first smart contract on ATLAS! The development experience is amazing. #ATLAS #Blockchain #SmartContracts',
+                    timestamp: Date.now() - 3600000,
+                    likes: 15,
+                    liked: false,
+                    comments: [
+                        { author: 'BlockchainDev', content: 'Congratulations! What kind of contract did you deploy?' },
+                        { author: 'CryptoFan', content: 'Welcome to the ATLAS community! 🚀' }
+                    ]
+                },
+                {
+                    id: '2',
+                    author: 'DeFi Enthusiast',
+                    content: 'The DeFi features on ATLAS are incredible! Just staked my tokens and earning rewards. The yield farming opportunities are endless. #DeFi #Staking #ATLAS',
+                    timestamp: Date.now() - 7200000,
+                    likes: 23,
+                    liked: true,
+                    comments: [
+                        { author: 'YieldFarmer', content: 'What\'s your APY looking like?' },
+                        { author: 'ATLAS User', content: 'The staking rewards are really competitive!' }
+                    ]
+                },
+                {
+                    id: '3',
+                    author: 'Governance Pro',
+                    content: 'Participated in my first governance proposal today. The voting mechanism is so smooth and transparent. Democracy on the blockchain! #Governance #DAO #ATLAS',
+                    timestamp: Date.now() - 10800000,
+                    likes: 8,
+                    liked: false,
+                    comments: []
+                }
+            ];
+        }
+
+        function formatTime(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.right = '20px';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.style.padding = '15px 20px';
+            messageDiv.style.borderRadius = '8px';
+            messageDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // Post creation helpers
+        function togglePrivacy() {
+            // Toggle privacy settings
+            console.log('Privacy toggled');
+        }
+
+        function addHashtag() {
+            const input = document.getElementById('post-content');
+            input.value += ' #';
+            input.focus();
+        }
+
+        function addImage() {
+            // Add image upload functionality
+            console.log('Image upload clicked');
+        }
+
+        function sharePost(postId) {
+            // Share post functionality
+            console.log('Sharing post:', postId);
+        }
+
+
+
+        function moderateContent(contentId, action) {
+            // Content moderation functionality
+            showMessage(`Content ${action}ed successfully!`, 'success');
+        }
+
+        // Search functionality
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.length > 2) {
+                // Implement search functionality
+                console.log('Searching for:', searchTerm);
+            }
+        });
+    </script>
+</body>
+</html> 

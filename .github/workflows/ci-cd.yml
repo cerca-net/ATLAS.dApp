@@ -1,0 +1,161 @@
+# =============================================================================
+# Cerca Network - CI/CD Pipeline
+# =============================================================================
+# Builds, tests, and deploys blockchain and frontend containers
+# =============================================================================
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  BLOCKCHAIN_IMAGE: ${{ github.repository }}/atlas-blockchain
+  FRONTEND_IMAGE: ${{ github.repository }}/cercaend
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Stage 1: Build & Test Blockchain
+  # ---------------------------------------------------------------------------
+  build-blockchain:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Run Go Tests
+        working-directory: ./ATLAS.BC0.0.1
+        run: |
+          go mod download
+          go test ./... -v
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Blockchain Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ATLAS.BC0.0.1
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.BLOCKCHAIN_IMAGE }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.BLOCKCHAIN_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  # Stage 2: Build Frontend
+  # ---------------------------------------------------------------------------
+  build-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./cercaend
+          build-args: |
+            BLOCKCHAIN_API_URL=http://blockchain:8080
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  # Stage 3: Integration Test (Devnet)
+  # ---------------------------------------------------------------------------
+  integration-test:
+    needs: [build-blockchain, build-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start Devnet
+        run: docker compose -f docker-compose.devnet.yml up -d --build
+
+      - name: Wait for Services
+        run: |
+          echo "Waiting for blockchain to start..."
+          sleep 30
+
+      - name: Blockchain Health Check
+        run: |
+          curl -f http://localhost:8080/status || exit 1
+          echo "✅ Blockchain is healthy"
+
+      - name: Frontend Health Check
+        run: |
+          curl -f http://localhost:3000 || exit 1
+          echo "✅ Frontend is healthy"
+
+      - name: Test Faucet Endpoint
+        run: |
+          curl -X POST http://localhost:8080/faucet \
+            -H "Content-Type: application/json" \
+            -d '{"address":"test_address_123"}' || exit 1
+          echo "✅ Faucet endpoint working"
+
+      - name: Teardown
+        if: always()
+        run: docker compose -f docker-compose.devnet.yml down -v
+
+  # ---------------------------------------------------------------------------
+  # Stage 4: Deploy to Production
+  # ---------------------------------------------------------------------------
+  deploy:
+    needs: [integration-test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /opt/cerca
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker system prune -f
+            echo "✅ Deployment complete"

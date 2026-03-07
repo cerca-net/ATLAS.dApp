@@ -1,0 +1,7 @@
+# atlas-blockchain/internal/blockchain
+internal\blockchain\consensus.go:566:27: not enough arguments in call to transactionManager.GetTransactionsForBlock
+	have ()
+	want (int)
+internal\blockchain\consensus.go:582:9: not enough arguments in call to transactionManager.GetTransactionsForBlock
+	have ()
+	want (int)

@@ -1,0 +1,261 @@
+{
+  "flutterflow_integration": {
+    "description": "Example FlutterFlow API configurations for blockchain integration",
+    "base_url": "http://localhost:8080",
+    "endpoints": {
+      "connect_wallet": {
+        "name": "Connect Wallet",
+        "method": "POST",
+        "url": "http://localhost:8080/flutterflow/connect-wallet",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "action": "create"
+        },
+        "response_mapping": {
+          "walletAddress": "response.data.address",
+          "sessionToken": "response.data.sessionToken",
+          "walletBalance": "response.data.balance"
+        }
+      },
+      "authenticate": {
+        "name": "Authenticate Session",
+        "method": "POST",
+        "url": "http://localhost:8080/flutterflow/authenticate",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "sessionToken": "{{sessionToken}}",
+          "address": "{{walletAddress}}"
+        },
+        "response_mapping": {
+          "isAuthenticated": "response.success",
+          "balance": "response.data.balance",
+          "isValidator": "response.data.isValidator"
+        }
+      },
+      "get_wallet_info": {
+        "name": "Get Wallet Information",
+        "method": "GET",
+        "url": "http://localhost:8080/flutterflow/wallet-info?address={{walletAddress}}",
+        "headers": {},
+        "body": {},
+        "response_mapping": {
+          "balance": "response.data.balance",
+          "isValidator": "response.data.isValidator",
+          "recentTransactions": "response.data.recentTransactions",
+          "nonce": "response.data.nonce"
+        }
+      },
+      "send_transaction": {
+        "name": "Send Transaction",
+        "method": "POST",
+        "url": "http://localhost:8080/flutterflow/send-transaction",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "from": "{{walletAddress}}",
+          "to": "{{recipientAddress}}",
+          "amount": "{{amount}}",
+          "fee": 1,
+          "data": "{{optionalData}}",
+          "signature": "{{transactionSignature}}",
+          "sessionToken": "{{sessionToken}}"
+        },
+        "response_mapping": {
+          "transactionHash": "response.data.transactionHash",
+          "status": "response.data.status",
+          "success": "response.success"
+        }
+      },
+      "get_transaction_history": {
+        "name": "Get Transaction History",
+        "method": "GET",
+        "url": "http://localhost:8080/flutterflow/transaction-history?address={{walletAddress}}",
+        "headers": {},
+        "body": {},
+        "response_mapping": {
+          "transactions": "response.data.transactions",
+          "totalCount": "response.data.totalCount"
+        }
+      },
+      "disconnect_wallet": {
+        "name": "Disconnect Wallet",
+        "method": "POST",
+        "url": "http://localhost:8080/flutterflow/disconnect",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "sessionToken": "{{sessionToken}}",
+          "address": "{{walletAddress}}"
+        },
+        "response_mapping": {
+          "success": "response.success",
+          "disconnectedAt": "response.data.disconnectedAt"
+        }
+      },
+      "faucet": {
+        "name": "Get Test Tokens (Faucet)",
+        "method": "POST",
+        "url": "http://localhost:8080/faucet",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "address": "{{walletAddress}}"
+        },
+        "response_mapping": {
+          "amount": "response.amount",
+          "newBalance": "response.new_balance",
+          "status": "response.status"
+        }
+      }
+    },
+    "flutterflow_variables": {
+      "required_variables": [
+        {
+          "name": "walletAddress",
+          "type": "String",
+          "description": "User's wallet address"
+        },
+        {
+          "name": "sessionToken",
+          "type": "String",
+          "description": "Session token for authentication"
+        },
+        {
+          "name": "walletBalance",
+          "type": "Number",
+          "description": "Current wallet balance"
+        },
+        {
+          "name": "isAuthenticated",
+          "type": "Boolean",
+          "description": "Whether user is authenticated"
+        },
+        {
+          "name": "transactions",
+          "type": "List",
+          "description": "List of user transactions"
+        }
+      ],
+      "optional_variables": [
+        {
+          "name": "recipientAddress",
+          "type": "String",
+          "description": "Recipient address for transactions"
+        },
+        {
+          "name": "transactionAmount",
+          "type": "Number",
+          "description": "Amount to send in transaction"
+        },
+        {
+          "name": "isValidator",
+          "type": "Boolean",
+          "description": "Whether user is a validator"
+        }
+      ]
+    },
+    "ui_components": {
+      "wallet_connection_screen": {
+        "description": "Screen for connecting wallet",
+        "components": [
+          {
+            "type": "Text",
+            "content": "Blockchain Wallet",
+            "style": "title"
+          },
+          {
+            "type": "ElevatedButton",
+            "text": "Connect Wallet",
+            "action": "connect_wallet"
+          },
+          {
+            "type": "ConditionalWidget",
+            "condition": "walletAddress != null",
+            "widgets": [
+              {
+                "type": "Text",
+                "content": "Address: {{walletAddress.substring(0, 10)}}..."
+              },
+              {
+                "type": "Text",
+                "content": "Balance: {{walletBalance}} tokens"
+              }
+            ]
+          }
+        ]
+      },
+      "transaction_screen": {
+        "description": "Screen for sending transactions",
+        "components": [
+          {
+            "type": "TextField",
+            "label": "Recipient Address",
+            "controller": "recipientController"
+          },
+          {
+            "type": "TextField",
+            "label": "Amount",
+            "keyboardType": "number",
+            "controller": "amountController"
+          },
+          {
+            "type": "ElevatedButton",
+            "text": "Send Transaction",
+            "action": "send_transaction"
+          }
+        ]
+      },
+      "transaction_history_screen": {
+        "description": "Screen for viewing transaction history",
+        "components": [
+          {
+            "type": "ListView.builder",
+            "itemCount": "transactions.length",
+            "itemBuilder": {
+              "type": "ListTile",
+              "title": "Text('{{transactions[index].type}} - {{transactions[index].amount}} tokens')",
+              "subtitle": "Text('Block: {{transactions[index].blockIndex}}')",
+              "trailing": "Text('{{DateTime.fromMillisecondsSinceEpoch(transactions[index].timestamp * 1000)}}')"
+            }
+          }
+        ]
+      }
+    },
+    "error_handling": {
+      "network_errors": {
+        "description": "Handle network connection issues",
+        "flutterflow_action": "Show Alert Dialog",
+        "title": "Connection Error",
+        "message": "Unable to connect to blockchain. Please check your internet connection."
+      },
+      "api_errors": {
+        "description": "Handle API response errors",
+        "flutterflow_action": "Show Alert Dialog",
+        "title": "API Error",
+        "message": "{{response.body}}"
+      },
+      "validation_errors": {
+        "description": "Handle input validation errors",
+        "flutterflow_action": "Show Alert Dialog",
+        "title": "Invalid Input",
+        "message": "Please check your input and try again."
+      }
+    },
+    "testing": {
+      "test_script": "test_flutterflow_integration.sh",
+      "manual_testing": [
+        "1. Start blockchain: go run main.go --port=8000 --api=8080",
+        "2. Run test script: ./test_flutterflow_integration.sh",
+        "3. Verify all endpoints return 200 status",
+        "4. Test in FlutterFlow with the provided configurations"
+      ]
+    }
+  }
+} 

@@ -1,0 +1,72 @@
+2026/02/16 18:25:46 ⚠️  Failed to initialize database: failed to ping database: Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub, falling back to JSON snapshots
+2026/02/16 18:25:46 ⚠️ Database not available, using JSON snapshot fallback
+2026/02/16 18:25:46 ✅ Backup and recovery managers initialized
+2026/02/16 18:25:46 Failed to load latest snapshot: state snapshot is corrupt or invalid
+2026/02/16 18:25:46 ⚠️  Database migration failed: database not available
+2026/02/16 18:25:46 [DEBUG] NewP2PNode called with listenPort=8000, keyPath=[nodekey.priv]
+2026/02/16 18:25:46 [DEBUG] Using libp2p version: v0.42.0
+2026/02/16 18:25:46 [P2P] MDNS peer discovery enabled for local network
+2026/02/16 18:25:46 ✅ Fast sync manager initialized
+2026/02/16 18:25:46 📂 [PEER-MGR] Loaded 0 persisted peers
+2026/02/16 18:25:46 ✅ Peer manager initialized with persistence
+2026/02/16 18:25:46 [DEBUG] Our Peer ID: 12D3KooWJKURcQKQwPx2GidfGt1hx7BzX3ywmztKUu78q1e3Vb1Y
+2026/02/16 18:25:46 [DEBUG] Listening on multiaddress: /ip4/127.0.0.1/tcp/8000
+2026/02/16 18:25:46 [DEBUG] Listening on multiaddress: /ip4/192.168.0.105/tcp/8000
+2026/02/16 18:25:46 [DEBUG] Peerstore peers at startup: 12D3KooWJKURcQKQwPx2GidfGt1hx7BzX3ywmztKUu78q1e3Vb1Y
+2026/02/16 18:25:46 ⚠️ No validator key path provided, using ephemeral wallet
+2026/02/16 18:25:46 ✅ Added validator 0x3462321c24366fc17ed054c532714fa305b8936e to shard 1
+2026/02/16 18:25:46 ✅ Added validator 0x3462321c24366f... to shard 1
+2026/02/16 18:25:46 🔍 GetAccount: Getting account for 0xd28f2b1294f15d...
+2026/02/16 18:25:46 🆕 GetAccount: Creating new account for 0xd28f2b1294f15d...
+2026/02/16 18:25:46 🔍 GetAccount: Getting account for 0xd28f2b1294f15d...
+2026/02/16 18:25:46 ✅ GetAccount: Found existing account for 0xd28f2b1294f15d... with balance 0
+2026/02/16 18:25:46 💾 SetAccount: Setting account for 0xd28f2b1294f15d... with balance 1000000000
+2026/02/16 18:25:46 💰 Treasury Wallet Initialized: 0xd28f2b1294f15d29229016bff098fe1a9cfede16 (Balance: 1,000,000,000)
+2026/02/16 18:25:46 🔍 Starting real-time monitoring...
+2026/02/16 18:25:46 🔄 Starting automated backup scheduler (24h intervals)
+2026/02/16 18:25:46 🔄 Automated backup system started
+2026/02/16 18:25:46 🔄 Starting chain synchronization...
+2026/02/16 18:25:46 ⏳ Aligning block production to 18:26:00...
+2026/02/16 18:25:46 API server listening on :8080
+2026/02/16 18:25:51 📦 Creating backup: backup_1771280751_9ce3ca5538b89beb (block height: 0)
+2026/02/16 18:25:51 ⚠️ Database not available, creating JSON snapshot backup
+2026/02/16 18:25:51 🔄 [SYNC] Starting chain synchronization...
+2026/02/16 18:25:51 🔄 [SYNC] Chain synchronization started
+2026/02/16 18:25:51 📊 [SYNC] Status changed to: failed
+2026/02/16 18:25:51 ❌ [SYNC] Chain synchronization failed: sync failed
+2026/02/16 18:25:51 ❌ Failed to start chain synchronization: no valid chain statuses received from peers
+2026/02/16 18:25:51 💾 Backup metadata saved (91 backups)
+2026/02/16 18:26:00 🚀 Starting block production loop with interval: 30s
+2026/02/16 18:26:16 ℹ️  [PEER-MGR] No known peers to reconnect to
+2026/02/16 18:26:30 ⏰ Block production tick #1 - Current time: 18:26:30
+2026/02/16 18:26:30 ⏳ Activator Mode: Waiting for transactions (Pool: 0)...
+2026/02/16 18:26:46 ℹ️  [PEER-MGR] No known peers to reconnect to
+2026/02/16 18:26:46 Transaction pool size: 0
+2026/02/16 18:26:46 Validator 0x3462321c24366fc17ed054c532714fa305b8936e: Stake=1000, Active=true, SlashCount=0
+2026/02/16 18:27:00 ⏰ Block production tick #2 - Current time: 18:27:00
+2026/02/16 18:27:00 ⏳ Activator Mode: Waiting for transactions (Pool: 0)...
+2026/02/16 18:27:16 ℹ️  [PEER-MGR] No known peers to reconnect to
+2026/02/16 18:27:30 ⏰ Block production tick #3 - Current time: 18:27:30
+2026/02/16 18:27:30 ⏳ Activator Mode: Waiting for transactions (Pool: 0)...
+2026/02/16 18:27:46 ℹ️  [PEER-MGR] No known peers to reconnect to
+2026/02/16 18:27:46 Validator 0x3462321c24366fc17ed054c532714fa305b8936e: Stake=1000, Active=true, SlashCount=0
+2026/02/16 18:27:46 Transaction pool size: 0
+2026/02/16 18:28:00 ⏰ Block production tick #4 - Current time: 18:28:00
+2026/02/16 18:28:00 ⏳ Activator Mode: Waiting for transactions (Pool: 0)...
+2026/02/16 18:28:16 ℹ️  [PEER-MGR] No known peers to reconnect to
+2026/02/16 18:28:30 ⏰ Block production tick #5 - Current time: 18:28:30
+2026/02/16 18:28:30 ⏳ Activator Mode: Waiting for transactions (Pool: 0)...
+2026/02/16 18:28:46 ℹ️  [PEER-MGR] No known peers to reconnect to
+2026/02/16 18:28:46 Transaction pool size: 0
+2026/02/16 18:28:46 Validator 0x3462321c24366fc17ed054c532714fa305b8936e: Stake=1000, Active=true, SlashCount=0
+2026/02/16 18:29:00 ⏰ Block production tick #6 - Current time: 18:29:00
+2026/02/16 18:29:00 ⏳ Activator Mode: Waiting for transactions (Pool: 0)...
+2026/02/16 18:29:16 ℹ️  [PEER-MGR] No known peers to reconnect to
+2026/02/16 18:29:30 ⏰ Block production tick #7 - Current time: 18:29:30
+2026/02/16 18:29:30 ⏳ Activator Mode: Waiting for transactions (Pool: 0)...
+2026/02/16 18:29:46 ℹ️  [PEER-MGR] No known peers to reconnect to
+2026/02/16 18:29:46 Validator 0x3462321c24366fc17ed054c532714fa305b8936e: Stake=1000, Active=true, SlashCount=0
+2026/02/16 18:29:46 Transaction pool size: 0
+2026/02/16 18:30:00 ⏰ Block production tick #8 - Current time: 18:30:00
+2026/02/16 18:30:00 ⏳ Activator Mode: Waiting for transactions (Pool: 0)...
+exit status 1

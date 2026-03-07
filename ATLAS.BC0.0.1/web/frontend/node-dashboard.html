@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e0 100%);
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(72, 187, 120, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(66, 153, 225, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            color: #1a202c;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 50%, #718096 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.01em;
+        }
+
+        .back-btn {
+            background: rgba(45, 55, 72, 0.8);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 22px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(45, 55, 72, 0.9);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card, .main-panel, .side-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.08),
+                0 8px 16px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover, .main-panel:hover, .side-panel:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.12),
+                0 12px 24px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .panel-title, .card h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 10px;
+            letter-spacing: -0.01em;
+        }
+
+        .metrics-grid, .wallet-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item, .metric-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .info-value, .metric-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+            word-break: break-all;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.4);
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+
+        .validator-status {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-active {
+            background: #27ae60;
+        }
+
+        .status-inactive {
+            background: #e74c3c;
+        }
+
+        .status-pending {
+            background: #f39c12;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .log-container {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 8px;
+            padding: 12px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+        }
+
+        .log-entry {
+            margin-bottom: 2px;
+            padding: 2px;
+            border-radius: 3px;
+        }
+
+        .log-info {
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .log-warning {
+            background: rgba(243, 156, 18, 0.2);
+        }
+
+        .log-error {
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        .log-success {
+            background: rgba(39, 174, 96, 0.2);
+        }
+
+        .validator-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .validator-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 6px;
+        }
+
+        .validator-address {
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .validator-stake {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .side-panel {
+                position: static;
+                max-height: none;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .main-panel, .side-panel {
+                padding: 15px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+
+            /* Make the three-column layout stack on mobile */
+            div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                font-size: 0.75rem;
+                padding: 5px 10px;
+            }
+        }
+
+        /* Sharding Styles */
+        .sharding-section {
+            margin-top: 20px;
+        }
+        
+        .shard-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 8px 10px;
+            min-width: 0;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .shard-card h4 {
+            color: #1e3c72;
+            margin-bottom: 6px;
+            font-size: 0.92rem;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="position: relative;">
+            <h1>Network Dashboard</h1>
+            <a href="index.html" class="back-btn" style="position: absolute; top: 20px; right: 20px;">← Back to Dashboard</a>
+        </div>
+        <div id="node-dashboard-select-group" style="margin: 20px 0 30px 0; display: flex; gap: 6px; justify-content: flex-start;"></div>
+
+
+        <!-- Three Column Layout: Node Performance Metrics, Network Overview, and Validator Info -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <!-- Node Performance Metrics - Thinner -->
+            <div class="main-panel">
+                <h2 class="panel-title">Node Performance Metrics</h2>
+                
+                <div class="metrics-grid" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
+                    <div class="metric-card" style="padding:8px 6px;">
+                        <div class="metric-value" id="uptime" style="font-size:0.9rem;">-</div>
+                        <div class="metric-label" style="font-size:0.75rem;">Uptime</div>
+                    </div>
+                    <div class="metric-card" style="padding:8px 6px;">
+                        <div class="metric-value" id="blocks-produced" style="font-size:0.9rem;">-</div>
+                        <div class="metric-label" style="font-size:0.75rem;">Blocks Produced</div>
+                    </div>
+                    <div class="metric-card" style="padding:8px 6px;">
+                        <div class="metric-value" id="tx-processed" style="font-size:0.9rem;">-</div>
+                        <div class="metric-label" style="font-size:0.75rem;">Transactions Processed</div>
+                    </div>
+                </div>
+
+
+
+                <div class="control-panel" style="margin-bottom: 8px;">
+                    <h3 style="font-size: 0.9rem;">Controls</h3>
+                    <div style="display:flex; flex-direction:row; gap:4px; justify-content:center; align-items:center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="startNode()" style="font-size:0.75rem; padding:4px 8px;">▶️ Start</button>
+                        <button class="btn btn-warning" onclick="pauseNode()" style="font-size:0.75rem; padding:4px 8px;">⏸️ Pause</button>
+                        <button class="btn btn-danger" onclick="stopNode()" style="font-size:0.75rem; padding:4px 8px;">⏹️ Stop</button>
+                        <button class="btn btn-success" onclick="syncNode()" style="font-size:0.75rem; padding:4px 8px;">🔄 Sync</button>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="font-size: 0.9rem;">Node Logs</h3>
+                    <div class="log-container" id="log-container" style="height: 80px;">
+                        <div class="log-entry log-info">[INFO] Network dashboard initialized</div>
+                        <div class="log-entry log-info">[INFO] Connecting to blockchain network...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Overview -->
+            <div class="side-panel">
+                <h2 class="panel-title">Network Overview</h2>
+                
+                <div style="margin-bottom: 15px;">
+                    <h3 style="font-size: 1rem;">Active Validators</h3>
+                    <div class="validator-list" id="validator-list" style="max-height: 120px;">
+                        <div class="validator-item">
+                            <div class="validator-address">Loading validators...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h3 style="font-size: 1rem;">Network Stats</h3>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 0.85rem;">
+                        <div style="margin-bottom: 6px;"><strong>Total Validators:</strong> <span id="total-validators">-</span></div>
+                        <div style="margin-bottom: 6px;"><strong>Network Hash Rate:</strong> <span id="network-hashrate">-</span></div>
+                        <div style="margin-bottom: 6px;"><strong>Average Block Time:</strong> <span id="avg-block-time">-</span></div>
+                        <div><strong>Network Difficulty:</strong> <span id="network-difficulty">-</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 style="font-size: 1.2rem;">Validator Info</h2>
+                <div class="metrics-grid" style="display: flex; flex-direction: row; gap: 8px; margin-bottom: 10px;">
+                    <div class="metric-card" style="flex:1; min-width:0; background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); padding:8px 6px;">
+                        <div class="metric-value" id="wallet-staked" style="font-size:0.9rem;">-</div>
+                        <div class="metric-label" style="font-size:0.75rem;">Staked Tokens</div>
+                    </div>
+                    </div>
+                <div class="validator-status" style="margin-bottom: 10px;">
+                    <h3 style="font-size: 0.9rem;">Validator Status</h3>
+                    <div>
+                        <span class="status-indicator" id="validator-status-indicator"></span>
+                        <span id="validator-status-text" style="font-size: 0.8rem;">Checking...</span>
+                </div>
+                    <div style="margin-top: 8px;">
+                        <strong style="font-size: 0.8rem;">Address:</strong> <span id="validator-address" style="font-size: 0.8rem;">-</span>
+                    </div>
+                </div>
+
+                <div class="wallet-info" style="display: flex; flex-direction: row; gap: 8px; margin-bottom: 10px;">
+                    <div class="info-item" style="flex:1; min-width:0; padding:8px 6px;">
+                        <div class="info-label" style="font-size:0.75rem;">Validator Rank</div>
+                        <div class="info-value" id="validator-rank" style="font-size:0.9rem;">Not a validator</div>
+                    </div>
+                    <div class="info-item" style="flex:1; min-width:0; padding:8px 6px;">
+                        <div class="info-label" style="font-size:0.75rem;">Node Mode</div>
+                        <div class="info-value" id="node-mode" style="font-size:0.9rem;">-</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <h3 style="font-size: 1rem;">Quick Actions</h3>
+                    <div style="display: flex; flex-direction: row; gap: 6px; justify-content:center; align-items:center;">
+                        <button class="btn btn-warning" style="padding:5px 8px; font-size:0.8rem;" onclick="updateStake()">⚖️ Stake</button>
+                        <button class="btn btn-success" style="padding:5px 8px; font-size:0.8rem;" onclick="exportNodeData()">📊 Export</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="validator-status" class="status-message"></div>
+
+        <!-- Sharding Section -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h2 class="panel-title">🔗 Sharding Architecture</h2>
+            <div class="sharding-section">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; grid-template-rows: auto auto; align-items: stretch;">
+                    <div class="shard-card" style="background: #f8f9fa; border-radius: 10px; padding: 15px; border: 1px solid #e9ecef;">
+                        <h4 style="color: #1e3c72; margin-bottom: 10px; font-size: 1rem;">📊 Shard Overview</h4>
+                        <button onclick="loadShardingStatus()" class="btn" style="font-size: 0.85rem; padding: 8px 12px; margin-bottom: 10px;">🔄 Refresh Status</button>
+                        <div id="shard-overview" style="margin-top: 15px; font-size: 0.85rem;"></div>
+                    </div>
+                    <div class="shard-card" style="background: #f8f9fa; border-radius: 10px; padding: 15px; border: 1px solid #e9ecef;">
+                        <h4 style="color: #1e3c72; margin-bottom: 10px; font-size: 1rem;">👤 Validator Assignment</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="validator-address" style="font-size: 0.85rem; font-weight: 500;">Validator Address:</label>
+                                <input type="text" id="validator-address" class="form-control" placeholder="0x..." style="margin-bottom: 0; font-size: 0.85rem;" />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="shard-id" style="font-size: 0.85rem; font-weight: 500;">Shard ID:</label>
+                                <select id="shard-id" class="form-control" style="margin-bottom: 0; font-size: 0.85rem;">
+                                    <option value="0">Shard 0</option>
+                                    <option value="1">Shard 1</option>
+                                    <option value="2">Shard 2</option>
+                                    <option value="3">Shard 3</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="assignValidator()" class="btn" style="margin-top: 10px; font-size: 0.85rem; padding: 8px 12px;">👤 Assign Validator</button>
+                        <div id="assign-result" class="result" style="display: none; margin-top: 10px;"></div>
+                    </div>
+                    <div class="shard-card" style="background: #f8f9fa; border-radius: 10px; padding: 15px; border: 1px solid #e9ecef;">
+                        <h4 style="color: #1e3c72; margin-bottom: 10px; font-size: 1rem;">🔗 Cross-Shard Transactions</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="source-shard" style="font-size: 0.85rem; font-weight: 500;">Source Shard:</label>
+                                <select id="source-shard" class="form-control" style="margin-bottom: 0; font-size: 0.85rem;">
+                                    <option value="0">Shard 0</option>
+                                    <option value="1">Shard 1</option>
+                                    <option value="2">Shard 2</option>
+                                    <option value="3">Shard 3</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="target-shard" style="font-size: 0.85rem; font-weight: 500;">Target Shard:</label>
+                                <select id="target-shard" class="form-control" style="margin-bottom: 0; font-size: 0.85rem;">
+                                    <option value="1">Shard 1</option>
+                                    <option value="2">Shard 2</option>
+                                    <option value="3">Shard 3</option>
+                                    <option value="0">Shard 0</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="transaction-data" style="font-size: 0.85rem; font-weight: 500;">Transaction Data (JSON):</label>
+                                <textarea id="transaction-data" class="form-control" rows="2" placeholder='{"amount": 100, "recipient": "0x..."}' style="margin-bottom: 0; font-size: 0.85rem;"></textarea>
+                            </div>
+                        </div>
+                        <button onclick="createCrossShardTx()" class="btn" style="margin-top: 10px; font-size: 0.85rem; padding: 8px 12px;">🔗 Create Cross-Shard TX</button>
+                        <div id="cross-shard-result" class="result" style="display: none; margin-top: 10px;"></div>
+                    </div>
+                    <div class="shard-card" style="background: #f8f9fa; border-radius: 10px; padding: 15px; border: 1px solid #e9ecef;">
+                        <h4 style="color: #1e3c72; margin-bottom: 10px; font-size: 1rem;">📈 Shard Statistics</h4>
+                        <button onclick="loadShardInfo()" class="btn" style="font-size: 0.85rem; padding: 8px 12px; margin-bottom: 6px;">🔍 Get Shard Info</button>
+                        <div class="form-group" style="margin-top: 4px; margin-bottom: 0;">
+                            <label for="query-shard-id" style="font-size: 0.85rem; font-weight: 500;">Shard ID:</label>
+                            <select id="query-shard-id" class="form-control" style="margin-bottom: 0; font-size: 0.85rem;">
+                                <option value="0">Shard 0</option>
+                                <option value="1">Shard 1</option>
+                                <option value="2">Shard 2</option>
+                                <option value="3">Shard 3</option>
+                            </select>
+                        </div>
+                        <button onclick="loadCrossShardStats()" class="btn" style="margin-top: 6px; font-size: 0.85rem; padding: 8px 12px;">📊 Load Statistics</button>
+                        <div id="shard-info-result" class="result" style="display: none; margin-top: 10px;"></div>
+                        <div id="cross-shard-stats" class="result" style="display: none; margin-top: 10px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script>
+        const API_BASE = `http://localhost:${window.currentApiPort || 8080}`;
+        let nodeStartTime = Date.now();
+        let blocksProduced = 0;
+        let txProcessed = 0;
+        let nodeAddress = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            getNodeAddress();
+            loadNodeData();
+            loadValidators();
+            loadNetworkStats();
+            
+            // Also directly check user wallet validator status
+            checkUserWalletValidatorStatus().catch(error => {
+                console.error('Error in direct checkUserWalletValidatorStatus:', error);
+            });
+            
+            // Test if stake button exists and is clickable
+            const stakeBtn = document.querySelector('button[onclick="updateStake()"]');
+            if (stakeBtn) {
+                console.log('Stake button found:', stakeBtn);
+                // Add a test click handler
+                stakeBtn.addEventListener('click', function() {
+                    console.log('Stake button clicked via event listener');
+                });
+                        } else {
+                console.log('Stake button not found!');
+            }
+            
+            setInterval(updateMetrics, 5000);
+            addLogEntry('Network dashboard loaded successfully', 'info');
+        });
+
+        async function getNodeAddress() {
+            try {
+                const response = await fetch(`${API_BASE}/node-address`);
+                if (response.ok) {
+                    const data = await response.json();
+                    nodeAddress = data.address;
+                    addLogEntry(`Node address: ${nodeAddress}`, 'info');
+                }
+            } catch (error) {
+                addLogEntry('Failed to get node address: ' + error.message, 'error');
+            }
+        }
+
+        async function loadNodeData() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateNodeMetrics(data);
+                }
+                
+                // Also check if the user's wallet is a validator
+                await checkUserWalletValidatorStatus();
+            } catch (error) {
+                console.error('Error in loadNodeData:', error);
+                addLogEntry('Failed to load node data: ' + error.message, 'error');
+            }
+        }
+        
+        async function checkUserWalletValidatorStatus() {
+            try {
+                // Get the user's wallet address from localStorage (if available)
+                const walletData = localStorage.getItem('walletAccounts');
+                if (!walletData) {
+                    return;
+                }
+                
+                const accounts = JSON.parse(walletData);
+                const selectedIndex = parseInt(localStorage.getItem('selectedAccountIndex') || '0', 10);
+                const selectedAccount = accounts[selectedIndex];
+                
+                if (!selectedAccount) {
+                    return;
+                }
+                
+                // Convert the public key to address (simplified version)
+                const pubKey = await window.crypto.subtle.importKey('jwk', selectedAccount.pubJwk, {name:'ECDSA',namedCurve:'P-256'}, true, ['verify']);
+                const pubKeyBytes = await window.crypto.subtle.exportKey('spki', pubKey);
+                const address = await publicKeyToAddress(pubKeyBytes);
+                
+                // Check if this address is a validator
+                const validatorResponse = await fetch(`${API_BASE}/validator?address=${address}`);
+                
+                if (validatorResponse.ok) {
+                    const validatorData = await validatorResponse.json();
+                    updateUserValidatorStatus(validatorData, address);
+                } else {
+                    // User's wallet is not a validator
+                    updateUserValidatorStatus(null, address);
+                }
+            } catch (error) {
+                console.error('Could not check user wallet validator status:', error.message);
+            }
+        }
+        
+        function updateUserValidatorStatus(validatorData, address) {
+            const statusIndicator = document.getElementById('validator-status-indicator');
+            const statusText = document.getElementById('validator-status-text');
+            const addressEl = document.getElementById('validator-address');
+            
+            if (validatorData) {
+                statusIndicator.className = 'status-indicator status-active';
+                statusText.textContent = 'Active Validator';
+                addressEl.textContent = address.substring(0, 16) + '...';
+                addressEl.title = address;
+                
+                // Also update the staked amount
+                if (validatorData.Stake) {
+                    const stakedEl = document.getElementById('wallet-staked');
+                    if (stakedEl) {
+                        stakedEl.textContent = validatorData.Stake;
+                    }
+                }
+            } else {
+                statusIndicator.className = 'status-indicator status-inactive';
+                statusText.textContent = 'Not a Validator';
+                addressEl.textContent = address.substring(0, 16) + '...';
+                addressEl.title = address;
+            }
+        }
+        
+        async function publicKeyToAddress(pubKey) {
+            return arrayBufferToHex(pubKey);
+        }
+        
+        function arrayBufferToHex(buffer) {
+            return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function loadValidators() {
+            try {
+                const response = await fetch(`${API_BASE}/validators`);
+                if (response.ok) {
+                    const validators = await response.json();
+                    displayValidators(validators);
+                }
+            } catch (error) {
+                addLogEntry('Failed to load validators: ' + error.message, 'error');
+            }
+        }
+
+        async function loadNetworkStats() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateNetworkStats(data);
+                }
+            } catch (error) {
+                addLogEntry('Failed to load network stats: ' + error.message, 'error');
+            }
+        }
+
+        function updateNodeMetrics(data) {
+            // Don't overwrite validator status if user wallet validator check has already set it
+            const statusIndicator = document.getElementById('validator-status-indicator');
+            const statusText = document.getElementById('validator-status-text');
+            
+            // Only update validator status if it hasn't been set by user wallet check
+            if (!statusText.textContent || statusText.textContent === 'Checking...') {
+            if (data.isValidator) {
+                statusIndicator.className = 'status-indicator status-active';
+                statusText.textContent = 'Active Validator';
+            } else {
+                statusIndicator.className = 'status-indicator status-inactive';
+                statusText.textContent = 'Not a Validator';
+            }
+            document.getElementById('validator-address').textContent = data.validatorAddress || 'Not registered';
+            }
+            
+            if (data.totalValidators !== undefined) {
+                document.getElementById('total-validators').textContent = data.totalValidators;
+            }
+            if (data.walletBalance !== undefined) {
+                const walletBalanceEl = document.getElementById('wallet-balance');
+                const walletStakedEl = document.getElementById('wallet-staked');
+                const walletTotalEl = document.getElementById('wallet-total');
+                
+                if (walletBalanceEl) walletBalanceEl.textContent = data.walletBalance;
+                if (walletStakedEl) walletStakedEl.textContent = data.walletStaked;
+                if (walletTotalEl) walletTotalEl.textContent = data.totalBalance;
+            }
+            if (data.mode) {
+                const nodeModeEl = document.getElementById('node-mode');
+                if (nodeModeEl) {
+                    nodeModeEl.textContent = data.mode.charAt(0).toUpperCase() + data.mode.slice(1);
+                }
+                
+                // Note: We don't disable validator actions for user wallets even in observer mode
+                // because users can still manage their own validator status
+                const regBtn = document.getElementById('register-validator-btn');
+                const stakeBtn = document.querySelector('button[onclick="updateStake()"]');
+                
+                // Only show info message about observer mode, but don't disable actions
+                if (data.mode === 'observer') {
+                    showStatus('Node is running in observer mode. You can still manage your wallet validator status.', 'info', 'validator-status');
+                }
+            } else {
+                const nodeModeEl = document.getElementById('node-mode');
+                if (nodeModeEl) {
+                    nodeModeEl.textContent = '-';
+                }
+            }
+        }
+
+        function displayValidators(validators) {
+            const container = document.getElementById('validator-list');
+            container.innerHTML = '';
+            if (validators.length === 0) {
+                container.innerHTML = '<div class="validator-item">No active validators</div>';
+                return;
+            }
+            validators.forEach(validator => {
+                const item = document.createElement('div');
+                item.className = 'validator-item';
+                item.innerHTML = `
+                    <div class="validator-address">${validator.Address.substring(0, 20)}...</div>
+                    <div class="validator-stake">Stake: ${validator.Stake}</div>
+                    <div class="validator-status">${validator.Active ? '🟢 Active' : '🔴 Inactive'}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function addLogEntry(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${type.toUpperCase()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateMetrics() {
+            loadNodeData();
+            loadValidators();
+            loadNetworkStats();
+        }
+
+        // Node control functions (remain as is)
+        function startNode() { addLogEntry('Node started', 'success'); }
+        function pauseNode() { addLogEntry('Node paused', 'warning'); }
+        function stopNode() { addLogEntry('Node stopped', 'error'); }
+        function syncNode() { addLogEntry('Node synchronized', 'success'); }
+        async function updateStake() {
+            console.log('updateStake function called');
+            addLogEntry('Stake update initiated...', 'info');
+            try {
+                // Get the user's wallet address
+                const walletData = localStorage.getItem('walletAccounts');
+                console.log('Wallet data found:', !!walletData);
+                if (!walletData) {
+                    addLogEntry('No wallet found. Please create a wallet first.', 'error');
+                    return;
+                }
+                
+                const accounts = JSON.parse(walletData);
+                const selectedIndex = parseInt(localStorage.getItem('selectedAccountIndex') || '0', 10);
+                const selectedAccount = accounts[selectedIndex];
+                
+                if (!selectedAccount) {
+                    addLogEntry('No wallet account selected.', 'error');
+                    return;
+                }
+                
+                // Convert the public key to address
+                const pubKey = await window.crypto.subtle.importKey('jwk', selectedAccount.pubJwk, {name:'ECDSA',namedCurve:'P-256'}, true, ['verify']);
+                const pubKeyBytes = await window.crypto.subtle.exportKey('spki', pubKey);
+                const address = await publicKeyToAddress(pubKeyBytes);
+                
+                // Prompt for new stake amount
+                console.log('Prompting for stake amount...');
+                const newStake = prompt('Enter new stake amount (current balance will be checked):');
+                console.log('Stake amount entered:', newStake);
+                if (!newStake) return;
+                
+                const stakeAmount = parseInt(newStake, 10);
+                console.log('Parsed stake amount:', stakeAmount);
+                if (isNaN(stakeAmount) || stakeAmount <= 0) {
+                    addLogEntry('Invalid stake amount. Please enter a positive number.', 'error');
+                    return;
+                }
+                
+                // Check current balance
+                console.log('Checking balance for address:', address);
+                const balanceResponse = await fetch(`${API_BASE}/balance?address=${address}`);
+                console.log('Balance response status:', balanceResponse.status);
+                if (!balanceResponse.ok) {
+                    addLogEntry('Failed to check wallet balance.', 'error');
+                    return;
+                }
+                
+                const balanceData = await balanceResponse.json();
+                console.log('Balance data:', balanceData);
+                const currentBalance = balanceData.balance || 0;
+                console.log('Current balance:', currentBalance);
+                
+                if (stakeAmount > currentBalance) {
+                    addLogEntry(`Insufficient balance. You have ${currentBalance} tokens, but want to stake ${stakeAmount}.`, 'error');
+                        return;
+                    }
+                
+                // Update stake
+                console.log('Sending stake update request...');
+                const response = await fetch(`${API_BASE}/update-user-stake`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        address: address,
+                        new_stake: stakeAmount 
+                    })
+                });
+                console.log('Stake update response status:', response.status);
+                
+                if (response.ok) {
+                    console.log('Stake update successful!');
+                    try {
+                        const result = await response.json();
+                        console.log('Response JSON:', result);
+                    } catch (e) {
+                        const textResult = await response.text();
+                        console.log('Response text:', textResult);
+                    }
+                    addLogEntry(`Stake updated successfully! New stake: ${stakeAmount} tokens`, 'success');
+                    
+                    // Refresh data and force UI update
+                    console.log('Refreshing UI after stake update...');
+                    await loadNodeData();
+                    await loadValidators();
+                    
+                    // Force update the staked amount display
+                    const stakedEl = document.getElementById('wallet-staked');
+                    if (stakedEl) {
+                        stakedEl.textContent = stakeAmount;
+                        console.log('Updated staked amount display to:', stakeAmount);
+                    }
+                    
+                    // Also refresh the user's validator status to show updated stake
+                    console.log('Refreshing user validator status...');
+                    await checkUserWalletValidatorStatus();
+                    } else {
+                    const error = await response.text();
+                    console.log('Stake update error:', error);
+                    addLogEntry(`Failed to update stake: ${error}`, 'error');
+                    }
+            } catch (error) {
+                addLogEntry(`Stake update failed: ${error.message}`, 'error');
+                }
+            }
+        function exportNodeData() { addLogEntry('Node data exported!', 'success'); }
+
+        // Sharding Functions
+        async function loadShardingStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/sharding/status`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('shard-overview').innerHTML = 
+                        `Sharding Status:\n${JSON.stringify(result, null, 2)}`;
+                    addLogEntry('Sharding status loaded successfully!', 'success');
+                } else {
+                    throw new Error(result.error || 'Failed to load sharding status');
+                }
+            } catch (error) {
+                addLogEntry('Failed to load sharding status: ' + error.message, 'error');
+            }
+        }
+
+        async function assignValidator() {
+            const validatorAddress = document.getElementById('validator-address').value;
+            const shardID = document.getElementById('shard-id').value;
+            
+            if (!validatorAddress) {
+                addLogEntry('Please enter validator address', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/sharding/assign-validator`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        validator_address: validatorAddress,
+                        shard_id: parseInt(shardID)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('assign-result').innerHTML = 
+                        `Validator Assignment Result:\n${JSON.stringify(result, null, 2)}`;
+                    document.getElementById('assign-result').className = 'result success';
+                    document.getElementById('assign-result').style.display = 'block';
+                    addLogEntry('Validator assigned successfully!', 'success');
+                } else {
+                    throw new Error(result.error || 'Assignment failed');
+                }
+            } catch (error) {
+                addLogEntry('Assignment failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function loadShardInfo() {
+            const shardID = document.getElementById('query-shard-id').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/sharding/shard?id=${shardID}`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('shard-info-result').innerHTML = 
+                        `Shard Information:\n${JSON.stringify(result, null, 2)}`;
+                    document.getElementById('shard-info-result').className = 'result success';
+                    document.getElementById('shard-info-result').style.display = 'block';
+                    addLogEntry('Shard info loaded successfully!', 'success');
+                } else {
+                    throw new Error(result.error || 'Failed to get shard info');
+                }
+            } catch (error) {
+                addLogEntry('Failed to get shard info: ' + error.message, 'error');
+            }
+        }
+        
+        async function createCrossShardTx() {
+            const sourceShard = document.getElementById('source-shard').value;
+            const targetShard = document.getElementById('target-shard').value;
+            const txData = document.getElementById('transaction-data').value;
+            
+            if (!txData) {
+                addLogEntry('Please enter transaction data', 'error');
+                return;
+            }
+            
+            let transaction;
+            try {
+                transaction = JSON.parse(txData);
+            } catch (error) {
+                addLogEntry('Invalid JSON in transaction data', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/sharding/cross-shard-tx`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source_shard: parseInt(sourceShard),
+                        target_shard: parseInt(targetShard),
+                        transaction: transaction
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('cross-shard-result').innerHTML = 
+                        `Cross-Shard Transaction Created:\n${JSON.stringify(result, null, 2)}`;
+                    document.getElementById('cross-shard-result').className = 'result success';
+                    document.getElementById('cross-shard-result').style.display = 'block';
+                    addLogEntry('Cross-shard transaction created successfully!', 'success');
+                } else {
+                    throw new Error(result.error || 'Failed to create cross-shard transaction');
+                }
+            } catch (error) {
+                addLogEntry('Failed to create cross-shard transaction: ' + error.message, 'error');
+            }
+        }
+        
+        async function loadCrossShardStats() {
+            try {
+                const response = await fetch(`${API_BASE}/sharding/statistics`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('cross-shard-stats').innerHTML = 
+                        `Cross-Shard Statistics:\n${JSON.stringify(result, null, 2)}`;
+                    document.getElementById('cross-shard-stats').className = 'result success';
+                    document.getElementById('cross-shard-stats').style.display = 'block';
+                    addLogEntry('Cross-shard statistics loaded successfully!', 'success');
+                } else {
+                    throw new Error(result.error || 'Failed to load statistics');
+                }
+            } catch (error) {
+                addLogEntry('Failed to load statistics: ' + error.message, 'error');
+            }
+        }
+
+        // Call on load
+        // checkWalletStatus(); // Removed - function no longer exists
+
+        // Add missing updateNetworkStats stub to prevent JS errors
+        function updateNetworkStats(data) {
+            // TODO: Implement network stats update if needed
+            // For now, just avoid JS errors
+        }
+
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# atlas-blockchain/internal/blockchain
+internal\blockchain\consensus.go:566:46: transactionManager.GetTransactionsForBlock undefined (type *TransactionManager has no field or method GetTransactionsForBlock)
+internal\blockchain\consensus.go:582:28: transactionManager.GetTransactionsForBlock undefined (type *TransactionManager has no field or method GetTransactionsForBlock)
+internal\blockchain\transaction_manager.go:241:50: lowestPriority.Transaction.Hash undefined (type transaction.Transaction has no field or method Hash)
+internal\blockchain\transaction_manager.go:259:15: tx.Hash undefined (type transaction.Transaction has no field or method Hash)
+internal\blockchain\transaction_manager.go:260:81: tx.Hash undefined (type transaction.Transaction has no field or method Hash)
+internal\blockchain\transaction_manager.go:336:18: tx.Hash undefined (type transaction.Transaction has no field or method Hash)
+internal\blockchain\transaction_manager.go:337:24: tx.Hash undefined (type transaction.Transaction has no field or method Hash)
+internal\blockchain\transaction_manager.go:342:36: item.Transaction.Hash undefined (type transaction.Transaction has no field or method Hash)

@@ -1,0 +1,22 @@
+{
+  "12D3KooWLhiLBkZNWef5xokzNf17mjjTEsx7gPMthicVGnVrqQum": {
+    "peer_id": "12D3KooWLhiLBkZNWef5xokzNf17mjjTEsx7gPMthicVGnVrqQum",
+    "multiaddrs": [
+      "/ip4/127.0.0.1/tcp/8001",
+      "/ip4/192.168.0.105/tcp/8001"
+    ],
+    "last_seen": "2026-01-30T19:50:39.7296624-04:00",
+    "is_validator": true,
+    "stake": 2000
+  },
+  "12D3KooWRoy2Mjnk3HCPertDW1uJ6XP8XNpKTuRSzjsA7WZw5B8L": {
+    "peer_id": "12D3KooWRoy2Mjnk3HCPertDW1uJ6XP8XNpKTuRSzjsA7WZw5B8L",
+    "multiaddrs": [
+      "/ip4/127.0.0.1/tcp/8002",
+      "/ip4/192.168.0.105/tcp/8002"
+    ],
+    "last_seen": "2026-01-30T19:50:39.7296624-04:00",
+    "is_validator": true,
+    "stake": 2000
+  }
+}

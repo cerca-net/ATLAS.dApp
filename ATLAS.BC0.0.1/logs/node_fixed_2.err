@@ -1,0 +1,5 @@
+# atlas-blockchain/internal/api
+internal\api\api.go:392:31: api.transactionManager.GetTransactionByHash undefined (type *blockchain.TransactionManager has no field or method GetTransactionByHash)
+internal\api\api.go:514:32: api.transactionManager.GetAllTransactions undefined (type *blockchain.TransactionManager has no field or method GetAllTransactions)
+internal\api\api.go:1408:39: api.transactionManager.GetDynamicFeeMultiplier undefined (type *blockchain.TransactionManager has no field or method GetDynamicFeeMultiplier)
+internal\api\api.go:1583:38: api.transactionManager.GetAllTransactions undefined (type *blockchain.TransactionManager has no field or method GetAllTransactions)

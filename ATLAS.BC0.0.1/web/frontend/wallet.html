@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Wallet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e0 100%);
+            min-height: 100vh;
+            color: #1a202c;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(72, 187, 120, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(66, 153, 225, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #1a202c;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 50%, #718096 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.01em;
+        }
+
+        .back-btn {
+            background: rgba(45, 55, 72, 0.8);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(45, 55, 72, 0.9);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .wallet-panel, .transaction-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.08),
+                0 8px 16px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .wallet-panel:hover, .transaction-panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.12),
+                0 12px 24px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .panel-title {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 8px;
+            flex-shrink: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .wallet-info {
+            background: linear-gradient(135deg, #11998e 0%, #0d7a6f 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 25px rgba(17, 153, 142, 0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .balance-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .address-display {
+            font-family: monospace;
+            font-size: 0.75rem;
+            opacity: 0.9;
+            word-break: break-all;
+            margin-bottom: 8px;
+        }
+
+        .wallet-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #11998e;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+            color: #333;
+            font-size: 0.85rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #11998e;
+        }
+
+        .transaction-form {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .transaction-history {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .transaction-item {
+            background: white;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-left: 3px solid #11998e;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 0.85rem;
+        }
+
+        .tx-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .tx-type {
+            font-weight: bold;
+            color: #11998e;
+        }
+
+        .tx-amount {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .tx-details {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .tx-sent {
+            border-left-color: #dc3545;
+        }
+
+        .tx-received {
+            border-left-color: #28a745;
+        }
+
+        .faucet-section {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .faucet-title {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .faucet-description {
+            margin-bottom: 8px;
+            opacity: 0.9;
+            font-size: 0.8rem;
+        }
+
+        .options-section {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .security-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .security-info p {
+            margin-bottom: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .qr-code {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .qr-code canvas {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        #snackbar {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 12px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 20px;
+            font-size: 0.9rem;
+            transform: translateX(-50%);
+        }
+        #snackbar.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 20px; opacity: 1;}
+        }
+        @keyframes fadeout {
+            from {bottom: 20px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+
+        @media (max-width: 768px) {
+            .wallet-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .wallet-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>User Wallet</h1>
+            <a href="index.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="wallet-grid">
+            <div class="wallet-panel">
+                <h2 class="panel-title">Wallet Overview</h2>
+                <div id="connection-status" style="margin-bottom:8px; font-weight:bold; font-size:0.9rem;">Checking...</div>
+                <div class="wallet-info">
+                    <div class="balance-display" id="wallet-balance">0 tokens</div>
+                    <div class="address-display" id="wallet-address-container">
+                        <span id="wallet-address" title="Loading address...">Loading address...</span>
+                        <button id="copy-address-btn" class="btn btn-secondary" style="margin-left:6px;padding:2px 6px;font-size:0.7rem;vertical-align:middle;">Copy</button>
+                        <button class="btn btn-secondary" onclick="showQR()" style="margin-left:4px;padding:2px 6px;font-size:0.7rem;vertical-align:middle;">📱 QR</button>
+                    </div>
+                </div>
+
+                <div class="options-section">
+                    <div class="faucet-title" style="margin-bottom: 8px;">⚙️ Wallet Options</div>
+                    <div class="wallet-actions" style="margin-bottom: 0;">
+                        <select id="account-select" class="form-input" style="margin-bottom:6px;width:100%"></select>
+                        <button class="btn btn-primary" onclick="createAccount()">➕ New Account</button>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-success" onclick="exportAccount()">📤 Export</button>
+                            <button class="btn btn-warning" onclick="importAccount()">📥 Import</button>
+                        </div>
+                        <button class="btn btn-secondary" onclick="deleteAccount()">🗑️ Delete</button>
+                    </div>
+                </div>
+
+                <div class="faucet-section">
+                    <div class="faucet-title">🚰 Testnet Faucet</div>
+                    <div class="faucet-description">
+                        Get test tokens to try out the blockchain. Free tokens for testing!
+                    </div>
+                    <button class="btn btn-success" id="faucet-btn">
+                        💰 Request Faucet
+                    </button>
+                </div>
+
+                <div class="security-info">
+                    <h3 style="font-size: 0.9rem; margin-bottom: 6px;">Wallet Security</h3>
+                    <p><strong>🔒 Private Key:</strong> Never shared with the server</p>
+                    <p><strong>🔐 Signing:</strong> Done locally in your browser</p>
+                    <p><strong>💾 Storage:</strong> Encrypted in browser localStorage</p>
+                    <p><strong>⚠️ Warning:</strong> Clear browser data = lost wallet</p>
+                </div>
+
+                <!-- Validator Registration Section -->
+                <div class="validator-section" style="background: linear-gradient(135deg, #11998e 0%, #0d7a6f 100%); color: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; flex-shrink: 0;">
+                    <div style="font-size: 0.9rem; margin-bottom: 8px;">🏛️ Validator Registration</div>
+                    <div style="margin-bottom: 8px; opacity: 0.9; font-size: 0.8rem;">
+                        Register as a validator to participate in consensus and earn rewards
+                    </div>
+                    <button class="btn btn-success" id="register-validator-btn" style="font-size: 0.85rem; padding: 8px 12px; width: 100%;">
+                        🏛️ Register as Validator
+                    </button>
+                    
+                    <!-- KYC Fields (hidden by default) -->
+                    <div id="kyc-fields" style="display: none; margin-top: 12px; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px;">
+                        <div style="margin-bottom: 8px;">
+                            <label style="display: block; margin-bottom: 4px; font-size: 0.8rem;">Stake Amount (min: 100)</label>
+                            <input type="number" id="kyc-stake" placeholder="Stake Amount (min: 100)" 
+                                   style="width: 100%; padding: 6px; border: none; border-radius: 4px; font-size: 0.8rem;" min="100" />
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <label style="display: block; margin-bottom: 4px; font-size: 0.8rem;">Full Name</label>
+                            <input type="text" id="kyc-fullname" placeholder="Full Name" 
+                                   style="width: 100%; padding: 6px; border: none; border-radius: 4px; font-size: 0.8rem;" />
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <label style="display: block; margin-bottom: 4px; font-size: 0.8rem;">Country</label>
+                            <input type="text" id="kyc-country" placeholder="Country" 
+                                   style="width: 100%; padding: 6px; border: none; border-radius: 4px; font-size: 0.8rem;" />
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <label style="display: block; margin-bottom: 4px; font-size: 0.8rem;">ID Number</label>
+                            <input type="text" id="kyc-idnumber" placeholder="ID Number" 
+                                   style="width: 100%; padding: 6px; border: none; border-radius: 4px; font-size: 0.8rem;" />
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <label style="display: block; font-size: 0.8rem;">
+                                <input type="checkbox" id="kyc-verified" style="margin-right: 6px;" /> KYC Verified
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" id="submit-validator-registration" style="font-size: 0.85rem; padding: 6px 10px; width: 100%;">
+                            Submit Registration
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="transaction-panel">
+                <h2 class="panel-title">Send Transaction</h2>
+                
+                <div class="transaction-form">
+                    <div class="form-group">
+                        <label class="form-label">Recipient Address</label>
+                        <input type="text" class="form-input" id="recipient-address" 
+                               placeholder="Enter recipient's public key">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Amount (tokens)</label>
+                        <input type="number" class="form-input" id="transaction-amount" 
+                               placeholder="Enter amount" min="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Message (optional)</label>
+                        <input type="text" class="form-input" id="transaction-message" 
+                               placeholder="Add a message to your transaction">
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="sendTransaction()" style="width: 100%;">
+                        💸 Send Transaction
+                    </button>
+                </div>
+
+                <div>
+                    <h3 style="font-size: 0.9rem; margin-bottom: 8px;">Transaction History</h3>
+                    <div class="transaction-history" id="transaction-history">
+                        <div class="transaction-item">
+                            <div>Loading transactions...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snackbar for notifications -->
+    <div id="snackbar"></div>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Wallet QR Code</h2>
+            <div class="qr-code" id="qr-code">
+                <p>Generating QR code...</p>
+            </div>
+            <p style="text-align: center; font-size: 0.8rem; color: #666;">
+                Scan this QR code to share your wallet address
+            </p>
+        </div>
+    </div>
+
+    <!-- Import Wallet Modal -->
+    <div id="import-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Import Wallet</h2>
+            <div class="form-group">
+                <label class="form-label">Private Key (JWK format)</label>
+                <textarea class="form-input" id="import-private-key" rows="4" 
+                          placeholder="Paste your private key in JWK format"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="confirmImport()">Import Wallet</button>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script src="main.js"></script>
+    <script>
+        // Ensure window.currentApiPort is set correctly
+        if (typeof window.currentApiPort === 'undefined' || window.currentApiPort === 8080) {
+            // Try to get from localStorage first
+            const savedPort = localStorage.getItem('selectedNodePort');
+            if (savedPort) {
+                window.currentApiPort = parseInt(savedPort);
+            } else {
+                // Default to 8081 since that's where our nodes are running
+                window.currentApiPort = 8081;
+                localStorage.setItem('selectedNodePort', 8081);
+            }
+        }
+        
+        const API_BASE = `http://localhost:${window.currentApiPort || 8081}`;
+        let walletAccounts = [];
+        let selectedAccountIndex = 0;
+        let wallet = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAccounts();
+            loadTransactionHistory();
+            checkConnection();
+            
+            // Add copy address button handler
+            setTimeout(() => {
+                const copyBtn = document.getElementById('copy-address-btn');
+                if (copyBtn) {
+                    copyBtn.onclick = function() {
+                        // Use the full address for copying
+                        const address = document.getElementById('wallet-address').getAttribute('data-full-address') || document.getElementById('wallet-address').title;
+                        navigator.clipboard.writeText(address).then(() => {
+                            showSnackbar('Address copied to clipboard!');
+                        });
+                    };
+                }
+            }, 500);
+
+            // Add validator registration handlers
+            document.getElementById('register-validator-btn').addEventListener('click', () => {
+                // Show KYC fields
+                const kycFields = document.getElementById('kyc-fields');
+                kycFields.style.display = 'block';
+            });
+            
+            document.getElementById('submit-validator-registration').addEventListener('click', async () => {
+                const stakeInput = document.getElementById('kyc-stake');
+                let stake = parseInt(stakeInput.value, 10);
+                if (isNaN(stake) || stake < 100) {
+                    showSnackbar('Invalid stake amount (min: 100)', 'error');
+                    return;
+                }
+                
+                const fullName = document.getElementById('kyc-fullname').value.trim();
+                const country = document.getElementById('kyc-country').value.trim();
+                const idNumber = document.getElementById('kyc-idnumber').value.trim();
+                const verified = document.getElementById('kyc-verified').checked;
+                
+                if (!fullName || !country || !idNumber || !verified) {
+                    showSnackbar('All KYC fields are required and must be verified.', 'error');
+                    return;
+                }
+                
+                try {
+                    // Get the current wallet address
+                    const pubKey = await window.crypto.subtle.exportKey('spki', wallet.publicKey);
+                    const address = await publicKeyToAddress(pubKey);
+                    
+                    const response = await fetch(`${API_BASE}/register-validator`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            address: address,
+                            stake,
+                            kyc: {
+                                fullName,
+                                country,
+                                idNumber,
+                                verified
+                            }
+                        })
+                    });
+                    
+                    const resp = await response.json();
+                    if (resp.status && resp.status.toLowerCase().includes('success')) {
+                        showSnackbar('Registered as validator!', 'success');
+                        
+                        // Clear KYC fields
+                        stakeInput.value = '';
+                        document.getElementById('kyc-fullname').value = '';
+                        document.getElementById('kyc-country').value = '';
+                        document.getElementById('kyc-idnumber').value = '';
+                        document.getElementById('kyc-verified').checked = false;
+                        
+                        // Hide KYC fields
+                        document.getElementById('kyc-fields').style.display = 'none';
+                        
+                        // Refresh wallet display to show updated balance
+                        updateWalletDisplay();
+                    } else {
+                        showSnackbar(resp.status || 'Failed to register as validator', 'error');
+                    }
+                } catch (error) {
+                    showSnackbar('Failed to register as validator: ' + error.message, 'error');
+                }
+            });
+        });
+
+        function saveAccounts() {
+            localStorage.setItem('walletAccounts', JSON.stringify(walletAccounts));
+        }
+        function loadAccounts() {
+            const data = localStorage.getItem('walletAccounts');
+            walletAccounts = data ? JSON.parse(data) : [];
+            if (walletAccounts.length === 0) {
+                createAccount('Account 1');
+                } else {
+                selectedAccountIndex = parseInt(localStorage.getItem('selectedAccountIndex') || '0', 10);
+                if (selectedAccountIndex >= walletAccounts.length) selectedAccountIndex = 0;
+                selectAccount(selectedAccountIndex);
+            }
+            updateAccountSelectUI();
+        }
+        function updateAccountSelectUI() {
+            const select = document.getElementById('account-select');
+            select.innerHTML = walletAccounts.map((acc, i) => `<option value="${i}" ${i===selectedAccountIndex?'selected':''}>${acc.name || 'Account '+(i+1)}</option>`).join('');
+            select.onchange = function() {
+                selectAccount(parseInt(this.value, 10));
+            };
+        }
+        async function createAccount(name) {
+            const keyPair = await window.crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'}, true, ['sign','verify']);
+            const privJwk = await window.crypto.subtle.exportKey('jwk', keyPair.privateKey);
+            const pubJwk = await window.crypto.subtle.exportKey('jwk', keyPair.publicKey);
+            walletAccounts.push({name: name || `Account ${walletAccounts.length+1}`, privJwk, pubJwk});
+            saveAccounts();
+            selectAccount(walletAccounts.length-1);
+            updateAccountSelectUI();
+            showSnackbar('New account created!');
+        }
+        async function selectAccount(idx) {
+            selectedAccountIndex = idx;
+            localStorage.setItem('selectedAccountIndex', idx);
+            const acc = walletAccounts[idx];
+            if (!acc) return;
+            wallet = {
+                privateKey: await window.crypto.subtle.importKey('jwk', acc.privJwk, {name:'ECDSA',namedCurve:'P-256'}, true, ['sign']),
+                publicKey: await window.crypto.subtle.importKey('jwk', acc.pubJwk, {name:'ECDSA',namedCurve:'P-256'}, true, ['verify'])
+            };
+            updateWalletDisplay();
+        }
+        function exportAccount() {
+            const acc = walletAccounts[selectedAccountIndex];
+            if (!acc) return alert('No account selected');
+            const blob = new Blob([JSON.stringify(acc.privJwk)], {type:'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${acc.name || 'wallet-backup'}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('Account exported successfully!');
+        }
+        function importAccount() {
+            document.getElementById('import-modal').style.display = 'block';
+        }
+        async function confirmImport() {
+            const privateKeyText = document.getElementById('import-private-key').value.trim();
+            try {
+                const privJwk = JSON.parse(privateKeyText);
+                const privateKey = await window.crypto.subtle.importKey('jwk', privJwk, {name:'ECDSA',namedCurve:'P-256'}, true, ['sign']);
+                // Derive public key from private key is not possible in WebCrypto, so ask user for pubJwk
+                const pubJwk = prompt('Paste the public key JWK for this account:');
+                if (!pubJwk) throw new Error('Public key required');
+                walletAccounts.push({name: `Imported ${walletAccounts.length+1}`, privJwk, pubJwk: JSON.parse(pubJwk)});
+                saveAccounts();
+                selectAccount(walletAccounts.length-1);
+                updateAccountSelectUI();
+                closeModal();
+                alert('Account imported successfully!');
+            } catch (error) {
+                alert('Failed to import account: ' + error.message);
+            }
+        }
+        function deleteAccount() {
+            if (walletAccounts.length <= 1) return alert('At least one account required');
+            if (!confirm('Delete this account? This cannot be undone.')) return;
+            walletAccounts.splice(selectedAccountIndex, 1);
+            if (selectedAccountIndex >= walletAccounts.length) selectedAccountIndex = walletAccounts.length-1;
+            saveAccounts();
+            selectAccount(selectedAccountIndex);
+            updateAccountSelectUI();
+            showSnackbar('Account deleted.');
+        }
+        async function updateWalletDisplay() {
+            if (!wallet) {
+                document.getElementById('wallet-balance').textContent = 'No wallet loaded';
+                return;
+            }
+            // Display wallet address
+            const pubKey = await window.crypto.subtle.exportKey('spki', wallet.publicKey);
+            const address = await publicKeyToAddress(pubKey);
+            // Show short address, but keep full address in title and for copying
+            const shortAddress = address.length > 16 ? address.substring(0, 8) + '...' + address.substring(address.length - 4) : address;
+            const addressEl = document.getElementById('wallet-address');
+            addressEl.textContent = shortAddress;
+            addressEl.title = address;
+            addressEl.setAttribute('data-full-address', address);
+            try {
+                // Get wallet balance from the balance endpoint
+                const response = await fetch(`${API_BASE}/balance?address=${address}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('wallet-balance').textContent = `${data.balance || 0} tokens`;
+                } else {
+                    document.getElementById('wallet-balance').textContent = '0 tokens';
+                }
+            } catch (error) {
+                console.error('Failed to load balance:', error);
+                document.getElementById('wallet-balance').textContent = '0 tokens';
+            }
+        }
+
+        async function checkConnection() {
+            const statusEl = document.getElementById('connection-status');
+            if (!statusEl) {
+                console.warn('Connection status element not found');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                if (response.ok) {
+                    statusEl.textContent = 'Connected to blockchain';
+                    statusEl.style.color = '#28a745';
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                statusEl.textContent = 'Disconnected from blockchain';
+                statusEl.style.color = '#dc3545';
+            }
+        }
+
+        function showSnackbar(message, type = 'success') {
+            const sb = document.getElementById('snackbar');
+            sb.textContent = message;
+            sb.style.backgroundColor = type === 'error' ? '#e53e3e' : '#333';
+            sb.className = 'show';
+            setTimeout(() => { sb.className = sb.className.replace('show', ''); }, 3000);
+        }
+
+        async function requestFaucet() {
+            console.log('requestFaucet called');
+            if (!wallet) {
+                showSnackbar('Please generate a wallet first', 'error');
+                return;
+            }
+            try {
+                const pubKey = await window.crypto.subtle.exportKey('spki', wallet.publicKey);
+                const address = await publicKeyToAddress(pubKey);
+                const response = await fetch(`${API_BASE}/faucet`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: address })
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    showSnackbar('Faucet tokens received! ' + (result.status || ''));
+                    updateWalletDisplay();
+                } else {
+                    throw new Error('Faucet request failed');
+                }
+            } catch (error) {
+                showSnackbar('Failed to request faucet tokens: ' + error.message, 'error');
+            }
+        }
+
+        async function sendTransaction() {
+            console.log('sendTransaction called');
+            if (!wallet) {
+                showSnackbar('Please generate a wallet first', 'error');
+                return;
+            }
+            const recipient = document.getElementById('recipient-address').value.trim();
+            const amount = parseInt(document.getElementById('transaction-amount').value);
+            const message = document.getElementById('transaction-message').value.trim();
+            if (!recipient || !amount || amount <= 0) {
+                showSnackbar('Please enter valid recipient address and amount', 'error');
+                return;
+            }
+            const pubKey = await window.crypto.subtle.exportKey('spki', wallet.publicKey);
+            const address = await publicKeyToAddress(pubKey);
+            const pubKeyHex = arrayBufferToHex(pubKey);
+            // Fetch nonce from backend
+            let nonce = 0;
+            try {
+                const nonceResp = await fetch(`${API_BASE}/nonce?address=${address}`);
+                if (nonceResp.ok) {
+                    const nonceData = await nonceResp.json();
+                    nonce = nonceData.nonce || 0;
+                } else {
+                    showSnackbar('Failed to fetch nonce, using 0', 'warning');
+                }
+            } catch (e) {
+                showSnackbar('Failed to fetch nonce, using 0', 'warning');
+            }
+            const tx = {
+                Sender: address,
+                SenderPublicKey: pubKeyHex,
+                Recipient: recipient,
+                Amount: amount,
+                Fee: 0,
+                Timestamp: Math.floor(Date.now() / 1000),
+                Nonce: nonce,
+                Data: message
+            };
+            try {
+                console.log('About to sign transaction:', tx);
+                const signature = await signTransaction(tx);
+                console.log('Signature (hex):', signature, 'Length:', signature.length);
+                tx.Signature = signature;
+                // Submit transaction
+                const response = await fetch(`${API_BASE}/submit-transaction`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tx)
+                });
+                if (response.ok) {
+                    showSnackbar('Transaction submitted successfully!');
+                    document.getElementById('recipient-address').value = '';
+                    document.getElementById('transaction-amount').value = '';
+                    document.getElementById('transaction-message').value = '';
+                    // Wait a moment for the transaction to be processed, then update display
+                    setTimeout(() => {
+                        updateWalletDisplay();
+                        loadTransactionHistory();
+                    }, 2000);
+                } else {
+                    throw new Error('Transaction submission failed');
+                }
+            } catch (error) {
+                console.error('Error in sendTransaction:', error);
+                showSnackbar('Failed to send transaction: ' + error.message, 'error');
+            }
+        }
+
+        async function signTransaction(tx) {
+            try {
+                console.log('signTransaction called with tx:', tx);
+                if (!wallet || !wallet.privateKey) {
+                    throw new Error('Wallet or private key not loaded. Please generate or load your wallet.');
+                }
+                if (typeof wallet.privateKey !== 'object') {
+                    throw new Error('Invalid private key object.');
+                }
+                const enc = new TextEncoder();
+                const data = enc.encode(tx.Sender + tx.Recipient + tx.Amount + (tx.Fee || 0) + tx.Timestamp + tx.Nonce + (tx.Data || ''));
+                const sig = await window.crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, wallet.privateKey, data);
+                const bytes = new Uint8Array(sig);
+                console.log('Raw signature bytes:', bytes, 'Length:', bytes.length);
+                let signature;
+                if (bytes[0] === 0x30) {
+                    // DER-encoded, use derToRS
+                    signature = derToRS(sig);
+                    console.log('DER signature detected, converted to r||s');
+                } else if (bytes.length === 64) {
+                    // Already r||s, just hex encode
+                    signature = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+                    console.log('Raw r||s signature detected, hex-encoded directly');
+                } else {
+                    throw new Error('Unknown signature format');
+                }
+                console.log('Final signature (hex):', signature, 'Length:', signature.length);
+                return signature;
+            } catch (err) {
+                console.error('Error in signTransaction:', err);
+                throw err;
+            }
+        }
+
+        function derToRS(der) {
+            const bytes = new Uint8Array(der);
+            if (bytes[0] !== 0x30) throw new Error('Invalid DER sequence');
+            let offset = 2;
+            if (bytes[1] & 0x80) {
+                const n = bytes[1] & 0x7f;
+                offset = 2 + n;
+            }
+            if (bytes[offset] !== 0x02) throw new Error('Invalid DER integer for r');
+            let rLen = bytes[offset + 1];
+            let r = bytes.slice(offset + 2, offset + 2 + rLen);
+            offset = offset + 2 + rLen;
+            if (bytes[offset] !== 0x02) throw new Error('Invalid DER integer for s');
+            let sLen = bytes[offset + 1];
+            let s = bytes.slice(offset + 2, offset + 2 + sLen);
+
+            while (r.length > 32) r = r.slice(1);
+            while (s.length > 32) s = s.slice(1);
+
+            let rPad = new Uint8Array(32); rPad.set(r, 32 - r.length);
+            let sPad = new Uint8Array(32); sPad.set(s, 32 - s.length);
+            let rs = new Uint8Array(64); rs.set(rPad, 0); rs.set(sPad, 32);
+            return Array.from(rs).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function publicKeyToAddress(pubKey) {
+            // Create a SHA-256 hash of the public key
+            const hashBuffer = await crypto.subtle.digest('SHA-256', pubKey);
+            // Take the last 20 bytes of the hash
+            const hashArray = new Uint8Array(hashBuffer);
+            const addressBytes = hashArray.slice(-20);
+            // Convert to hex and prefix with 0x
+            const hexString = Array.from(addressBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+            return '0x' + hexString;
+        }
+
+        function arrayBufferToHex(buffer) {
+            return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function loadTransactionHistory() {
+            const container = document.getElementById('transaction-history');
+            if (!container) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/mempool?limit=10`);
+                if (response.ok) {
+                    const transactions = await response.json();
+                    if (transactions.length === 0) {
+                        container.innerHTML = '<div class="transaction-item">No recent transactions</div>';
+                    } else {
+                        container.innerHTML = '';
+                        transactions.forEach(tx => {
+                            const txDiv = document.createElement('div');
+                            txDiv.className = 'transaction-item';
+                            txDiv.innerHTML = `
+                                <div class="tx-header">
+                                    <span class="tx-type">${tx.Amount} tokens</span>
+                                    <span class="tx-amount">${tx.Sender.substring(0, 8)}...</span>
+                                </div>
+                                <div class="tx-details">
+                                    To: ${tx.Recipient.substring(0, 8)}...<br>
+                                    ${tx.Data ? `Message: ${tx.Data}` : ''}
+                                </div>
+                            `;
+                            container.appendChild(txDiv);
+                        });
+                    }
+                } else {
+                    container.innerHTML = '<div class="transaction-item">Error loading transactions</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load transaction history:', error);
+                container.innerHTML = '<div class="transaction-item">Error loading transactions</div>';
+            }
+        }
+
+        function showQR() {
+            const address = document.getElementById('wallet-address').textContent;
+            if (address === 'Loading address...') {
+                showSnackbar('Please wait for wallet to load', 'error');
+                return;
+            }
+            document.getElementById('qr-modal').style.display = 'block';
+            // Simple QR code generation (in production, use a proper QR library)
+            document.getElementById('qr-code').innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 8px; display: inline-block;">
+                    <div style="font-family: monospace; font-size: 0.8rem; word-break: break-all;">
+                        ${address}
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeModal() {
+            document.getElementById('qr-modal').style.display = 'none';
+            document.getElementById('import-modal').style.display = 'none';
+        }
+
+        // Event listeners
+        document.getElementById('faucet-btn').addEventListener('click', requestFaucet);
+    </script>
+</body>
+</html> 

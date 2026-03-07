@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATLAS B.C. - Wallet Setup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .wallet-setup-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1rem;
+        }
+
+        .setup-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            background: #f7fafc;
+            padding: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #718096;
+        }
+
+        .tab.active {
+            background: white;
+            color: #4299e1;
+            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 12px 16px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #718096;
+        }
+
+        .file-upload-label:hover {
+            border-color: #4299e1;
+            background: #f7fafc;
+        }
+
+        .file-upload-label.dragover {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+
+        .wallet-info {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4299e1;
+        }
+
+        .wallet-info h4 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .wallet-info p {
+            color: #718096;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #4a5568;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4299e1;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .wallet-setup-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .tab {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wallet-setup-container">
+        <button class="back-btn" onclick="goBack()">←</button>
+        
+        <div class="header">
+            <h1>🔐 Wallet Setup</h1>
+            <p>Set up your wallet to access ATLAS B.C.</p>
+        </div>
+
+        <div class="setup-tabs">
+            <div class="tab active" onclick="switchTab('create')">Create New</div>
+            <div class="tab" onclick="switchTab('import')">Import Existing</div>
+        </div>
+
+        <!-- Create New Wallet Tab -->
+        <div id="create-tab" class="tab-content active">
+            <div class="wallet-info">
+                <h4>🔑 New Wallet</h4>
+                <p>Create a new wallet to get started with ATLAS B.C.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="wallet-password">Password</label>
+                <input type="password" id="wallet-password" class="form-control" placeholder="Enter a strong password">
+            </div>
+
+            <button class="btn btn-primary" onclick="createWallet()">🔑 Create New Wallet</button>
+        </div>
+
+        <!-- Import Existing Wallet Tab -->
+        <div id="import-tab" class="tab-content">
+            <div class="wallet-info">
+                <h4>📁 Import Wallet</h4>
+                <p>Import an existing wallet using a JSON file or enter your private key. Make sure you have your wallet file ready.</p>
+            </div>
+
+            <div class="form-group">
+                <label>Import Method</label>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-secondary" style="flex: 1; margin-bottom: 0;" onclick="showImportMethod('file')">📁 File</button>
+                    <button class="btn btn-secondary" style="flex: 1; margin-bottom: 0;" onclick="showImportMethod('key')">🔑 Private Key</button>
+                </div>
+            </div>
+
+            <!-- File Import -->
+            <div id="file-import" class="import-method" style="display: none;">
+                <div class="form-group">
+                    <label>Upload Wallet File</label>
+                    <div class="file-upload">
+                        <input type="file" id="wallet-file" accept=".json" onchange="handleFileSelect(event)">
+                        <label for="wallet-file" class="file-upload-label" id="file-label">
+                            📁 Choose wallet file or drag and drop here
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Private Key Import -->
+            <div id="key-import" class="import-method" style="display: none;">
+                <div class="form-group">
+                    <label for="private-key">Private Key</label>
+                    <textarea id="private-key" class="form-control" rows="4" placeholder="Enter your private key"></textarea>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="import-password">Password (if encrypted)</label>
+                <input type="password" id="import-password" class="form-control" placeholder="Enter wallet password if encrypted">
+            </div>
+
+            <button class="btn btn-primary" onclick="importWallet()">📥 Import Wallet</button>
+        </div>
+
+        <div id="status-message"></div>
+    </div>
+
+    <script>
+        let currentTab = 'create';
+        let selectedFile = null;
+
+        function switchTab(tab) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+            currentTab = tab;
+            
+            // Clear status messages
+            clearStatus();
+        }
+
+        function showImportMethod(method) {
+            document.querySelectorAll('.import-method').forEach(m => m.style.display = 'none');
+            document.getElementById(method + '-import').style.display = 'block';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('file-label').textContent = `📁 Selected: ${file.name}`;
+                document.getElementById('file-label').style.borderColor = '#4299e1';
+            }
+        }
+
+        function createWallet() {
+            const password = document.getElementById('wallet-password').value;
+
+            if (!password) {
+                showStatus('Please enter a password', 'error');
+                return;
+            }
+
+            if (password.length < 8) {
+                showStatus('Password must be at least 8 characters long', 'error');
+                return;
+            }
+
+            showLoading('Creating your wallet...');
+
+            // Simulate wallet creation (replace with actual API call)
+            setTimeout(() => {
+                // Generate a mock wallet for demo purposes
+                const mockWallet = {
+                    address: '0x' + Math.random().toString(16).substr(2, 40),
+                    privateKey: '0x' + Math.random().toString(16).substr(2, 64),
+                    name: 'ATLAS Wallet'
+                };
+
+                // Store wallet info (in real implementation, this would be encrypted)
+                localStorage.setItem('atlas_wallet', JSON.stringify(mockWallet));
+                localStorage.setItem('wallet_setup_complete', 'true');
+
+                showStatus('Wallet created successfully! Redirecting to dashboard...', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }, 2000);
+        }
+
+        function importWallet() {
+            const password = document.getElementById('import-password').value;
+            
+            if (currentTab === 'import') {
+                const fileImport = document.getElementById('file-import').style.display !== 'none';
+                const keyImport = document.getElementById('key-import').style.display !== 'none';
+
+                if (fileImport && !selectedFile) {
+                    showStatus('Please select a wallet file', 'error');
+                    return;
+                }
+
+                if (keyImport && !document.getElementById('private-key').value) {
+                    showStatus('Please enter your private key', 'error');
+                    return;
+                }
+            }
+
+            showLoading('Importing wallet...');
+
+            // Simulate wallet import (replace with actual API call)
+            setTimeout(() => {
+                const mockWallet = {
+                    address: '0x' + Math.random().toString(16).substr(2, 40),
+                    privateKey: '0x' + Math.random().toString(16).substr(2, 64),
+                    name: 'Imported Wallet'
+                };
+
+                localStorage.setItem('atlas_wallet', JSON.stringify(mockWallet));
+                localStorage.setItem('wallet_setup_complete', 'true');
+
+                showStatus('Wallet imported successfully! Redirecting to dashboard...', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }, 2000);
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.innerHTML = `<div class="status-${type}">${message}</div>`;
+        }
+
+        function showLoading(message) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    ${message}
+                </div>
+            `;
+        }
+
+        function clearStatus() {
+            document.getElementById('status-message').innerHTML = '';
+        }
+
+        function goBack() {
+            window.location.href = 'intro.html';
+        }
+
+        // No wallet requirement check - free access
+        document.addEventListener('DOMContentLoaded', function() {
+            // Page loads normally without wallet checks
+        });
+
+        // Drag and drop functionality
+        const fileLabel = document.getElementById('file-label');
+        
+        fileLabel.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        fileLabel.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        fileLabel.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                    selectedFile = file;
+                    this.textContent = `📁 Selected: ${file.name}`;
+                    this.style.borderColor = '#4299e1';
+                } else {
+                    showStatus('Please select a valid JSON wallet file', 'error');
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

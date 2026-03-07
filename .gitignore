@@ -1,0 +1,29 @@
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.packages
+build/
+cercaend/android/app/google-services.json
+cercaend/ios/Runner/GoogleService-Info.plist
+
+# Go
+**/vendor/
+*.exe
+*.test
+*.prof
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Private/Sensitive
+*.priv
+.env
+devnet.env
+
+# Mock Server
+mock_server/node_modules/
+geminislastchat
+state_snapshots/

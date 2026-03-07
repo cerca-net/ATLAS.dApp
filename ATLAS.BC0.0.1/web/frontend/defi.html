@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATLAS DeFi Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e0 100%);
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(72, 187, 120, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(66, 153, 225, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            color: #1a202c;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 50%, #718096 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.01em;
+        }
+
+        .back-btn {
+            background: rgba(45, 55, 72, 0.8);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 22px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(45, 55, 72, 0.9);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .defi-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            min-height: calc(100vh - 150px);
+        }
+
+        .sidebar, .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.08),
+                0 8px 16px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar:hover, .main-content:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.12),
+                0 12px 24px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .nav-menu {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .nav-menu li {
+            margin-bottom: 10px;
+        }
+
+        .nav-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(72, 187, 120, 0.1);
+            color: #48bb78;
+            transform: translateX(5px);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .nav-menu a::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+        }
+
+        .nav-menu a[data-section="portfolio"]::before { content: '📊'; }
+        .nav-menu a[data-section="lending"]::before { content: '💰'; }
+        .nav-menu a[data-section="trading"]::before { content: '📈'; }
+        .nav-menu a[data-section="staking"]::before { content: '🔒'; }
+        .nav-menu a[data-section="liquidity"]::before { content: '💧'; }
+        .nav-menu a[data-section="yield"]::before { content: '🌾'; }
+
+        .portfolio-summary {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .portfolio-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #48bb78;
+            margin-bottom: 10px;
+        }
+
+        .portfolio-change {
+            font-size: 0.9rem;
+            color: #48bb78;
+            margin-bottom: 15px;
+        }
+
+        .portfolio-change.negative {
+            color: #e53e3e;
+        }
+
+        .portfolio-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(72, 187, 120, 0.1);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.9);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #48bb78;
+            box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #718096, #4a5568);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 8px 25px rgba(113, 128, 150, 0.3);
+        }
+
+        .lending-pools {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .pool-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .pool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .pool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .pool-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .pool-apy {
+            background: rgba(72, 187, 120, 0.1);
+            color: #48bb78;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .pool-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .pool-stat {
+            text-align: center;
+            padding: 8px;
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: 6px;
+        }
+
+        .pool-stat-value {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .pool-stat-label {
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        .trading-pair {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .pair-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pair-symbol {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .pair-price {
+            color: #48bb78;
+            font-weight: 600;
+        }
+
+        .pair-change {
+            font-size: 0.9rem;
+            color: #48bb78;
+        }
+
+        .pair-change.negative {
+            color: #e53e3e;
+        }
+
+        .staking-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .staking-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            text-align: center;
+        }
+
+        .staking-reward {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #48bb78;
+            margin-bottom: 5px;
+        }
+
+        .staking-period {
+            color: #718096;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .defi-layout {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 ATLAS DeFi Platform</h1>
+            <a href="index.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="defi-layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <ul class="nav-menu">
+                    <li><a href="#" data-section="portfolio" class="active">📊 Portfolio</a></li>
+                    <li><a href="#" data-section="lending">💰 Lending</a></li>
+                    <li><a href="#" data-section="trading">📈 Trading</a></li>
+                    <li><a href="#" data-section="staking">🔒 Staking</a></li>
+                    <li><a href="#" data-section="liquidity">💧 Liquidity</a></li>
+                    <li><a href="#" data-section="yield">🌾 Yield Farming</a></li>
+                </ul>
+
+                <div class="portfolio-summary">
+                    <div class="portfolio-value" id="total-value">$0.00</div>
+                    <div class="portfolio-change" id="portfolio-change">+0.00%</div>
+                    <div class="portfolio-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-staked">$0</div>
+                            <div class="stat-label">Staked</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-lent">$0</div>
+                            <div class="stat-label">Lent</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-rewards">$0</div>
+                            <div class="stat-label">Rewards</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-apy">0%</div>
+                            <div class="stat-label">APY</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Portfolio Section -->
+                <div id="portfolio-section" class="section active">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">📊 Portfolio Overview</h2>
+                    <div id="portfolio-content">
+                        <div class="loading">Loading portfolio...</div>
+                    </div>
+                </div>
+
+                <!-- Lending Section -->
+                <div id="lending-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">💰 Lending & Borrowing</h2>
+                    <div class="lending-pools" id="lending-pools">
+                        <div class="loading">Loading lending pools...</div>
+                    </div>
+                </div>
+
+                <!-- Trading Section -->
+                <div id="trading-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">📈 DEX Trading</h2>
+                    <div id="trading-content">
+                        <div class="loading">Loading trading pairs...</div>
+                    </div>
+                </div>
+
+                <!-- Staking Section -->
+                <div id="staking-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">🔒 Staking</h2>
+                    <div class="staking-options" id="staking-options">
+                        <div class="loading">Loading staking options...</div>
+                    </div>
+                </div>
+
+                <!-- Liquidity Section -->
+                <div id="liquidity-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">💧 Liquidity Pools</h2>
+                    <div id="liquidity-content">
+                        <div class="loading">Loading liquidity pools...</div>
+                    </div>
+                </div>
+
+                <!-- Yield Farming Section -->
+                <div id="yield-section" class="section">
+                    <h2 style="margin-bottom: 20px; color: #2d3748;">🌾 Yield Farming</h2>
+                    <div id="yield-content">
+                        <div class="loading">Loading yield farms...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script>
+        // Global variables
+        let currentUser = null;
+        let portfolioData = {};
+
+        // Initialize the DeFi platform
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDeFiPlatform();
+            setupNavigation();
+        });
+
+        function initializeDeFiPlatform() {
+            currentUser = localStorage.getItem('currentUser') || 'user123';
+            loadPortfolio();
+            loadLendingPools();
+            loadTradingPairs();
+            loadStakingOptions();
+            loadLiquidityPools();
+            loadYieldFarms();
+        }
+
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.nav-menu a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.getElementById(sectionName + '-section').classList.add('active');
+        }
+
+        async function loadPortfolio() {
+            const portfolioContainer = document.getElementById('portfolio-content');
+            portfolioContainer.innerHTML = '<div class="loading">Loading portfolio...</div>';
+
+            try {
+                // Mock portfolio data
+                portfolioData = {
+                    totalValue: 15420.50,
+                    change: 2.34,
+                    staked: 8500.00,
+                    lent: 3200.00,
+                    rewards: 720.50,
+                    apy: 12.5,
+                    assets: [
+                        { symbol: 'ATLAS', amount: 1000, value: 5000, change: 1.2 },
+                        { symbol: 'ETH', amount: 2.5, value: 4500, change: -0.8 },
+                        { symbol: 'USDC', amount: 5000, value: 5000, change: 0.0 }
+                    ]
+                };
+
+                renderPortfolio();
+                updatePortfolioSummary();
+            } catch (error) {
+                console.error('Error loading portfolio:', error);
+            }
+        }
+
+        function renderPortfolio() {
+            const portfolioContainer = document.getElementById('portfolio-content');
+            
+            portfolioContainer.innerHTML = `
+                <div class="card">
+                    <h3>Your Assets</h3>
+                    ${portfolioData.assets.map(asset => `
+                        <div class="trading-pair">
+                            <div class="pair-info">
+                                <div class="pair-symbol">${asset.symbol}</div>
+                                <div>${asset.amount}</div>
+                            </div>
+                            <div>
+                                <div class="pair-price">$${asset.value.toLocaleString()}</div>
+                                <div class="pair-change ${asset.change >= 0 ? '' : 'negative'}">
+                                    ${asset.change >= 0 ? '+' : ''}${asset.change}%
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="card">
+                    <h3>Recent Transactions</h3>
+                    <div style="color: #718096; font-style: italic;">No recent transactions</div>
+                </div>
+            `;
+        }
+
+        function updatePortfolioSummary() {
+            document.getElementById('total-value').textContent = `$${portfolioData.totalValue.toLocaleString()}`;
+            document.getElementById('portfolio-change').textContent = `${portfolioData.change >= 0 ? '+' : ''}${portfolioData.change}%`;
+            document.getElementById('portfolio-change').className = `portfolio-change ${portfolioData.change >= 0 ? '' : 'negative'}`;
+            document.getElementById('total-staked').textContent = `$${portfolioData.staked.toLocaleString()}`;
+            document.getElementById('total-lent').textContent = `$${portfolioData.lent.toLocaleString()}`;
+            document.getElementById('total-rewards').textContent = `$${portfolioData.rewards.toLocaleString()}`;
+            document.getElementById('total-apy').textContent = `${portfolioData.apy}%`;
+        }
+
+        async function loadLendingPools() {
+            const poolsContainer = document.getElementById('lending-pools');
+            poolsContainer.innerHTML = '<div class="loading">Loading lending pools...</div>';
+
+            try {
+                const lendingPools = [
+                    {
+                        name: 'ATLAS/USDC',
+                        supplyAPY: 8.5,
+                        borrowAPY: 12.2,
+                        totalSupply: 2500000,
+                        totalBorrow: 1800000,
+                        utilization: 72
+                    },
+                    {
+                        name: 'ETH/USDC',
+                        supplyAPY: 6.2,
+                        borrowAPY: 10.8,
+                        totalSupply: 1800000,
+                        totalBorrow: 1200000,
+                        utilization: 67
+                    },
+                    {
+                        name: 'ATLAS/ETH',
+                        supplyAPY: 9.1,
+                        borrowAPY: 13.5,
+                        totalSupply: 3200000,
+                        totalBorrow: 2100000,
+                        utilization: 66
+                    }
+                ];
+
+                poolsContainer.innerHTML = lendingPools.map(pool => `
+                    <div class="pool-card">
+                        <div class="pool-header">
+                            <div class="pool-name">${pool.name}</div>
+                            <div class="pool-apy">${pool.supplyAPY}% APY</div>
+                        </div>
+                        <div class="pool-stats">
+                            <div class="pool-stat">
+                                <div class="pool-stat-value">${pool.supplyAPY}%</div>
+                                <div class="pool-stat-label">Supply APY</div>
+                            </div>
+                            <div class="pool-stat">
+                                <div class="pool-stat-value">${pool.borrowAPY}%</div>
+                                <div class="pool-stat-label">Borrow APY</div>
+                            </div>
+                            <div class="pool-stat">
+                                <div class="pool-stat-value">$${(pool.totalSupply / 1000000).toFixed(1)}M</div>
+                                <div class="pool-stat-label">Total Supply</div>
+                            </div>
+                            <div class="pool-stat">
+                                <div class="pool-stat-value">${pool.utilization}%</div>
+                                <div class="pool-stat-label">Utilization</div>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="supplyToPool('${pool.name}')">Supply</button>
+                        <button class="btn btn-secondary" onclick="borrowFromPool('${pool.name}')">Borrow</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading lending pools:', error);
+            }
+        }
+
+        async function loadTradingPairs() {
+            const tradingContainer = document.getElementById('trading-content');
+            tradingContainer.innerHTML = '<div class="loading">Loading trading pairs...</div>';
+
+            try {
+                const tradingPairs = [
+                    { symbol: 'ATLAS/USDC', price: 5.25, change: 2.1, volume: 1250000 },
+                    { symbol: 'ATLAS/ETH', price: 0.0025, change: -1.2, volume: 890000 },
+                    { symbol: 'ETH/USDC', price: 2100, change: 0.8, volume: 2100000 }
+                ];
+
+                tradingContainer.innerHTML = `
+                    <div class="card">
+                        <h3>Available Trading Pairs</h3>
+                        ${tradingPairs.map(pair => `
+                            <div class="trading-pair">
+                                <div class="pair-info">
+                                    <div class="pair-symbol">${pair.symbol}</div>
+                                </div>
+                                <div>
+                                    <div class="pair-price">$${pair.price.toLocaleString()}</div>
+                                    <div class="pair-change ${pair.change >= 0 ? '' : 'negative'}">
+                                        ${pair.change >= 0 ? '+' : ''}${pair.change}%
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Quick Trade</h3>
+                        <div class="form-group">
+                            <label>From Token</label>
+                            <select class="form-input">
+                                <option>ATLAS</option>
+                                <option>ETH</option>
+                                <option>USDC</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input type="number" class="form-input" placeholder="0.0">
+                        </div>
+                        <div class="form-group">
+                            <label>To Token</label>
+                            <select class="form-input">
+                                <option>USDC</option>
+                                <option>ATLAS</option>
+                                <option>ETH</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="executeTrade()">Trade</button>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading trading pairs:', error);
+            }
+        }
+
+        async function loadStakingOptions() {
+            const stakingContainer = document.getElementById('staking-options');
+            stakingContainer.innerHTML = '<div class="loading">Loading staking options...</div>';
+
+            try {
+                const stakingOptions = [
+                    { name: 'Flexible Staking', reward: '8.5%', period: 'No lock period', minStake: 100 },
+                    { name: '30-Day Lock', reward: '12.0%', period: '30 days', minStake: 500 },
+                    { name: '90-Day Lock', reward: '15.5%', period: '90 days', minStake: 1000 },
+                    { name: '180-Day Lock', reward: '18.0%', period: '180 days', minStake: 2000 }
+                ];
+
+                stakingContainer.innerHTML = stakingOptions.map(option => `
+                    <div class="staking-card">
+                        <div class="staking-reward">${option.reward}</div>
+                        <div class="staking-period">${option.period}</div>
+                        <div style="margin-bottom: 15px; color: #718096;">Min: $${option.minStake}</div>
+                        <button class="btn" onclick="stakeTokens('${option.name}')">Stake Now</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading staking options:', error);
+            }
+        }
+
+        async function loadLiquidityPools() {
+            const liquidityContainer = document.getElementById('liquidity-content');
+            liquidityContainer.innerHTML = '<div class="loading">Loading liquidity pools...</div>';
+
+            try {
+                const liquidityPools = [
+                    { name: 'ATLAS/USDC', apy: 25.5, tvl: 2500000, yourShare: 0 },
+                    { name: 'ATLAS/ETH', apy: 32.1, tvl: 1800000, yourShare: 0 },
+                    { name: 'ETH/USDC', apy: 18.7, tvl: 4200000, yourShare: 0 }
+                ];
+
+                liquidityContainer.innerHTML = `
+                    <div class="card">
+                        <h3>Liquidity Pools</h3>
+                        ${liquidityPools.map(pool => `
+                            <div class="pool-card">
+                                <div class="pool-header">
+                                    <div class="pool-name">${pool.name}</div>
+                                    <div class="pool-apy">${pool.apy}% APY</div>
+                                </div>
+                                <div class="pool-stats">
+                                    <div class="pool-stat">
+                                        <div class="pool-stat-value">$${(pool.tvl / 1000000).toFixed(1)}M</div>
+                                        <div class="pool-stat-label">TVL</div>
+                                    </div>
+                                    <div class="pool-stat">
+                                        <div class="pool-stat-value">$${pool.yourShare}</div>
+                                        <div class="pool-stat-label">Your Share</div>
+                                    </div>
+                                </div>
+                                <button class="btn" onclick="addLiquidity('${pool.name}')">Add Liquidity</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading liquidity pools:', error);
+            }
+        }
+
+        async function loadYieldFarms() {
+            const yieldContainer = document.getElementById('yield-content');
+            yieldContainer.innerHTML = '<div class="loading">Loading yield farms...</div>';
+
+            try {
+                const yieldFarms = [
+                    { name: 'ATLAS-USDC LP', apy: 45.2, reward: 'ATLAS', tvl: 1200000 },
+                    { name: 'ATLAS-ETH LP', apy: 52.8, reward: 'ATLAS', tvl: 890000 },
+                    { name: 'ETH-USDC LP', apy: 28.5, reward: 'ATLAS', tvl: 2100000 }
+                ];
+
+                yieldContainer.innerHTML = `
+                    <div class="card">
+                        <h3>Yield Farms</h3>
+                        ${yieldFarms.map(farm => `
+                            <div class="pool-card">
+                                <div class="pool-header">
+                                    <div class="pool-name">${farm.name}</div>
+                                    <div class="pool-apy">${farm.apy}% APY</div>
+                                </div>
+                                <div class="pool-stats">
+                                    <div class="pool-stat">
+                                        <div class="pool-stat-value">${farm.reward}</div>
+                                        <div class="pool-stat-label">Reward Token</div>
+                                    </div>
+                                    <div class="pool-stat">
+                                        <div class="pool-stat-value">$${(farm.tvl / 1000000).toFixed(1)}M</div>
+                                        <div class="pool-stat-label">TVL</div>
+                                    </div>
+                                </div>
+                                <button class="btn" onclick="stakeInFarm('${farm.name}')">Stake in Farm</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading yield farms:', error);
+            }
+        }
+
+        // DeFi interaction functions
+        function supplyToPool(poolName) {
+            showMessage(`Supply to ${poolName} initiated!`, 'success');
+        }
+
+        function borrowFromPool(poolName) {
+            showMessage(`Borrow from ${poolName} initiated!`, 'success');
+        }
+
+        function executeTrade() {
+            showMessage('Trade executed successfully!', 'success');
+        }
+
+        function stakeTokens(optionName) {
+            showMessage(`Staked in ${optionName}!`, 'success');
+        }
+
+        function addLiquidity(poolName) {
+            showMessage(`Added liquidity to ${poolName}!`, 'success');
+        }
+
+        function stakeInFarm(farmName) {
+            showMessage(`Staked in ${farmName}!`, 'success');
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.right = '20px';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.style.padding = '15px 20px';
+            messageDiv.style.borderRadius = '8px';
+            messageDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html> 

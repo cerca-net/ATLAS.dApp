@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Contract VM - Blockchain Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e0 100%);
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(72, 187, 120, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(66, 153, 225, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .header h1 {
+            color: #1a202c;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 50%, #718096 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.01em;
+        }
+
+        .back-btn {
+            background: rgba(45, 55, 72, 0.8);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(45, 55, 72, 0.9);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.08),
+                0 8px 16px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 1.5rem;
+            min-height: 400px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.12),
+                0 12px 24px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .card h2 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 0.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 8px 25px rgba(66, 153, 225, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(66, 153, 225, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+
+        .contract-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .contract-item {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        .contract-item:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateX(4px) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .contract-item h3 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .contract-item p {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .contract-address {
+            font-family: 'Courier New', monospace;
+            background: #edf2f7;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #4a5568;
+        }
+
+        .examples-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+
+        .example-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-card:hover {
+            background: #edf2f7;
+            transform: translateX(4px);
+        }
+
+        .example-card h4 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .example-card p {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .status {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+
+        .status.info {
+            background: #bee3f8;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+            color: #718096;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .function-call {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .function-call h4 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .function-call .params {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 0.5rem;
+            align-items: end;
+            margin-bottom: 0.5rem;
+        }
+
+        .function-call input {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .gas-info {
+            background: #edf2f7;
+            border-radius: 6px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #4a5568;
+        }
+
+
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Smart Contract Virtual Machine</h1>
+            <a href="index.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+        <div class="grid">
+            <!-- Contract Deployment Section -->
+            <div class="card">
+                <h2>🚀 Deploy New Contract</h2>
+                <form id="deployForm">
+                    <div class="form-group">
+                        <label for="contractName">Contract Name:</label>
+                        <input type="text" id="contractName" placeholder="MyAwesomeContract" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contractVersion">Version:</label>
+                        <input type="text" id="contractVersion" placeholder="1.0" value="1.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contractOwner">Owner Address:</label>
+                        <input type="text" id="contractOwner" placeholder="0x1234567890abcdef" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contractCode">Contract Code (JSON):</label>
+                        <textarea id="contractCode" placeholder='{
+  "functions": {
+    "balance": {
+      "params": [],
+      "code": [
+        {"op": "LOAD", "key": "balance"},
+        {"op": "RETURN"}
+      ]
+    }
+  },
+  "storage": {"balance": 1000}
+}' required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Deploy Contract</button>
+                    <button type="button" class="btn btn-secondary" onclick="loadExample()">Load Example</button>
+                </form>
+                <div id="deployStatus"></div>
+            </div>
+
+            <!-- Contract Examples Section -->
+            <div class="card">
+                <h2>📚 Contract Examples</h2>
+                <div class="examples-vertical">
+                    <div class="example-card" onclick="loadSimpleToken()">
+                        <h4>🪙 Simple Token</h4>
+                        <p>A basic token contract with transfer and balance functions</p>
+                    </div>
+                    <div class="example-card" onclick="loadVotingContract()">
+                        <h4>🗳️ Voting System</h4>
+                        <p>A simple voting contract for proposals</p>
+                    </div>
+                    <div class="example-card" onclick="loadEscrowContract()">
+                        <h4>🔒 Escrow Service</h4>
+                        <p>An escrow contract for secure transactions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Contract Interaction Section -->
+            <div class="card">
+                <h2>⚡ Contract Interaction</h2>
+                <div class="form-group">
+                    <label for="contractAddress">Contract Address:</label>
+                    <input type="text" id="contractAddress" placeholder="CONTRACT_..." required>
+                </div>
+                <button class="btn btn-secondary" onclick="loadContractInfo()">Load Contract Info</button>
+                
+                <div class="form-group">
+                    <label for="callerAddress">Caller Address:</label>
+                    <input type="text" id="callerAddress" placeholder="0x1234567890abcdef" required>
+                </div>
+                <div class="form-group">
+                    <label for="gasLimit">Gas Limit:</label>
+                    <input type="number" id="gasLimit" value="1000" min="1" max="10000">
+                </div>
+                
+                <div id="contractFunctions" style="display: none;">
+                    <h3>Available Functions:</h3>
+                    <div id="functionsList"></div>
+                </div>
+            </div>
+
+            <!-- Deployed Contracts Section -->
+            <div class="card">
+                <h2>📋 Deployed Contracts</h2>
+                <button class="btn btn-secondary" onclick="loadContracts()">Refresh Contracts</button>
+                <div class="loading" id="contractsLoading">Loading contracts...</div>
+                <div class="contract-list" id="contractsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = `http://localhost:${window.currentApiPort || 8080}`;
+
+        // Load contract examples
+        async function loadExamples() {
+            try {
+                const response = await fetch(`${API_BASE}/contract/examples`);
+                const examples = await response.json();
+                console.log('Available examples:', examples);
+            } catch (error) {
+                console.error('Error loading examples:', error);
+            }
+        }
+
+        // Load specific examples
+        function loadSimpleToken() {
+            document.getElementById('contractName').value = 'SimpleToken';
+            document.getElementById('contractVersion').value = '1.0';
+            document.getElementById('contractOwner').value = '0x1234567890abcdef';
+            document.getElementById('contractCode').value = JSON.stringify({
+                functions: {
+                    transfer: {
+                        params: ["to", "amount"],
+                        code: [
+                            {"op": "LOAD", "key": "balance"},
+                            {"op": "PUSH", "value": "amount"},
+                            {"op": "SUB"},
+                            {"op": "STORE", "key": "balance"}
+                        ]
+                    },
+                    balance: {
+                        params: [],
+                        code: [
+                            {"op": "LOAD", "key": "balance"},
+                            {"op": "RETURN"}
+                        ]
+                    },
+                    mint: {
+                        params: ["amount"],
+                        code: [
+                            {"op": "LOAD", "key": "balance"},
+                            {"op": "PUSH", "value": "amount"},
+                            {"op": "ADD"},
+                            {"op": "STORE", "key": "balance"}
+                        ]
+                    }
+                },
+                storage: {balance: 1000, owner: "0x1234567890abcdef"}
+            }, null, 2);
+        }
+
+        function loadVotingContract() {
+            document.getElementById('contractName').value = 'SimpleVoting';
+            document.getElementById('contractVersion').value = '1.0';
+            document.getElementById('contractOwner').value = '0x1234567890abcdef';
+            document.getElementById('contractCode').value = JSON.stringify({
+                functions: {
+                    vote: {
+                        params: ["proposal", "choice"],
+                        code: [
+                            {"op": "PUSH", "value": "choice"},
+                            {"op": "STORE", "key": "vote"},
+                            {"op": "LOAD", "key": "votes"},
+                            {"op": "PUSH", "value": 1},
+                            {"op": "ADD"},
+                            {"op": "STORE", "key": "votes"}
+                        ]
+                    },
+                    getVotes: {
+                        params: [],
+                        code: [
+                            {"op": "LOAD", "key": "votes"},
+                            {"op": "RETURN"}
+                        ]
+                    },
+                    getVote: {
+                        params: [],
+                        code: [
+                            {"op": "LOAD", "key": "vote"},
+                            {"op": "RETURN"}
+                        ]
+                    }
+                },
+                storage: {votes: 0, vote: 0}
+            }, null, 2);
+        }
+
+        function loadEscrowContract() {
+            document.getElementById('contractName').value = 'SimpleEscrow';
+            document.getElementById('contractVersion').value = '1.0';
+            document.getElementById('contractOwner').value = '0x1234567890abcdef';
+            document.getElementById('contractCode').value = JSON.stringify({
+                functions: {
+                    deposit: {
+                        params: ["amount"],
+                        code: [
+                            {"op": "LOAD", "key": "balance"},
+                            {"op": "PUSH", "value": "amount"},
+                            {"op": "ADD"},
+                            {"op": "STORE", "key": "balance"}
+                        ]
+                    },
+                    withdraw: {
+                        params: ["amount"],
+                        code: [
+                            {"op": "LOAD", "key": "balance"},
+                            {"op": "PUSH", "value": "amount"},
+                            {"op": "SUB"},
+                            {"op": "STORE", "key": "balance"}
+                        ]
+                    },
+                    getBalance: {
+                        params: [],
+                        code: [
+                            {"op": "LOAD", "key": "balance"},
+                            {"op": "RETURN"}
+                        ]
+                    }
+                },
+                storage: {balance: 0}
+            }, null, 2);
+        }
+
+        function loadExample() {
+            loadSimpleToken();
+        }
+
+        // Deploy contract
+        document.getElementById('deployForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const statusDiv = document.getElementById('deployStatus');
+            statusDiv.innerHTML = '<div class="status info">Deploying contract...</div>';
+            
+            try {
+                const contractData = {
+                    owner: document.getElementById('contractOwner').value,
+                    contract: {
+                        name: document.getElementById('contractName').value,
+                        version: document.getElementById('contractVersion').value,
+                        functions: JSON.parse(document.getElementById('contractCode').value).functions,
+                        storage: JSON.parse(document.getElementById('contractCode').value).storage || {}
+                    }
+                };
+
+                const response = await fetch(`${API_BASE}/contract/deploy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(contractData)
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    statusDiv.innerHTML = `
+                        <div class="status success">
+                            ✅ Contract deployed successfully!<br>
+                            Address: <span class="contract-address">${result.address}</span><br>
+                            Name: ${result.name}
+                        </div>
+                    `;
+                    loadContracts(); // Refresh contract list
+                } else {
+                    statusDiv.innerHTML = `<div class="status error">❌ Deployment failed: ${result.message}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        });
+
+        // Load contract information
+        async function loadContractInfo() {
+            const address = document.getElementById('contractAddress').value;
+            if (!address) {
+                alert('Please enter a contract address');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/contract/info?address=${address}`);
+                const contract = await response.json();
+                
+                const functionsDiv = document.getElementById('contractFunctions');
+                const functionsList = document.getElementById('functionsList');
+                
+                functionsList.innerHTML = '';
+                
+                if (contract.functions) {
+                    Object.keys(contract.functions).forEach(funcName => {
+                        const func = contract.functions[funcName];
+                        const funcDiv = document.createElement('div');
+                        funcDiv.className = 'function-call';
+                        funcDiv.innerHTML = `
+                            <h4>${funcName}</h4>
+                            <p>Parameters: ${func.params.join(', ') || 'None'}</p>
+                            <div class="params">
+                                ${func.params.map(param => `
+                                    <input type="text" placeholder="${param}" id="param_${funcName}_${param}">
+                                `).join('')}
+                                <button class="btn btn-success" onclick="callFunction('${funcName}')">Call Function</button>
+                            </div>
+                            <div class="gas-info">Gas Limit: ${document.getElementById('gasLimit').value}</div>
+                        `;
+                        functionsList.appendChild(funcDiv);
+                    });
+                }
+                
+                functionsDiv.style.display = 'block';
+            } catch (error) {
+                alert('Error loading contract info: ' + error.message);
+            }
+        }
+
+        // Call contract function
+        async function callFunction(functionName) {
+            const address = document.getElementById('contractAddress').value;
+            const caller = document.getElementById('callerAddress').value;
+            const gasLimit = document.getElementById('gasLimit').value;
+            
+            if (!address || !caller) {
+                alert('Please enter contract address and caller address');
+                return;
+            }
+
+            try {
+                // Get parameters for this function
+                const params = [];
+                const paramInputs = document.querySelectorAll(`[id^="param_${functionName}_"]`);
+                paramInputs.forEach(input => {
+                    const value = input.value.trim();
+                    if (value) {
+                        // Try to parse as number, otherwise keep as string
+                        const numValue = parseFloat(value);
+                        params.push(isNaN(numValue) ? value : numValue);
+                    }
+                });
+
+                const callData = {
+                    contract_address: address,
+                    function: functionName,
+                    args: params,
+                    caller: caller,
+                    gas_limit: parseInt(gasLimit)
+                };
+
+                const response = await fetch(`${API_BASE}/contract/call`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(callData)
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    alert(`✅ Function executed successfully!\nGas used: ${result.gas_used}\nGas limit: ${result.gas_limit}`);
+                } else {
+                    alert(`❌ Function execution failed: ${result.message}`);
+                }
+            } catch (error) {
+                alert('Error calling function: ' + error.message);
+            }
+        }
+
+        // Load deployed contracts
+        async function loadContracts() {
+            const loadingDiv = document.getElementById('contractsLoading');
+            const listDiv = document.getElementById('contractsList');
+            
+            loadingDiv.classList.add('show');
+            listDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_BASE}/contract/list`);
+                const contracts = await response.json();
+                
+                if (Array.isArray(contracts) && contracts.length > 0) {
+                    contracts.forEach(contract => {
+                        const contractDiv = document.createElement('div');
+                        contractDiv.className = 'contract-item';
+                        contractDiv.onclick = () => {
+                            document.getElementById('contractAddress').value = contract.address;
+                            loadContractInfo();
+                        };
+                        contractDiv.innerHTML = `
+                            <h3>${contract.name}</h3>
+                            <p><strong>Address:</strong> <span class="contract-address">${contract.address}</span></p>
+                            <p><strong>Owner:</strong> ${contract.owner}</p>
+                            <p><strong>Version:</strong> ${contract.version}</p>
+                            <p><strong>Created:</strong> ${new Date(contract.created_at * 1000).toLocaleString()}</p>
+                        `;
+                        listDiv.appendChild(contractDiv);
+                    });
+                } else {
+                    listDiv.innerHTML = '<p style="text-align: center; color: #718096; padding: 2rem;">No contracts deployed yet. Deploy your first contract above!</p>';
+                }
+            } catch (error) {
+                listDiv.innerHTML = `<div class="status error">Error loading contracts: ${error.message}</div>`;
+            } finally {
+                loadingDiv.classList.remove('show');
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadExamples();
+            loadContracts();
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,28 @@
+# Exclude vendor directory to improve Cursor performance
+vendor/
+
+# Exclude test outputs and logs
+*.txt
+*.log
+*.out
+
+# Exclude compiled binaries
+*.exe
+*.bin
+
+# Exclude database files
+*.db
+*.sqlite
+
+# Exclude state snapshots
+state_snapshots/
+backups/
+
+# Exclude test logs
+test_logs/
+
+# Exclude node directories
+node1/
+node2/
+node3/
+minimain/ 
