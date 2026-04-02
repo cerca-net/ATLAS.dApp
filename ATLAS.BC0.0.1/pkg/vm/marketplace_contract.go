@@ -105,7 +105,7 @@ type OrderInfo struct {
 }
 
 // CreateOrder places the buyer's funds in escrow for a particular seller.
-func (h *MarketplaceContractHelper) CreateOrder(ctx *ExecutionContext, buyer, seller string, amount int64) (string, error) {
+func (h *MarketplaceContractHelper) CreateOrder(ctx *ExecutionContext, buyer, seller string, amount int64, orderID string) (string, error) {
 	if ctx.State == nil {
 		return "", fmt.Errorf("state adapter is required")
 	}
@@ -123,11 +123,13 @@ func (h *MarketplaceContractHelper) CreateOrder(ctx *ExecutionContext, buyer, se
 		return "", fmt.Errorf("insufficient balance for order")
 	}
 
-	// Generate Order ID
-	orderCounter, _ := ctx.State.GetContractStorage(h.Contract.Address, "order_counter")
-	newCounter := orderCounter + 1
-	ctx.State.SetContractStorage(h.Contract.Address, "order_counter", newCounter)
-	orderID := fmt.Sprintf("ORDER_%d", newCounter)
+	if orderID == "" {
+		// Generate Order ID if not provided
+		orderCounter, _ := ctx.State.GetContractStorage(h.Contract.Address, "order_counter")
+		newCounter := orderCounter + 1
+		ctx.State.SetContractStorage(h.Contract.Address, "order_counter", newCounter)
+		orderID = fmt.Sprintf("ORDER_%d", newCounter)
+	}
 
 	// Move funds to contract (escrow)
 	if err := ctx.State.Transfer(buyer, h.Contract.Address, amount); err != nil {
@@ -281,6 +283,52 @@ func (h *MarketplaceContractHelper) RaiseDispute(ctx *ExecutionContext, user, or
 		"raised_by": user,
 	})
 
+	return nil
+}
+
+// ResolveDispute resolves a disputed order, paying either the buyer or the seller.
+func (h *MarketplaceContractHelper) ResolveDispute(ctx *ExecutionContext, admin, orderID string, payBuyer bool) error {
+	if ctx.State == nil {
+		return fmt.Errorf("state adapter is required")
+	}
+
+	status, exists := ctx.State.GetContractStorage(h.Contract.Address, fmt.Sprintf("order_status_%s", orderID))
+	if !exists {
+		return fmt.Errorf("order %s not found", orderID)
+	}
+	if status != EscrowStatusDisputed {
+		return fmt.Errorf("order %s is not disputed", orderID)
+	}
+
+	buyer, _ := ctx.State.GetStringStorage(h.Contract.Address, fmt.Sprintf("order_buyer_%s", orderID))
+	seller, _ := ctx.State.GetStringStorage(h.Contract.Address, fmt.Sprintf("order_seller_%s", orderID))
+	amountStr, _ := ctx.State.GetStringStorage(h.Contract.Address, fmt.Sprintf("order_amount_%s", orderID))
+
+	var amount uint64
+	fmt.Sscanf(amountStr, "%d", &amount)
+
+	var payee string
+	if payBuyer {
+		payee = buyer
+		ctx.State.SetContractStorage(h.Contract.Address, fmt.Sprintf("order_status_%s", orderID), EscrowStatusRefunded)
+	} else {
+		payee = seller
+		ctx.State.SetContractStorage(h.Contract.Address, fmt.Sprintf("order_status_%s", orderID), EscrowStatusCompleted)
+	}
+
+	err := ctx.State.Transfer(h.Contract.Address, payee, int64(amount))
+	if err != nil {
+		return fmt.Errorf("failed to transfer funds to %s: %v", payee, err)
+	}
+
+	ctx.EmitEvent(h.Contract.Address, "OrderDisputeResolved", map[string]interface{}{
+		"order_id":    orderID,
+		"resolved_by": admin,
+		"payee":       payee,
+		"amount":      amount,
+	})
+
+	log.Printf("[MARKETPLACE] Order %s dispute resolved: %d paid to %s", orderID, amount, shortAddr(payee))
 	return nil
 }
 

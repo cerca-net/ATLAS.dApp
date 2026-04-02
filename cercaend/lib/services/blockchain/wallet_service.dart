@@ -365,7 +365,7 @@ class WalletService {
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       const fee = 1;
-      final amountInt = (amount * 10).toInt(); // Convert to integer units
+      final amountInt = amount.toInt(); // Convert to integer units (1:1 with backend TCOIN)
 
       // 2. Prepare for signing
       final txMap = {

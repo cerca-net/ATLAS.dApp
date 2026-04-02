@@ -39,6 +39,10 @@ COPY --from=builder /app/web ./web
 # Create data directory for persistence
 RUN mkdir -p /data
 
+# Copy Genesis configuration files and script
+COPY --from=builder /app/genesis.json .
+COPY --from=builder /app/genesis_validator.key .
+
 # Environment variables
 ENV API_PORT=8080
 ENV DATABASE_PATH=/data/blockchain.db
@@ -53,4 +57,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/status || exit 1
 
 # Run the blockchain node
-CMD ["./blockchain", "-datadir", "/data", "-api", "8080", "-port", "8000", "-validator"]
+CMD ["./blockchain", "-datadir", "/data", "-api", "8080", "-port", "8000", "-validator", "-validator-key", "genesis_validator.key", "-genesis", "genesis.json"]

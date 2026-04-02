@@ -27,3 +27,19 @@ devnet.env
 mock_server/node_modules/
 geminislastchat
 state_snapshots/
+
+# Devnet generated files
+data_node*/
+node*.log
+*_err.log
+ATLAS.BC0.0.1/genesis_validator.key
+ATLAS.BC0.0.1/backups/
+ATLAS.BC0.0.1/find_treasury.go
+ATLAS.BC0.0.1/test_mvp_flow.go
+STATE/
+blockchain.db
+state_snapshots/
+**/node_modules/
+.idea/
+.vscode/
+*.db.gz

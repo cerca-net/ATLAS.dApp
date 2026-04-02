@@ -23,7 +23,12 @@ We have successfully integrated the core blockchain functionality and prepared t
     *   **Dockerization**: Created multi-stage `Dockerfile` and `docker-compose` configurations for both the blockchain node and the Flutter web app, ensuring local development perfectly mirrors the production environment.
     *   **Repository Hygiene**: Established a comprehensive `.gitignore` and `.github/workflows` for automated CI/CD readiness.
     *   **Automation**: Authored `materialize.ps1` for one-click environment provisioning.
-4.  **Repository Migration**:
+4.  **Transaction Stability & Resilience**:
+    *   **Mempool Hardening**: Implemented strict validation (address length, balance, and nonce) in `AddTransaction` to prevent invalid transactions from entering the mempool.
+    *   **Resilient Block Forging**: Refactored `ForgeBlock` to skip and prune invalid or stale transactions instead of failing the entire block production. This prevents a single bad transaction from halting the chain.
+    *   **Unit Synchronization**: Aligned the transaction amount scaling between the Flutter app (`WalletService`) and the Go backend, fixing the unit mismatch that led to "insufficient funds" errors.
+    *   **Security Fixes**: Added defensive checks to prevent self-slashing of validators due to malformed transaction blocks.
+5.  **Repository Migration**:
     *   Successfully migrated the codebase to the dedicated [CercaChain GitHub Repository](https://github.com/cerca-net/cercachain.git).
 
 ## 🛠️ Next Steps (Roadmap)

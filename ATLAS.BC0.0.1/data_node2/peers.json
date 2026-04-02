@@ -1,11 +1,11 @@
 {
-  "12D3KooWAm9jr4Ctic2zokWqWjfgmfusekT3E8LiE4NjjgBbU3ih": {
-    "peer_id": "12D3KooWAm9jr4Ctic2zokWqWjfgmfusekT3E8LiE4NjjgBbU3ih",
+  "12D3KooWHajT1kTwPm3uryYdq8NmoZQbf2zymCsvi4tAkSzbG54x": {
+    "peer_id": "12D3KooWHajT1kTwPm3uryYdq8NmoZQbf2zymCsvi4tAkSzbG54x",
     "multiaddrs": [
-      "/ip4/192.168.0.105/tcp/8000",
-      "/ip4/127.0.0.1/tcp/8000"
+      "/ip4/127.0.0.1/tcp/8000",
+      "/ip4/192.168.0.105/tcp/8000"
     ],
-    "last_seen": "2026-02-28T17:06:49.2382243-04:00",
+    "last_seen": "2026-03-14T17:37:35.0972844-04:00",
     "is_validator": true,
     "stake": 2000
   }

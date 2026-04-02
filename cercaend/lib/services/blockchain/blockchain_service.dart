@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class BlockchainService {
   final String baseUrl;
 
-  BlockchainService({this.baseUrl = 'http://192.168.0.105:8080'}); // LAN testnet
+  BlockchainService({this.baseUrl = 'http://localhost:8080'}); // Local Dev Node
 
   /// Connect wallet to ATLAS blockchain
   Future<WalletConnectionResponse> connectWallet(

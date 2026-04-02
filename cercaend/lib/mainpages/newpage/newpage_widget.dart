@@ -138,7 +138,12 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                     ),
                   );
                 }
-                // Return an empty Container when the item does not exist. // No longer true, we let the user access the page anyway.
+                List<AnalyticsRecord> columnAnalyticsRecordList =
+                    snapshot.data!;
+                final columnAnalyticsRecord =
+                    columnAnalyticsRecordList.isNotEmpty
+                        ? columnAnalyticsRecordList.first
+                        : null;
 
                 return Column(
                   mainAxisSize: MainAxisSize.max,

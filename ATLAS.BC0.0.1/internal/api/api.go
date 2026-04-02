@@ -229,6 +229,8 @@ func (api *APIServer) Start(addr string) {
 	http.HandleFunc("/peers", withCORS(api.handleGetPeers))
 	http.HandleFunc("/connect-peer", withCORS(api.handleConnectPeer))
 	http.HandleFunc("/faucet", withCORS(api.handleFaucet))
+	http.HandleFunc("/admin/faucet", withCORS(api.handleAdminFaucet))
+	http.HandleFunc("/admin/treasury-history", withCORS(api.handleAdminTreasuryHistory))
 	http.HandleFunc("/nonce", withCORS(api.handleGetNonce))
 	http.HandleFunc("/run-tests", withCORS(api.handleRunTests))
 	http.HandleFunc("/test-performance", withCORS(api.handleTestPerformance))
@@ -356,6 +358,8 @@ func (api *APIServer) Start(addr string) {
 	http.HandleFunc("/governance/proposal/discuss", withCORS(api.handleAddDiscussionComment))
 	http.HandleFunc("/governance/proposals/active", withCORS(api.handleGetActiveProposals))
 	http.HandleFunc("/governance/proposals/category", withCORS(api.handleGetProposalsByCategory))
+	http.HandleFunc("/admin/resolve-dispute", withCORS(api.handleAdminResolveDispute))
+	http.HandleFunc("/admin/disputes", withCORS(api.handleAdminGetDisputes))
 	http.HandleFunc("/governance/referendum/create", withCORS(api.handleCreateReferendum))
 	http.HandleFunc("/governance/referendum/vote", withCORS(api.handleVoteReferendum))
 
@@ -812,7 +816,7 @@ func (api *APIServer) handleFaucet(w http.ResponseWriter, r *http.Request) {
 		Data:            "Faucet Request",
 	}
 
-	// Sign transaction
+	// Sign transaction (r and s must each be 32-byte padded for consistent verification)
 	txHash := wallet.CalculateTxHash(tx)
 	rInt, sInt, err := ecdsa.Sign(rand.Reader, api.TreasuryWallet.PrivateKey, txHash)
 	if err != nil {
@@ -822,7 +826,13 @@ func (api *APIServer) handleFaucet(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	tx.Signature = hex.EncodeToString(rInt.Bytes()) + hex.EncodeToString(sInt.Bytes())
+	rBytes := rInt.Bytes()
+	sBytes := sInt.Bytes()
+	// Pad to 32 bytes each so the verifier can split at len/2
+	sig := make([]byte, 64)
+	copy(sig[32-len(rBytes):32], rBytes)
+	copy(sig[64-len(sBytes):64], sBytes)
+	tx.Signature = hex.EncodeToString(sig)
 
 	// Submit to mempool
 	if err := api.transactionManager.AddTransaction(tx); err != nil {
@@ -850,6 +860,73 @@ func (api *APIServer) handleFaucet(w http.ResponseWriter, r *http.Request) {
 		"status":  "Transaction submitted",
 		"message": "Funds will arrive in the next block.",
 		"txHash":  hex.EncodeToString(txHash),
+	})
+}
+
+// POST /admin/faucet — Admin version of faucet that accepts a custom amount
+func (api *APIServer) handleAdminFaucet(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Address string `json:"address"`
+		Amount  int64  `json:"amount"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Address == "" {
+		http.Error(w, "Missing address or invalid body", http.StatusBadRequest)
+		return
+	}
+	if req.Amount <= 0 {
+		req.Amount = 1000 // default fallback
+	}
+
+	if api.TreasuryWallet == nil {
+		http.Error(w, "Treasury wallet not initialized", http.StatusInternalServerError)
+		return
+	}
+
+	treasuryAddress := wallet.PublicKeyToAddress(api.TreasuryWallet.PublicKey)
+	nonce := api.transactionManager.GetNextNonce(treasuryAddress)
+
+	tx := transaction.Transaction{
+		Type:            transaction.TxTypeRegular,
+		Sender:          treasuryAddress,
+		SenderPublicKey: hex.EncodeToString(api.TreasuryWallet.PublicKey),
+		Recipient:       req.Address,
+		Amount:          req.Amount,
+		Fee:             1,
+		Timestamp:       time.Now().Unix(),
+		Nonce:           nonce,
+		Data:            "Admin Faucet Emission",
+	}
+
+	txHash := wallet.CalculateTxHash(tx)
+	rInt, sInt, err := ecdsa.Sign(rand.Reader, api.TreasuryWallet.PrivateKey, txHash)
+	if err != nil {
+		http.Error(w, "Failed to sign faucet transaction: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	rBytes, sBytes := rInt.Bytes(), sInt.Bytes()
+	sig := make([]byte, 64)
+	copy(sig[32-len(rBytes):32], rBytes)
+	copy(sig[64-len(sBytes):64], sBytes)
+	tx.Signature = hex.EncodeToString(sig)
+
+	if err := api.transactionManager.AddTransaction(tx); err != nil {
+		http.Error(w, "Failed to submit faucet transaction: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("[ADMIN FAUCET] 💸 Emitted %d TCOIN from Treasury to %s", req.Amount, req.Address)
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"amount":  req.Amount,
+		"to":      req.Address,
+		"txHash":  hex.EncodeToString(txHash),
+		"message": "Admin emission queued. Funds will arrive in the next block.",
 	})
 }
 
@@ -4018,3 +4095,184 @@ func (api *APIServer) handleVoteReferendum(w http.ResponseWriter, r *http.Reques
 		"message": "Referendum vote cast successfully",
 	})
 }
+
+// POST /admin/resolve-dispute
+func (api *APIServer) handleAdminResolveDispute(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		OrderID  string `json:"order_id"`
+		PayBuyer bool   `json:"pay_buyer"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if api.TreasuryWallet == nil {
+		http.Error(w, "Treasury wallet not initialized", http.StatusInternalServerError)
+		return
+	}
+
+	address := wallet.PublicKeyToAddress(api.TreasuryWallet.PublicKey)
+	nonce := api.stateManager.GetNonce(address)
+
+	args := []interface{}{req.OrderID, req.PayBuyer}
+	dataBytes, _ := json.Marshal(map[string]interface{}{
+		"function": "resolveDispute",
+		"args":     args,
+	})
+
+	tx := transaction.Transaction{
+		Type:            transaction.TxTypeCall,
+		Sender:          address,
+		SenderPublicKey: hex.EncodeToString(api.TreasuryWallet.PublicKey),
+		Recipient:       vm.MarketplaceContractAddress,
+		Amount:          0,
+		Fee:             10,
+		Nonce:           nonce,
+		Data:            string(dataBytes),
+		Timestamp:       time.Now().Unix(),
+	}
+
+	txHash := wallet.CalculateTxHash(tx)
+	rInt, sInt, err := ecdsa.Sign(rand.Reader, api.TreasuryWallet.PrivateKey, txHash)
+	if err != nil {
+		http.Error(w, "Failed to sign resolution transaction", http.StatusInternalServerError)
+		return
+	}
+	tx.Signature = fmt.Sprintf("%064x%064x", rInt, sInt)
+
+	if err := api.transactionManager.AddTransaction(tx); err != nil {
+		http.Error(w, "Failed to submit resolution transaction: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("[ARBITRATION] ⚖️ Resolved Dispute for order %s. PayBuyer: %t", req.OrderID, req.PayBuyer)
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Dispute resolution transaction executed",
+		"tx_hash": hex.EncodeToString(txHash),
+	})
+}
+
+// GET /admin/disputes
+func (api *APIServer) handleAdminGetDisputes(w http.ResponseWriter, r *http.Request) {
+	stateAdapter := api.stateManager.GetStateAdapter()
+	marketplaceHelper := api.stateManager.GetMarketplaceHelper()
+
+	if stateAdapter == nil || marketplaceHelper == nil {
+		http.Error(w, "Marketplace contract not initialized", http.StatusServiceUnavailable)
+		return
+	}
+
+	ctx := &vm.ExecutionContext{
+		State:     stateAdapter,
+		Timestamp: time.Now().Unix(),
+	}
+
+	// We'll return the array of disputed orders to the UI
+	var disputes []interface{}
+
+	// Get all keys using strings.HasPrefix since stateAdapter iterates the db. 
+	// For simplicity, since the admin UI is a specialized endpoint, we can use the existing `GetContractStorage` if we knew the orders.
+	// However, we can simply fetch "order_counter", loop from 1 to orderCounter, and fetch each order!
+	totalOrders, exists := stateAdapter.GetContractStorage(vm.MarketplaceContractAddress, "order_counter")
+	if exists {
+		for i := int64(1); i <= totalOrders; i++ {
+			orderID := fmt.Sprintf("ORD-%d", i)
+			status, hasStatus := stateAdapter.GetContractStorage(vm.MarketplaceContractAddress, "order_status_"+orderID)
+
+			if hasStatus && status == vm.EscrowStatusDisputed {
+				// We found a dispute! Let's get full info
+				info := marketplaceHelper.GetOrder(ctx, orderID)
+				if info != nil {
+					disputes = append(disputes, info)
+				}
+			}
+		}
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":  true,
+		"disputes": disputes,
+	})
+}
+
+// GET /admin/treasury-history
+// Returns all confirmed blocks' transactions that involve the treasury wallet (sender or recipient).
+func (api *APIServer) handleAdminTreasuryHistory(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	// Resolve treasury address — must use TreasuryWallet and PublicKeyToAddress
+	// to match the format stored in tx.Sender by handleAdminFaucet / handleFaucet.
+	treasuryAddr := ""
+	if api.TreasuryWallet != nil {
+		treasuryAddr = wallet.PublicKeyToAddress(api.TreasuryWallet.PublicKey)
+	}
+
+	type TxRecord struct {
+		BlockIndex int64  `json:"blockIndex"`
+		BlockHash  string `json:"blockHash"`
+		Type       string `json:"type"`
+		Sender     string `json:"sender"`
+		Recipient  string `json:"recipient"`
+		Amount     int64  `json:"amount"`
+		Fee        int64  `json:"fee"`
+		Data       string `json:"data"`
+		Timestamp  int64  `json:"timestamp"`
+		Direction  string `json:"direction"` // "out" | "in"
+	}
+
+	var history []TxRecord
+
+	// GetBlockHeight() returns the LATEST BLOCK INDEX (not count).
+	// We must use GetChainLength() to get the actual number of blocks,
+	// then iterate from 0 to chainLength-1 to cover all blocks including the latest.
+	chainLen := api.blockManager.GetChainLength()
+	for i := 0; i < chainLen; i++ {
+		blk, err := api.blockManager.GetBlockByIndex(i)
+		if err != nil || blk == nil {
+			continue
+		}
+		for _, tx := range blk.Transactions {
+			isTreasury := (treasuryAddr != "" && (tx.Sender == treasuryAddr || tx.Recipient == treasuryAddr))
+			// If no wallet set, include all (fallback)
+			if !isTreasury && treasuryAddr != "" {
+				continue
+			}
+			direction := "in"
+			if tx.Sender == treasuryAddr {
+				direction = "out"
+			}
+			history = append(history, TxRecord{
+				BlockIndex: int64(blk.Index),
+				BlockHash:  blk.Hash,
+				Type:       string(tx.Type),
+				Sender:     tx.Sender,
+				Recipient:  tx.Recipient,
+				Amount:     tx.Amount,
+				Fee:        tx.Fee,
+				Data:       tx.Data,
+				Timestamp:  tx.Timestamp,
+				Direction:  direction,
+			})
+		}
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"treasuryAddress": treasuryAddr,
+		"count":           len(history),
+		"transactions":    history,
+	})
+}
+

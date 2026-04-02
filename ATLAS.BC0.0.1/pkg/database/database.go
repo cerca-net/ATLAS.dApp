@@ -128,7 +128,11 @@ func NewDatabase(dbPath string) (*Database, error) {
 		return nil, fmt.Errorf("failed to create database directory: %v", err)
 	}
 
-	db, err := sql.Open("sqlite3", dbPath)
+	// Open database with concurrent access pragmas
+	// _busy_timeout handles automatic retries on locked database
+	// _journal_mode=WAL enables Write-Ahead Logging for better concurrency
+	dsn := fmt.Sprintf("%s?_busy_timeout=5000&_journal_mode=WAL&_synchronous=NORMAL", dbPath)
+	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %v", err)
 	}
@@ -137,6 +141,9 @@ func NewDatabase(dbPath string) (*Database, error) {
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %v", err)
 	}
+
+	// Configure connection pool for SQLite safely
+	db.SetMaxOpenConns(1) // Keep at 1 for SQLite to avoid strict locked issues if not pure WAL
 
 	database := &Database{db: db}
 

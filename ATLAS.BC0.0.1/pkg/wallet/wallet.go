@@ -148,9 +148,12 @@ func (w *Wallet) SignTransaction(tx *transaction.Transaction) error {
 	if err != nil {
 		return fmt.Errorf("failed to sign transaction: %v", err)
 	}
+	// Pad r and s to 32 bytes each so the verifier can always split at len/2
 	rBytes := r.Bytes()
 	sBytes := s.Bytes()
-	sig := append(rBytes, sBytes...)
+	sig := make([]byte, 64)
+	copy(sig[32-len(rBytes):32], rBytes)
+	copy(sig[64-len(sBytes):64], sBytes)
 	tx.Signature = hex.EncodeToString(sig)
 	return nil
 }

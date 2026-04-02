@@ -199,16 +199,26 @@ func (bm *BlockManager) GetBlockHeight() int {
 	return bm.chain[len(bm.chain)-1].Index
 }
 
-// GetBlocks returns a slice of blocks with limit and offset
+// GetBlocks returns a slice of blocks with limit and offset (newest first)
 func (bm *BlockManager) GetBlocks(limit, offset int) []*block.Block {
 	bm.mu.RLock()
 	defer bm.mu.RUnlock()
-	if offset > len(bm.chain) {
+
+	total := len(bm.chain)
+	if offset >= total {
 		return []*block.Block{}
 	}
-	end := offset + limit
-	if end > len(bm.chain) {
-		end = len(bm.chain)
+
+	start := total - 1 - offset
+	end := start - limit + 1
+	if end < 0 {
+		end = 0
 	}
-	return bm.chain[offset:end]
+
+	var result []*block.Block
+	// Iterate backwards so newest block is first in the returned slice
+	for i := start; i >= end; i-- {
+		result = append(result, bm.chain[i])
+	}
+	return result
 } 

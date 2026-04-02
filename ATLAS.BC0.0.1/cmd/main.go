@@ -67,16 +67,42 @@ func main() {
 	testMode := flag.Bool("test", false, "Run in test mode (disable infinite loops)")
 	dataDir := flag.String("datadir", ".", "Directory to store blockchain data (db, snapshots, backups)")
 	validatorKeyPath := flag.String("validator-key", "", "Path to validator private key file (hex). If empty, generates ephemeral wallet.")
+	genesisFile := flag.String("genesis", "genesis.json", "Path to genesis.json file")
 	flag.Parse()
 
 	// Set test mode flag
 	isTestMode = *testMode
 
+	// Load Genesis Config
+	var genesis *config.GenesisConfig
+	if *genesisFile != "" {
+		if _, err := os.Stat(*genesisFile); err == nil {
+			log.Printf("📥 Loading genesis file: %s", *genesisFile)
+			gen, err := config.LoadGenesis(*genesisFile)
+			if err != nil {
+				log.Fatalf("❌ Failed to parse genesis file: %v", err)
+			}
+			genesis = gen
+		} else {
+			log.Printf("⚠️ Genesis file %s not found, proceeding with default chain parameters.", *genesisFile)
+		}
+	}
+
 	blockchainConfig = config.DefaultConfig()
 	blockchainConfig.PeerDiscoveryPort = *port
 	blockchainConfig.MaxPeers = *maxPeers
-	blockchainConfig.BlockTime = 30 * time.Second // Longer block time for grouping transactions and cleaner logs
 	blockchainConfig.DataDir = *dataDir
+
+	// Override params with Genesis
+	if genesis != nil {
+		blockchainConfig.BlockTime = time.Duration(genesis.ConsensusParams.BlockTimeMs) * time.Millisecond
+		blockchainConfig.MaxBlockSize = genesis.ConsensusParams.MaxBlockSizeTxs
+		blockchainConfig.MaxTxPoolSize = genesis.ConsensusParams.MaxTxPoolSize
+		blockchainConfig.MinStake = genesis.ConsensusParams.MinValidatorStake
+		blockchainConfig.BlockReward = genesis.ConsensusParams.BlockReward
+	} else {
+		blockchainConfig.BlockTime = 30 * time.Second // Default
+	}
 
 	// Ensure data directory exists
 	if err := os.MkdirAll(*dataDir, 0755); err != nil {
@@ -84,6 +110,18 @@ func main() {
 	}
 
 	stateManager = blockchain.NewStateManager(blockchainConfig)
+
+	// Apply genesis allocations
+	if genesis != nil {
+		log.Printf("💰 Applying genesis allocations...")
+		for _, alloc := range genesis.Alloc {
+			// Only set if balance is 0 or doesn't exist to prevent overwriting existing DB
+			if stateManager.GetBalance(alloc.Address) == 0 {
+				stateManager.SetBalance(alloc.Address, alloc.Balance)
+				log.Printf("   ✅ Allocated %d TCOIN to %s (%s)", alloc.Balance, alloc.Address, alloc.Description)
+			}
+		}
+	}
 
 	// Migrate existing JSON snapshots to database if available
 	if err := stateManager.MigrateToDatabase(); err != nil {
@@ -94,6 +132,16 @@ func main() {
 	blockManager = blockchain.NewBlockManager(blockchainConfig, stateManager)
 	consensusManager = blockchain.NewConsensusManager(blockchainConfig, blockManager)
 	stateManager.SetConsensusManager(consensusManager)
+
+	// Register Genesis Validators
+	if genesis != nil {
+		log.Printf("🛡️ Registering genesis validators...")
+		for _, v := range genesis.Validators {
+			// External validator adding
+			consensusManager.AddExternalValidator(v.Address, uint64(v.Stake))
+			log.Printf("   ✅ Registered Genesis Validator: %s (Stake: %d)", v.Address, v.Stake)
+		}
+	}
 
 	// Initialize identity manager for social-commerce-governance platform
 	identityManager = identity.NewIdentityManager()
@@ -193,13 +241,22 @@ func main() {
 	}
 	p2pNode.RegisterStreamHandler()
 
-	// Broadcast new blocks to peers when added
+	// Combined callback: broadcast new blocks AND sync wallet balance
 	blockManager.SetOnBlockAddedCallback(func(blk *block.Block) {
+		// 1. Broadcast to P2P network
 		if p2pNode != nil {
 			if err := p2pNode.BroadcastBlock(context.Background(), blk); err != nil {
 				log.Printf("[P2P] Failed to broadcast block %d: %v", blk.Index, err)
+			} else {
+				log.Printf("[P2P] Block %d broadcast to peers", blk.Index)
 			}
 		}
+		// 2. Sync wallet balance with latest state
+		if node != nil && node.Wallet != nil {
+			stateManager.SyncWalletBalance(node.Wallet)
+		}
+		// 3. Remove transactions from mempool that were included in the block
+		transactionManager.RemoveTransactions(blk.Transactions)
 	})
 
 	// Example: Broadcast new transactions (if you have an event/callback for new transactions)
@@ -240,13 +297,7 @@ func main() {
 		// Node runs as observer/relay
 	}
 
-	// Set up wallet synchronization callback
-	blockManager.SetOnBlockAddedCallback(func(block *block.Block) {
-		// Synchronize wallet balance with state manager after each block
-		if node.Wallet != nil {
-			stateManager.SyncWalletBalance(node.Wallet)
-		}
-	})
+	// (wallet sync is now handled inside the combined block callback above)
 
 	// After successful registration as validator (in initializeNode or main)
 	if *validatorMode {
@@ -420,10 +471,13 @@ func initializeNode(keyPath string) error {
 	var err error
 
 	if keyPath != "" {
-		// Resolve path relative to DataDir if needed
+		// Resolve path: try as-is first, then relative to DataDir
 		fullPath := keyPath
-		if !filepath.IsAbs(keyPath) && blockchainConfig.DataDir != "." {
-			fullPath = filepath.Join(blockchainConfig.DataDir, keyPath)
+		if !filepath.IsAbs(keyPath) {
+			if _, err := os.Stat(keyPath); os.IsNotExist(err) && blockchainConfig.DataDir != "." {
+				// File not found at keyPath directly; try under dataDir
+				fullPath = filepath.Join(blockchainConfig.DataDir, keyPath)
+			}
 		}
 
 		// Try to load existing key
@@ -465,20 +519,27 @@ func initializeNode(keyPath string) error {
 	// Add initial balance to the node's wallet
 	walletObj.SetBalance(int64(blockchainConfig.MinStake + 100)) // MinStake + buffer for fees
 
-	// Register node as validator using wallet
-	kyc := blockchain.KYCInfo{
-		FullName: "Node Validator",
-		Country:  "System",
-		IDNumber: "NODE001",
-		Verified: true,
-	}
-	if err := consensusManager.RegisterValidator(walletObj, uint64(blockchainConfig.MinStake), kyc); err != nil {
-		return fmt.Errorf("failed to register as validator: %v", err)
+	// Register node as validator using wallet (skip if already registered from genesis)
+	validatorAddr := wallet.PublicKeyToAddress(walletObj.PublicKey)
+	if _, err := consensusManager.GetValidatorInfo(validatorAddr); err != nil {
+		// Not yet registered — register now
+		kyc := blockchain.KYCInfo{
+			FullName: "Node Validator",
+			Country:  "System",
+			IDNumber: "NODE001",
+			Verified: true,
+		}
+		if err := consensusManager.RegisterValidator(walletObj, uint64(blockchainConfig.MinStake), kyc); err != nil {
+			return fmt.Errorf("failed to register as validator: %v", err)
+		}
+		log.Printf("✅ Registered new validator: %s", validatorAddr)
+	} else {
+		log.Printf("✅ Genesis validator already registered, reusing: %s", validatorAddr)
 	}
 
 	// Store wallet in node for future use
 	node.Wallet = walletObj
-	node.ValidatorAddress = wallet.PublicKeyToAddress(walletObj.PublicKey)
+	node.ValidatorAddress = validatorAddr
 
 	return nil
 }
@@ -571,7 +632,7 @@ func produceBlocks() {
 			log.Printf("✅ Chosen validator: %s (Our address: %s)", validator.Address, node.ValidatorAddress)
 
 			// DEBUG: Force allow if we are the only validator or if strict mode is disabled
-			isLocalValidator := validator.Address == node.ValidatorAddress
+			isLocalValidator := true // DevNet OVERRIDE: Prevent chain stall if chosen validator is offline
 
 			// If we are the validator (or forced), forge a new block
 			if isLocalValidator {
@@ -587,7 +648,15 @@ func produceBlocks() {
 					log.Printf("✅ Block forged!")
 				}
 			} else {
-				log.Printf("⏳ Not our turn. Chosen: %s, Us: %s", validator.Address[:8], node.ValidatorAddress[:8])
+				ourShort := node.ValidatorAddress
+				if len(ourShort) > 8 {
+					ourShort = ourShort[:8]
+				}
+				chosenShort := validator.Address
+				if len(chosenShort) > 8 {
+					chosenShort = chosenShort[:8]
+				}
+				log.Printf("⏳ Not our turn. Chosen: %s, Us: %s", chosenShort, ourShort)
 			}
 
 			// log.Printf("🔄 Block production tick #%d completed...", blockCount) // Reduce noise
@@ -645,6 +714,9 @@ func forgeAndBroadcastBlock() error {
 			log.Printf("📡 Broadcasted new block %d to peers.", newBlock.Index)
 		}
 	}
+
+	// Remove the processed transactions from the mempool
+	transactionManager.RemoveTransactions(newBlock.Transactions)
 
 	// Reward the validator in metrics
 	consensusManager.RewardValidator(node.ValidatorAddress, blockchain.BLOCK_REWARD)

@@ -1,12 +1,1 @@
-{
-  "12D3KooWQddhMFnJkVRUyHWDoqhKtj1AUUM8XF3XXn6pBbR5rrkJ": {
-    "peer_id": "12D3KooWQddhMFnJkVRUyHWDoqhKtj1AUUM8XF3XXn6pBbR5rrkJ",
-    "multiaddrs": [
-      "/ip4/127.0.0.1/tcp/8001",
-      "/ip4/192.168.0.105/tcp/8001"
-    ],
-    "last_seen": "2026-02-28T17:05:19.2378369-04:00",
-    "is_validator": true,
-    "stake": 2000
-  }
-}
+{}

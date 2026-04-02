@@ -562,8 +562,48 @@ func ForgeBlock(validatorWallet *wallet.Wallet, lastBlock *block.Block, stateMan
 		Data:      "block reward",
 		Signature: "NETWORK_REWARD_SIGNATURE", // Add signature for network rewards
 	}
-	// Get transactions from TransactionManager
-	transactionsToInclude := transactionManager.GetTransactionsForBlock()
+	// Get transactions from TransactionManager and filter valid ones
+	pendingTxs := transactionManager.GetTransactionsForBlock()
+	var transactionsToInclude []transaction.Transaction
+	var invalidTxs []transaction.Transaction
+
+	for _, tx := range pendingTxs {
+		// 1. Basic format validation
+		if err := tx.Validate(); err != nil {
+			log.Printf("⚠️ [Forge] Dropping invalid tx (validation failed): %v", err)
+			invalidTxs = append(invalidTxs, tx)
+			continue
+		}
+
+		// 2. State-dependent validation (Balance & Nonce)
+		if tx.Sender != "network" {
+			senderBalance := stateManager.GetBalance(tx.Sender)
+			if senderBalance < tx.Amount+tx.Fee {
+				log.Printf("⚠️ [Forge] Dropping tx from %s: Insufficient balance (%d < %d)", tx.Sender[:16], senderBalance, tx.Amount+tx.Fee)
+				invalidTxs = append(invalidTxs, tx)
+				continue
+			}
+
+			stateNonce := stateManager.GetNonce(tx.Sender)
+			if tx.Nonce != stateNonce {
+				// If nonce is in the future, we keep it in pool but don't include in THIS block
+				// If nonce is in the past, we drop it
+				if tx.Nonce < stateNonce {
+					log.Printf("⚠️ [Forge] Dropping stale tx from %s: Nonce too low (%d < %d)", tx.Sender[:16], tx.Nonce, stateNonce)
+					invalidTxs = append(invalidTxs, tx)
+				}
+				continue
+			}
+		}
+
+		transactionsToInclude = append(transactionsToInclude, tx)
+	}
+
+	// Prune strictly invalid or stale transactions from mempool
+	if len(invalidTxs) > 0 {
+		transactionManager.RemoveTransactions(invalidTxs)
+	}
+
 	transactionsToInclude = append(transactionsToInclude, rewardTx)
 	newBlock, err := block.CreateNewBlock(transactionsToInclude, lastBlock, validatorWallet)
 	if err != nil {

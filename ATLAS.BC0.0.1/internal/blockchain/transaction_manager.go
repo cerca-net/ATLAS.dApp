@@ -133,7 +133,16 @@ func (tm *TransactionManager) AddTransaction(tx transaction.Transaction) error {
 		return fmt.Errorf("transaction already in pool")
 	}
 
+	if err := tx.Validate(); err != nil {
+		return fmt.Errorf("transaction validation failed: %v", err)
+	}
+
 	if tx.Sender != "network" && tm.stateManager != nil {
+		senderBalance := tm.stateManager.GetBalance(tx.Sender)
+		if senderBalance < tx.Amount+tx.Fee {
+			return fmt.Errorf("insufficient funds: balance %d, required %d", senderBalance, tx.Amount+tx.Fee)
+		}
+
 		stateNonce := tm.stateManager.GetNonce(tx.Sender)
 		if tx.Nonce < stateNonce {
 			return fmt.Errorf("nonce too low: got %d, state %d", tx.Nonce, stateNonce)
@@ -317,14 +326,18 @@ func (tm *TransactionManager) RemoveTransactions(txs []transaction.Transaction) 
 	idsToRemove := make(map[string]bool)
 	for _, tx := range txs {
 		h := tm.calculateHash(tx)
+		log.Printf("[Mempool] Removing tx with calculated hash: %s", h)
 		idsToRemove[h] = true
 		delete(tm.byHash, h)
 	}
 
 	newPool := make(TransactionHeap, 0, len(tm.pool))
 	for _, item := range tm.pool {
+		log.Printf("[Mempool] Checking heap item hash: %s", item.Hash)
 		if !idsToRemove[item.Hash] {
 			newPool = append(newPool, item)
+		} else {
+			log.Printf("[Mempool] ✅ Successfully matched and pruned tx: %s", item.Hash)
 		}
 	}
 

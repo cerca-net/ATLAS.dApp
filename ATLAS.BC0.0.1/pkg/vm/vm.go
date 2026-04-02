@@ -98,7 +98,7 @@ type Instruction struct {
 // NewVM creates a new VM instance with permissioned contract support
 func NewVM() *VM {
 	// Initialize standard ZK verifier
-	verifier, err := NewZKVerifier()
+	verifier, err := GetGlobalZKVerifier()
 	if err != nil {
 		fmt.Printf("Warning: Failed to initialize ZK Verifier: %v\n", err)
 	}
@@ -752,13 +752,15 @@ func (vm *VM) GetOracleValue(key string) (string, bool) {
 	return value, exists
 }
 
-// VerifyZKProof verifies zero-knowledge proofs (placeholder for now)
+// VerifyZKProof verifies zero-knowledge proofs (placeholder for V1, scheduled for V2)
 func (vm *VM) VerifyZKProof(proof interface{}) (bool, error) {
 	if vm.ProofVerifier == nil {
 		return false, fmt.Errorf("ZK Proofverifier not initialized")
 	}
 
-	// Real integration would cast interface logic properly depending on standard.
-	// For standard fill, we treat it globally.
+	// WARNING: ZKP integration is explicitly disabled for the V1 release.
+	// We are blindly returning true. Do not enable privacy features in production
+	// without a real gnark/libsnark implementation.
+	fmt.Println("⚠️  WARNING: VerifyZKProof is MOCKED for V1. Returns true unconditionally.")
 	return true, nil
 }

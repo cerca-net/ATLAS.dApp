@@ -17,7 +17,7 @@ func TestMarketplaceContract(t *testing.T) {
 	stateAdapter.balances["0xBUYER"] = 50000
 
 	t.Run("CreateOrder_Success", func(t *testing.T) {
-		orderID, err := helper.CreateOrder(ctx, "0xBUYER", "0xSELLER", 10000)
+		orderID, err := helper.CreateOrder(ctx, "0xBUYER", "0xSELLER", 10000, "")
 		if err != nil {
 			t.Fatalf("Failed to create order: %v", err)
 		}
@@ -49,7 +49,7 @@ func TestMarketplaceContract(t *testing.T) {
 	})
 
 	t.Run("CreateOrder_InsufficientFunds", func(t *testing.T) {
-		_, err := helper.CreateOrder(ctx, "0xPOORBUYER", "0xSELLER", 10000)
+		_, err := helper.CreateOrder(ctx, "0xPOORBUYER", "0xSELLER", 10000, "")
 		if err == nil {
 			t.Fatalf("Expected error for insufficient funds")
 		}
@@ -81,7 +81,7 @@ func TestMarketplaceContract(t *testing.T) {
 	})
 
 	t.Run("RefundBuyer", func(t *testing.T) {
-		orderID, _ := helper.CreateOrder(ctx, "0xBUYER", "0xSELLER", 5000)
+		orderID, _ := helper.CreateOrder(ctx, "0xBUYER", "0xSELLER", 5000, "")
 
 		err := helper.RefundBuyer(ctx, "0xSELLER", orderID)
 		if err != nil {
@@ -95,7 +95,7 @@ func TestMarketplaceContract(t *testing.T) {
 	})
 
 	t.Run("RaiseDispute", func(t *testing.T) {
-		orderID, _ := helper.CreateOrder(ctx, "0xBUYER", "0xSELLER", 5000)
+		orderID, _ := helper.CreateOrder(ctx, "0xBUYER", "0xSELLER", 5000, "")
 
 		err := helper.RaiseDispute(ctx, "0xBUYER", orderID)
 		if err != nil {

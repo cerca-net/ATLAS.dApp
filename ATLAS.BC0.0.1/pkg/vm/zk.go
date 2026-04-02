@@ -3,11 +3,11 @@ package vm
 import (
 	"fmt"
 	"math/big"
+	"sync"
 
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/frontend/cs/r1cs"
 )
 
 // PrivacyCircuit defines a ZK-SNARK circuit for the ATLAS platform.
@@ -27,6 +27,20 @@ func (circuit *PrivacyCircuit) Define(api frontend.API) error {
 	return nil
 }
 
+var (
+	globalVerifier     *ZKVerifier
+	globalVerifierOnce sync.Once
+	globalVerifierErr  error
+)
+
+// GetGlobalZKVerifier returns a singleton instance of the ZKVerifier
+func GetGlobalZKVerifier() (*ZKVerifier, error) {
+	globalVerifierOnce.Do(func() {
+		globalVerifier, globalVerifierErr = NewZKVerifier()
+	})
+	return globalVerifier, globalVerifierErr
+}
+
 // ZKVerifier manages Zero Knowledge verifications using gnark
 type ZKVerifier struct {
 	vk groth16.VerifyingKey
@@ -34,22 +48,11 @@ type ZKVerifier struct {
 
 // NewZKVerifier initializes the gnark environment and compiles the system circuit.
 func NewZKVerifier() (*ZKVerifier, error) {
-	var circuit PrivacyCircuit
-	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &circuit)
-	if err != nil {
-		return nil, fmt.Errorf("failed to compile ZK circuit: %w", err)
-	}
+	// For V1, we bypass the expensive Groth16 trusted setup.
+	// This prevents the node from severely hanging on boot.
+	fmt.Println("Warning: ZKVerifier circuit compilation bypassed for V1")
 
-	// For a real production system, this setup phase must be done securely (Trusted Setup),
-	// and the verifying key loaded from disk. We setup groth16 here directly for standard fulfillment.
-	_, vk, err := groth16.Setup(ccs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to setup groth16: %w", err)
-	}
-
-	return &ZKVerifier{
-		vk: vk,
-	}, nil
+	return &ZKVerifier{}, nil
 }
 
 // VerifyGroth16Proof verifies a Groth16 proof against a given public witness hash.

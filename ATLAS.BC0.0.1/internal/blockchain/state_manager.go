@@ -270,6 +270,66 @@ func (sm *StateManager) updateState(block *block.Block) error {
 				log.Printf("❌ Failed to parse contract call data: %v", err)
 				continue
 			}
+
+			// SPECIAL CASE: Intercept system marketplace contract
+			if recipient == vm.MarketplaceContractAddress && sm.marketplaceHelper != nil {
+				execCtx := &vm.ExecutionContext{
+					State:     sm.stateAdapter,
+					Timestamp: time.Now().Unix(),
+					Caller:    sender,
+					Value:     tx.Amount,
+					GasLimit:  uint64(tx.Fee),
+				}
+				
+				if call.Function == "createOrder" && len(call.Args) >= 4 {
+					seller := fmt.Sprint(call.Args[1])
+					// Handle floating point parsing from JSON correctly
+					amountFloat, ok := call.Args[2].(float64)
+					var amount int64
+					if ok {
+						amount = int64(amountFloat)
+					} else {
+						amount = tx.Amount // fallback
+					}
+					orderId := fmt.Sprint(call.Args[3])
+					_, err := sm.marketplaceHelper.CreateOrder(execCtx, sender, seller, amount, orderId)
+					if err != nil {
+						log.Printf("❌ Marketplace createOrder failed: %v", err)
+					}
+				} else if call.Function == "releaseFunds" && len(call.Args) >= 1 {
+					orderId := fmt.Sprint(call.Args[0])
+					err := sm.marketplaceHelper.ReleaseFunds(execCtx, sender, orderId)
+					if err != nil {
+						log.Printf("❌ Marketplace releaseFunds failed: %v", err)
+					}
+				} else if call.Function == "refundBuyer" && len(call.Args) >= 1 {
+					orderId := fmt.Sprint(call.Args[0])
+					err := sm.marketplaceHelper.RefundBuyer(execCtx, sender, orderId)
+					if err != nil {
+						log.Printf("❌ Marketplace refundBuyer failed: %v", err)
+					}
+				} else if call.Function == "raiseDispute" && len(call.Args) >= 1 {
+					orderId := fmt.Sprint(call.Args[0])
+					err := sm.marketplaceHelper.RaiseDispute(execCtx, sender, orderId)
+					if err != nil {
+						log.Printf("❌ Marketplace raiseDispute failed: %v", err)
+					}
+				} else if call.Function == "resolveDispute" && len(call.Args) >= 2 {
+					orderId := fmt.Sprint(call.Args[0])
+					payBuyer, ok := call.Args[1].(bool)
+					if !ok {
+						log.Printf("❌ Marketplace resolveDispute failed: invalid second argument, must be boolean")
+					} else {
+						err := sm.marketplaceHelper.ResolveDispute(execCtx, sender, orderId, payBuyer)
+						if err != nil {
+							log.Printf("❌ Marketplace resolveDispute failed: %v", err)
+						}
+					}
+				}
+				log.Printf("⚙️ System Contract '%s' executed at %s by %s", call.Function, shortAddr(recipient), shortAddr(sender))
+				continue
+			}
+
 			// Load contract
 			contract, ok := sm.GetContract(recipient)
 			if !ok {

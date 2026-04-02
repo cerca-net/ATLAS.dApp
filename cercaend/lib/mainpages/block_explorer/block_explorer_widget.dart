@@ -148,6 +148,7 @@ class BlockExplorerWidgetState extends State<BlockExplorerWidget> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Explorer & Health', style: TextStyle(fontWeight: FontWeight.w600)),
         backgroundColor: const Color(0xFF1A202C),
         foregroundColor: Colors.white,
