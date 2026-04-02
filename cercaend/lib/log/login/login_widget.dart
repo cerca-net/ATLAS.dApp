@@ -383,6 +383,7 @@ class _LoginWidgetState extends State<LoginWidget> {
                                   return;
                                 }
 
+
                                 context.pushNamedAuth(
                                     UserpageWidget.routeName, context.mounted);
                               },
@@ -438,6 +439,7 @@ class _LoginWidgetState extends State<LoginWidget> {
                                 if (user == null) {
                                   return;
                                 }
+
 
                                 context.goNamedAuth(
                                     FeedpageWidget.routeName, context.mounted);

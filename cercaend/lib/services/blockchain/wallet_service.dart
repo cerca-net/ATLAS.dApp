@@ -355,6 +355,7 @@ class WalletService {
     required double amount,
     required String sender,
     String? data,
+    String type = 'regular',
   }) async {
     try {
       // 1. Get current nonce for sender to prevent replay
@@ -375,6 +376,7 @@ class WalletService {
         'Timestamp': timestamp,
         'Nonce': nonce,
         'Data': data ?? '',
+        'Type': type,
       };
 
       // 3. Sign
@@ -391,6 +393,7 @@ class WalletService {
         nonce: nonce,
         signature: signature,
         data: data,
+        type: type,
       );
 
       // 5. Submit to Backend

@@ -618,8 +618,9 @@ class _SignupWidgetState extends State<SignupWidget> {
                                             generationI: 100.0,
                                           ));
 
+
                                       context.pushNamedAuth(
-                                          UserSurveyWidget.routeName,
+                                          FeedpageWidget.routeName,
                                           context.mounted);
                                     }
                                   },
@@ -722,6 +723,7 @@ class _SignupWidgetState extends State<SignupWidget> {
                                                 .emailAddressTextController2
                                                 .text) ==
                                         true) {
+
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
@@ -729,6 +731,7 @@ class _SignupWidgetState extends State<SignupWidget> {
                                             'user not available',
                                             style: TextStyle(
                                               color:
+
                                                   FlutterFlowTheme.of(context)
                                                       .primaryText,
                                             ),
@@ -736,6 +739,7 @@ class _SignupWidgetState extends State<SignupWidget> {
                                           duration: const Duration(
                                               milliseconds: 4000),
                                           backgroundColor:
+
                                               FlutterFlowTheme.of(context)
                                                   .secondary,
                                         ),
@@ -763,8 +767,9 @@ class _SignupWidgetState extends State<SignupWidget> {
                                             generationI: 100.0,
                                           ));
 
+
                                       context.pushNamedAuth(
-                                          UserSurveyWidget.routeName,
+                                          FeedpageWidget.routeName,
                                           context.mounted);
                                     }
                                   },

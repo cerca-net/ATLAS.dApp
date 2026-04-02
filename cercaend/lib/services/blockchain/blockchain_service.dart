@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class BlockchainService {
   final String baseUrl;
 
-  BlockchainService({this.baseUrl = 'http://localhost:8080'});
+  BlockchainService({this.baseUrl = 'http://192.168.0.105:8080'}); // LAN testnet
 
   /// Connect wallet to ATLAS blockchain
   Future<WalletConnectionResponse> connectWallet(
@@ -156,52 +156,19 @@ class BlockchainService {
     }
   }
 
-  /// Get aggregated network status (combines node status and wallet status)
+  /// Get aggregated network status
   Future<NetworkStatusResponse> getNetworkStatus({String? address}) async {
     try {
-      // 1. Fetch Node Status (System State)
-      final nodeStatus = await getNodeStatus();
+      final addressParam = (address != null && address.isNotEmpty) ? '?address=$address' : '';
+      final response = await http.get(Uri.parse('$baseUrl/status$addressParam'));
 
-      // 2. Fetch Wallet Info (User State) if address provided
-      double walletBalance = 0;
-      bool isUserValidator = false;
-      int userStake = 0;
-
-      if (address != null && address.isNotEmpty) {
-        try {
-          final walletInfo = await getWalletInfo(address);
-          walletBalance = walletInfo.data.balance;
-
-          // Simple check: if the connected node is a validator and the validator address matches user
-          // Note: In a real light client, we'd check the global validator set,
-          // but here we check if OUR node is validating with OUR keys.
-          if (nodeStatus.isValidator &&
-              nodeStatus.validatorAddress.toLowerCase() ==
-                  address.toLowerCase()) {
-            isUserValidator = true;
-            userStake = nodeStatus.stakeAmount;
-          }
-        } catch (e) {
-          print('Warning: could not fetch wallet info for network status: $e');
-        }
+      if (response.statusCode == 200) {
+        return NetworkStatusResponse.fromJson(jsonDecode(response.body));
+      } else {
+        throw BlockchainException('Failed to get status from network: ${response.body}');
       }
-
-      return NetworkStatusResponse(
-        blockHeight: nodeStatus.blockHeight,
-        txPoolSize: nodeStatus.txPoolSize,
-        isValidator: isUserValidator,
-        validatorAddress: nodeStatus.validatorAddress,
-        stakeAmount: userStake,
-        rewardsEarned: 0, // Placeholder: implement rewards tracking in backend
-        totalValidators: nodeStatus.totalValidators,
-        walletBalance: walletBalance,
-        walletStaked: userStake,
-        totalBalance: walletBalance + userStake.toDouble(),
-        mode: nodeStatus.state,
-      );
     } catch (e) {
       print('Network error getting network status: $e');
-      // Return empty/default response instead of throwing to prevent UI crash
       return NetworkStatusResponse(
         blockHeight: 0,
         txPoolSize: 0,
@@ -245,6 +212,21 @@ class BlockchainService {
       }
     } catch (e) {
       throw BlockchainException('Network error getting node logs: $e');
+    }
+  }
+
+  /// Get connected P2P peers
+  Future<Map<String, dynamic>> getPeers() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/peers'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      } else {
+        throw BlockchainException('Failed to get peers: ${response.body}');
+      }
+    } catch (e) {
+      print('Network error getting peers: $e');
+      return {'success': false, 'count': 0, 'peers': []};
     }
   }
 

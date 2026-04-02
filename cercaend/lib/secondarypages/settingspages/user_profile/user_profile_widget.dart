@@ -299,6 +299,7 @@ class _UserProfileWidgetState extends State<UserProfileWidget> {
                                                 var downloadUrls = <String>[];
                                                 try {
                                                   showUploadMessage(
+
                                                     context,
                                                     'Uploading file...',
                                                     showLoading: true,
@@ -337,6 +338,7 @@ class _UserProfileWidgetState extends State<UserProfileWidget> {
                                                           .map((u) => u!)
                                                           .toList();
                                                 } finally {
+
                                                   ScaffoldMessenger.of(context)
                                                       .hideCurrentSnackBar();
                                                   _model.isDataUploading_uploadData7b45 =
@@ -355,9 +357,11 @@ class _UserProfileWidgetState extends State<UserProfileWidget> {
                                                         downloadUrls.first;
                                                   });
                                                   showUploadMessage(
+
                                                       context, 'Success!');
                                                 } else {
                                                   safeSetState(() {});
+
                                                   showUploadMessage(context,
                                                       'Failed to upload data');
                                                   return;
@@ -414,6 +418,7 @@ class _UserProfileWidgetState extends State<UserProfileWidget> {
                                         var downloadUrls = <String>[];
                                         try {
                                           showUploadMessage(
+
                                             context,
                                             'Uploading file...',
                                             showLoading: true,
@@ -441,6 +446,7 @@ class _UserProfileWidgetState extends State<UserProfileWidget> {
                                               .map((u) => u!)
                                               .toList();
                                         } finally {
+
                                           ScaffoldMessenger.of(context)
                                               .hideCurrentSnackBar();
                                           _model.isDataUploading_uploadDataRav1 =
@@ -457,10 +463,12 @@ class _UserProfileWidgetState extends State<UserProfileWidget> {
                                                 downloadUrls.first;
                                           });
                                           showUploadMessage(
+
                                               context, 'Success!');
                                         } else {
                                           safeSetState(() {});
                                           showUploadMessage(
+
                                               context, 'Failed to upload data');
                                           return;
                                         }
@@ -1147,6 +1155,7 @@ Picture */
                                                       .text
                                                   : containerUsersRecord.bio,
                                             ));
+
 
                                             context.goNamed(
                                                 UserpageWidget.routeName);

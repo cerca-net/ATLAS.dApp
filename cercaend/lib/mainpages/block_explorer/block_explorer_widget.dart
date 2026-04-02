@@ -11,29 +11,45 @@ class BlockExplorerWidget extends StatefulWidget {
 class BlockExplorerWidgetState extends State<BlockExplorerWidget> {
   final BlockchainService _blockchainService = BlockchainService();
   List<BlockData> _blocks = [];
+  NetworkStatusResponse? _networkStatus;
+  NodeStatusResponse? _nodeStatus;
+  int _peerCount = 0;
+  
+  bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadBlocks();
+    _refreshData();
   }
 
-  Future<void> _loadBlocks() async {
+  Future<void> _refreshData() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    
     try {
-      final blocks = await _blockchainService.getBlocks();
+      final futures = await Future.wait([
+        _blockchainService.getBlocks(limit: 10),
+        _blockchainService.getNetworkStatus(),
+        _blockchainService.getNodeStatus(),
+        _blockchainService.getPeers()
+      ]);
+      
       if (mounted) {
         setState(() {
-          _blocks = blocks;
+          _blocks = futures[0] as List<BlockData>;
+          _networkStatus = futures[1] as NetworkStatusResponse;
+          _nodeStatus = futures[2] as NodeStatusResponse;
+          _peerCount = (futures[3] as Map<String, dynamic>)['count'] ?? 0;
+          _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading blocks: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error loading network data: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -41,9 +57,7 @@ class BlockExplorerWidgetState extends State<BlockExplorerWidget> {
 
   void _search() {
     final query = _searchController.text.trim();
-    if (query.isEmpty) {
-      return;
-    }
+    if (query.isEmpty) return;
     final results = _blocks.where((block) {
       return block.hash.contains(query) || block.index.toString() == query;
     }).toList();
@@ -52,28 +66,16 @@ class BlockExplorerWidgetState extends State<BlockExplorerWidget> {
       _showBlockDetail(results.first);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No block found')),
+        const SnackBar(content: Text('No block found in recent blocks.')),
       );
     }
-  }
-
-  void _clearSearch() {
-    _searchController.clear();
-  }
-
-  void _refreshData() {
-    _loadBlocks();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Data refreshed')),
-    );
   }
 
   void _showBlockDetail(BlockData block) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-            Text('Block #${block.index}', style: const TextStyle(fontSize: 20)),
+        title: Text('Block #${block.index}', style: const TextStyle(fontSize: 20)),
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
@@ -82,13 +84,13 @@ class BlockExplorerWidgetState extends State<BlockExplorerWidget> {
               _buildDetailRow(
                   'Timestamp:',
                   DateTime.fromMillisecondsSinceEpoch(block.timestamp * 1000)
+                      .toLocal()
                       .toString()),
               _buildDetailRow('Validator:', block.validator),
               _buildDetailRow('Signature:', block.signature),
               const SizedBox(height: 10),
               Text('Transactions (${block.transactions.length})',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 18)),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               const SizedBox(height: 5),
               ...block.transactions.map((tx) => Card(
                     margin: const EdgeInsets.symmetric(vertical: 4),
@@ -129,11 +131,10 @@ class BlockExplorerWidgetState extends State<BlockExplorerWidget> {
           children: <TextSpan>[
             TextSpan(
                 text: '$label ',
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
             TextSpan(
-                text: value,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 14)),
+                text: value.length > 32 ? '${value.substring(0, 32)}...' : value,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 14, color: Colors.black54)),
           ],
         ),
       ),
@@ -142,94 +143,242 @@ class BlockExplorerWidgetState extends State<BlockExplorerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Note: We are inside a Scaffold provided by NavBarPage if used there,
-    // but the original code had its own Scaffold. Nested Scaffolds are okay,
-    // but if we put this in a tab, we might want to avoid a second Scaffold
-    // if the outer one handles the bottom bar.
-    // However, the original code uses a CustomScrollView with SliverAppBar.
-    // To preserve the exact look, we keep the Scaffold.
+    final isDesktop = MediaQuery.of(context).size.width >= 992;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            title: const Text('Blockchain Explorer'),
-            floating: true,
-            snap: true,
-            backgroundColor: const Color(0xFF2D3748),
-            automaticallyImplyLeading:
-                false, // Don't show back button if in tab
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                onPressed: _refreshData,
-                tooltip: 'Refresh Data',
-              )
+      appBar: AppBar(
+        title: const Text('Explorer & Health', style: TextStyle(fontWeight: FontWeight.w600)),
+        backgroundColor: const Color(0xFF1A202C),
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: _refreshData,
+            tooltip: 'Refresh Data',
+          )
+        ],
+      ),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator()) 
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+          ),
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 4,
+          child: Column(
+             crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildMetricsPanel(),
+              const SizedBox(height: 24),
+              _buildNetworkConfigPanel(),
             ],
           ),
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _buildSearchBar(),
-                  const SizedBox(height: 20),
-                  _buildBlockList(),
-                ],
-              ),
-            ),
+        ),
+        const SizedBox(width: 24),
+        Expanded(
+          flex: 6,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildSearchBar(),
+              const SizedBox(height: 24),
+              _buildBlockList(),
+            ],
           ),
-          // Add extra padding at bottom so content isn't hidden behind bottom nav bar
-          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildMetricsPanel(),
+        const SizedBox(height: 24),
+        _buildNetworkConfigPanel(),
+        const SizedBox(height: 24),
+        _buildSearchBar(),
+        const SizedBox(height: 24),
+        _buildBlockList(),
+        const SizedBox(height: 100),
+      ],
+    );
+  }
+
+  Widget _buildMetricsPanel() {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2B6CB0), Color(0xFF2C5282)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2B6CB0).withValues(alpha: 0.25),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.monitor_heart, color: Colors.white, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Live Network Health',
+                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildMetricStat('Status', _nodeStatus?.state.toUpperCase() ?? 'UNKNOWN', Icons.fiber_manual_record, color: _nodeStatus?.state == 'running' ? const Color(0xFF68D391) : Colors.amber),
+          const SizedBox(height: 20),
+          _buildMetricStat('Current Height', '${_networkStatus?.blockHeight ?? 0} Blocks', Icons.layers),
+          const SizedBox(height: 20),
+          _buildMetricStat('TX Pool Size', '${_networkStatus?.txPoolSize ?? 0} Pending', Icons.swap_horiz_rounded),
+          const SizedBox(height: 20),
+          _buildMetricStat('Connected Peers', '$_peerCount Nodes', Icons.hub_rounded),
+          const SizedBox(height: 20),
+          _buildMetricStat('Active Validators', '${_networkStatus?.totalValidators ?? 0} Validators', Icons.verified_user),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildNetworkConfigPanel() {
     return Container(
-      padding: const EdgeInsets.all(25),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 40,
-            offset: const Offset(0, 20),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           )
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search by block hash or block number...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF1E3C72)),
+          const Text(
+            'Node Configuration',
+            style: TextStyle(color: Color(0xFF2D3748), fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const Divider(height: 32, color: Color(0xFFE2E8F0)),
+          _buildInfoRow('Primary Node Uptime', _nodeStatus?.uptime ?? '0s', Icons.timer),
+          const SizedBox(height: 16),
+          _buildInfoRow('Consensus Engine', 'Pos-DevNet', Icons.extension),
+          const SizedBox(height: 16),
+          _buildInfoRow('Primary Node Address', '${_nodeStatus?.validatorAddress.substring(0, 12) ?? 'Unknown'}...', Icons.vpn_key),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricStat(String label, String value, IconData icon, {Color color = Colors.white}) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: color.withValues(alpha: 0.9), size: 20),
+        ),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13, letterSpacing: 0.5)),
+            const SizedBox(height: 2),
+            Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7FAFC),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: const Color(0xFF718096), size: 18),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: Color(0xFF718096), fontSize: 13)),
+              const SizedBox(height: 2),
+              Text(value, style: const TextStyle(color: Color(0xFF2D3748), fontSize: 15, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by block hash or height...',
+                hintStyle: const TextStyle(color: Color(0xFFA0AEC0)),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFFA0AEC0)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                filled: true,
+                fillColor: Colors.transparent,
               ),
             ),
           ),
-          const SizedBox(height: 15),
-          Row(
-            children: [
-              ElevatedButton.icon(
-                onPressed: _search,
-                icon: const Icon(Icons.search),
-                label: const Text('Search'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E3C72),
-                ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: _search,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2B6CB0),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
               ),
-              const SizedBox(width: 10),
-              TextButton(onPressed: _clearSearch, child: const Text('Clear')),
-            ],
+              child: const Text('Search', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
           ),
         ],
       ),
@@ -238,123 +387,134 @@ class BlockExplorerWidgetState extends State<BlockExplorerWidget> {
 
   Widget _buildBlockList() {
     return Container(
-      padding: const EdgeInsets.all(30),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 40,
-            offset: const Offset(0, 20),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           )
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Latest Blocks',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-          ),
-          const Divider(height: 40),
-          _blocks.isEmpty
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _blocks.length,
-                  itemBuilder: (context, index) {
-                    final block = _blocks[index];
-                    return _buildBlockItem(block);
-                  },
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Latest Blocks',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2D3748)),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEBF8FF),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFBEE3F8))
                 ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(color: Color(0xFF3182CE), shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('Live Ledger', style: TextStyle(color: Color(0xFF2B6CB0), fontWeight: FontWeight.bold, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 32, color: Color(0xFFE2E8F0)),
+          if (_blocks.isEmpty) 
+            const Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Center(child: Text('No blocks on network yet. Waiting for Genesis...', style: TextStyle(color: Color(0xFFA0AEC0)))),
+            )
+          else 
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _blocks.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                return _buildBlockItem(_blocks[index]);
+              },
+            ),
         ],
       ),
     );
   }
 
   Widget _buildBlockItem(BlockData block) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 15),
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFF4299E1), width: 2),
+        border: Border.all(color: const Color(0xFFEDF2F7)),
       ),
-      child: InkWell(
-        onTap: () => _showBlockDetail(block),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Block #${block.index}',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _showBlockDetail(block),
+          hoverColor: const Color(0xFFF7FAFC),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDF2F7),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  Text(
-                    '${block.hash.length > 16 ? block.hash.substring(0, 16) : block.hash}...',
-                    style: const TextStyle(
-                        fontFamily: 'monospace', color: Colors.grey),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              GridView(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 200,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 3,
+                  child: const Icon(Icons.view_in_ar, color: Color(0xFF4A5568), size: 24),
                 ),
-                children: [
-                  _buildDetailItem(
-                      'Timestamp',
-                      DateTime.fromMillisecondsSinceEpoch(
-                              block.timestamp * 1000)
-                          .toIso8601String()),
-                  _buildDetailItem(
-                      'Transactions', block.transactions.length.toString()),
-                  _buildDetailItem('Validator',
-                      '${block.validator.length > 16 ? block.validator.substring(0, 16) : block.validator}...'),
-                  // _buildDetailItem('Size', '${block.sizeInBytes} bytes'), // Removed sizeInBytes as it's not in BlockData yet
-                ],
-              )
-            ],
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Block #${block.index}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2D3748))),
+                      const SizedBox(height: 6),
+                      Text(block.hash, 
+                          maxLines: 1, 
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontFamily: 'monospace', color: Color(0xFFA0AEC0), fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7FAFC),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text('${block.transactions.length} TXs', style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF4A5568), fontSize: 13)),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      DateTime.fromMillisecondsSinceEpoch(block.timestamp * 1000).toLocal().toString().split('.')[0],
+                      style: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-
-  Widget _buildDetailItem(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
-            Text(value,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          ],
-        ),
-      ),
-    );
-  }
 }
-
-// Removed ExplorerBlock and ExplorerTransaction classes

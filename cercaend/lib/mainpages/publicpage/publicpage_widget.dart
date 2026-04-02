@@ -21,6 +21,8 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -78,6 +80,22 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
       if (widget.ordermethod != null) {
         _model.addToOrdermethodsinbag(widget.ordermethod!);
       }
+
+      if (widget.profileparameter != null &&
+          currentUserReference != widget.profileparameter) {
+        unawaited(
+          () async {
+            final userRec =
+                await UsersRecord.getDocumentOnce(widget.profileparameter!);
+            if (userRec.analyticsRef != null) {
+              await userRec.analyticsRef!.update({
+                'user_impressions': FieldValue.increment(1),
+              });
+            }
+          }(),
+        );
+      }
+
       safeSetState(() {});
     });
 
@@ -1837,11 +1855,20 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                                               Expanded(
                                                                                 child: ClipRRect(
                                                                                   borderRadius: BorderRadius.circular(12.0),
-                                                                                  child: Image.asset(
-                                                                                    'assets/images/istockphoto-1174960560-612x612.jpg',
-                                                                                    width: 200.0,
-                                                                                    height: 200.0,
-                                                                                    fit: BoxFit.none,
+                                                                                  child: FlutterMap(
+                                                                                    options: MapOptions(
+                                                                                      initialCenter: const latlong2.LatLng(0.0, 0.0), // Default generic location
+                                                                                      initialZoom: 1.0,
+                                                                                      interactionOptions: const InteractionOptions(
+                                                                                        flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                                                                                      ),
+                                                                                    ),
+                                                                                    children: [
+                                                                                      TileLayer(
+                                                                                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                                                                        userAgentPackageName: 'com.mycompany.cercaend',
+                                                                                      ),
+                                                                                    ],
                                                                                   ),
                                                                                 ),
                                                                               ),
@@ -4773,6 +4800,7 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                                         },
                                                                       ),
                                                                     });
+
 
                                                                     context
                                                                         .pushNamed(

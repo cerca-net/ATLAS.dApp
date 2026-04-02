@@ -1481,192 +1481,81 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                     ),
                                                                   ),
                                                                 ],
-                                                                Text(
-                                                                  FFLocalizations.of(
-                                                                          context)
-                                                                      .getText(
-                                                                    'nyizwla2' /* Pago Movil */,
-                                                                  ),
-                                                                  style: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .override(
-                                                                        font: GoogleFonts
-                                                                            .montserrat(
-                                                                          fontWeight: FlutterFlowTheme.of(context)
-                                                                              .titleSmall
-                                                                              .fontWeight,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .titleSmall
-                                                                              .fontStyle,
-                                                                        ),
-                                                                        color: FlutterFlowTheme.of(context)
-                                                                            .secondaryText,
-                                                                        letterSpacing:
-                                                                            0.0,
-                                                                        fontWeight: FlutterFlowTheme.of(context)
-                                                                            .titleSmall
-                                                                            .fontWeight,
-                                                                        fontStyle: FlutterFlowTheme.of(context)
-                                                                            .titleSmall
-                                                                            .fontStyle,
-                                                                      ),
-                                                                ),
-                                                                Text(
-                                                                  FFLocalizations.of(
-                                                                          context)
-                                                                      .getText(
-                                                                    'e0jdd342' /* 3rd Party Method */,
-                                                                  ),
-                                                                  style: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodySmall
-                                                                      .override(
-                                                                        font: GoogleFonts
-                                                                            .inter(
-                                                                          fontWeight:
-                                                                              FontWeight.w500,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .bodySmall
-                                                                              .fontStyle,
-                                                                        ),
-                                                                        color: FlutterFlowTheme.of(context)
-                                                                            .secondaryText,
-                                                                        letterSpacing:
-                                                                            0.0,
-                                                                        fontWeight:
-                                                                            FontWeight.w500,
-                                                                        fontStyle: FlutterFlowTheme.of(context)
-                                                                            .bodySmall
-                                                                            .fontStyle,
-                                                                      ),
-                                                                ),
-                                                                Row(
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .max,
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceBetween,
-                                                                  children: [
-                                                                    RichText(
-                                                                      textScaler:
-                                                                          MediaQuery.of(context)
-                                                                              .textScaler,
-                                                                      text:
-                                                                          TextSpan(
+                                                                if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null)
+                                                                  FutureBuilder<WalletMethodsRecord>(
+                                                                    future: WalletMethodsRecord.getDocumentOnce(columnOrderRecord.walletMethod!),
+                                                                    builder: (context, snapshot) {
+                                                                      if (!snapshot.hasData) {
+                                                                        return const SizedBox.shrink();
+                                                                      }
+                                                                      final walletMethod = snapshot.data!;
+                                                                      return Column(
+                                                                        crossAxisAlignment: CrossAxisAlignment.stretch,
                                                                         children: [
-                                                                          TextSpan(
-                                                                            text:
-                                                                                FFLocalizations.of(context).getText(
-                                                                              'kzjv21jr' /* # I.D. :  */,
-                                                                            ),
-                                                                            style: FlutterFlowTheme.of(context).labelMedium.override(
-                                                                                  font: GoogleFonts.inter(
-                                                                                    fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                  ),
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                          Text(
+                                                                            walletMethod.methodName,
+                                                                            style: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                  fontFamily: 'Montserrat',
+                                                                                  fontWeight: FlutterFlowTheme.of(context).titleSmall.fontWeight,
+                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
                                                                                 ),
                                                                           ),
-                                                                          TextSpan(
-                                                                            text:
-                                                                                FFLocalizations.of(context).getText(
-                                                                              'ynev88b4' /* Hello World  */,
-                                                                            ),
-                                                                            style:
-                                                                                const TextStyle(),
-                                                                          )
-                                                                        ],
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .labelMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.inter(
-                                                                                fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                              ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ),
-                                                                    Icon(
-                                                                      Icons
-                                                                          .content_copy_rounded,
-                                                                      color: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .secondaryText,
-                                                                      size:
-                                                                          18.0,
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                                Row(
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .max,
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceBetween,
-                                                                  children: [
-                                                                    RichText(
-                                                                      textScaler:
-                                                                          MediaQuery.of(context)
-                                                                              .textScaler,
-                                                                      text:
-                                                                          TextSpan(
-                                                                        children: [
-                                                                          TextSpan(
-                                                                            text:
-                                                                                FFLocalizations.of(context).getText(
-                                                                              'xdselok0' /* # Account :  */,
-                                                                            ),
-                                                                            style: FlutterFlowTheme.of(context).labelMedium.override(
-                                                                                  font: GoogleFonts.inter(
-                                                                                    fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                  ),
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                          Text(
+                                                                            walletMethod.methodType,
+                                                                            style: FlutterFlowTheme.of(context).bodySmall.override(
+                                                                                  fontFamily: 'Inter',
+                                                                                  fontWeight: FontWeight.w500,
+                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
                                                                                 ),
                                                                           ),
-                                                                          TextSpan(
-                                                                            text:
-                                                                                FFLocalizations.of(context).getText(
-                                                                              'ghcepavg' /* Hello World  */,
-                                                                            ),
-                                                                            style:
-                                                                                const TextStyle(),
-                                                                          )
-                                                                        ],
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .labelMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.inter(
-                                                                                fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
+                                                                          Row(
+                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                            children: [
+                                                                              RichText(
+                                                                                textScaler: MediaQuery.of(context).textScaler,
+                                                                                text: TextSpan(
+                                                                                  children: [
+                                                                                    TextSpan(
+                                                                                      text: '# I.D. : ',
+                                                                                      style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                    ),
+                                                                                    TextSpan(
+                                                                                      text: walletMethod.methodId,
+                                                                                      style: const TextStyle(),
+                                                                                    )
+                                                                                  ],
+                                                                                  style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                ),
                                                                               ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ),
-                                                                    Icon(
-                                                                      Icons
-                                                                          .content_copy_rounded,
-                                                                      color: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .secondaryText,
-                                                                      size:
-                                                                          18.0,
-                                                                    ),
-                                                                  ],
-                                                                ),
+                                                                              Icon(Icons.content_copy_rounded, color: FlutterFlowTheme.of(context).secondaryText, size: 18.0),
+                                                                            ],
+                                                                          ),
+                                                                          Row(
+                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                            children: [
+                                                                              RichText(
+                                                                                textScaler: MediaQuery.of(context).textScaler,
+                                                                                text: TextSpan(
+                                                                                  children: [
+                                                                                    TextSpan(
+                                                                                      text: '# Account : ',
+                                                                                      style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                    ),
+                                                                                    TextSpan(
+                                                                                      text: walletMethod.methodAccount,
+                                                                                      style: const TextStyle(),
+                                                                                    )
+                                                                                  ],
+                                                                                  style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                ),
+                                                                              ),
+                                                                              Icon(Icons.content_copy_rounded, color: FlutterFlowTheme.of(context).secondaryText, size: 18.0),
+                                                                            ],
+                                                                          ),
+                                                                        ].divide(const SizedBox(height: 4.0)),
+                                                                      );
+                                                                    },
+                                                                  ),
                                                               ].divide(
                                                                   const SizedBox(
                                                                       height:
@@ -2556,6 +2445,23 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                         .ease,
                                                                   );
 
+                                                                  if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null) {
+                                                                    try {
+                                                                      final currentAddress = await WalletService().getAddress();
+                                                                      if (currentAddress != null) {
+                                                                        await WalletService().sendTransaction(
+                                                                          recipient: 'CONTRACT_MARKETPLACE_SYSTEM',
+                                                                          amount: 0.0,
+                                                                          sender: currentAddress,
+                                                                          type: 'call_contract',
+                                                                          data: '{"function":"releaseFunds","args":["${columnOrderRecord.reference.id}"]}',
+                                                                        );
+                                                                      }
+                                                                    } catch (e) {
+                                                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Contract Release Failed: $e')));
+                                                                    }
+                                                                  }
+
                                                                   await columnOrderRecord
                                                                       .reference
                                                                       .update(
@@ -2791,6 +2697,23 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                           ),
                                                                         }.withoutNulls,
                                                                       );
+
+                                                                      if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null) {
+                                                                        try {
+                                                                          final currentAddress = await WalletService().getAddress();
+                                                                          if (currentAddress != null) {
+                                                                            await WalletService().sendTransaction(
+                                                                              recipient: 'CONTRACT_MARKETPLACE_SYSTEM',
+                                                                              amount: 0.0,
+                                                                              sender: currentAddress,
+                                                                              type: 'call_contract',
+                                                                              data: '{"function":"releaseFunds","args":["${columnOrderRecord.reference.id}"]}',
+                                                                            );
+                                                                          }
+                                                                        } catch (e) {
+                                                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Contract Release Failed: $e')));
+                                                                        }
+                                                                      }
 
                                                                       await columnOrderRecord
                                                                           .reference
@@ -4137,9 +4060,9 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                   CrossAxisAlignment
                                                                       .stretch,
                                                               children: [
-                                                                if (columnOrderRecord
-                                                                        .walletMethod ==
-                                                                    'Token')
+                                                                if (columnOrderRecord.paymentMethod !=
+                                                                        'Data Unit' &&
+                                                                    columnOrderRecord.walletMethod != null)
                                                                   Builder(
                                                                     builder:
                                                                         (context) {
@@ -4163,9 +4086,11 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                                         if (currentAddress == null) throw Exception('No wallet connected');
 
                                                                                         await WalletService().sendTransaction(
-                                                                                          recipient: sellerDoc.walletAddress,
+                                                                                          recipient: 'CONTRACT_MARKETPLACE_SYSTEM',
                                                                                           amount: columnOrderRecord.totalRefValue.toDouble(),
                                                                                           sender: currentAddress,
+                                                                                          type: 'call_contract',
+                                                                                          data: '{"function":"createOrder","args":["$currentAddress","${sellerDoc.walletAddress}",${columnOrderRecord.totalRefValue.toDouble()},"${columnOrderRecord.reference.id}"]}',
                                                                                         );
 
                                                                                         await columnOrderRecord.reference.update(createOrderRecordData(orderStats: OrderStatuses.Paid));
@@ -4237,182 +4162,85 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                       }
                                                                     },
                                                                   ),
-                                                                if (columnOrderRecord
-                                                                        .walletMethod !=
-                                                                    'Token') ...[
-                                                                  Text(
-                                                                    FFLocalizations.of(
-                                                                            context)
-                                                                        .getText(
-                                                                      'al16wiwg' /* Pago Movil */,
-                                                                    ),
-                                                                    style: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .titleSmall
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.montserrat(
-                                                                            fontWeight:
-                                                                                FlutterFlowTheme.of(context).titleSmall.fontWeight,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                                                                if (columnOrderRecord.walletMethod != null)
+                                                                  FutureBuilder<WalletMethodsRecord>(
+                                                                    future: WalletMethodsRecord.getDocumentOnce(columnOrderRecord.walletMethod!),
+                                                                    builder: (context, snapshot) {
+                                                                      if (!snapshot.hasData) {
+                                                                        return const SizedBox.shrink();
+                                                                      }
+                                                                      final walletMethod = snapshot.data!;
+                                                                      return Column(
+                                                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                                        children: [
+                                                                          Text(
+                                                                            walletMethod.methodName,
+                                                                            style: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                  fontFamily: 'Montserrat',
+                                                                                  fontWeight: FlutterFlowTheme.of(context).titleSmall.fontWeight,
+                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                ),
                                                                           ),
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).secondaryText,
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight: FlutterFlowTheme.of(context)
-                                                                              .titleSmall
-                                                                              .fontWeight,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .titleSmall
-                                                                              .fontStyle,
-                                                                        ),
-                                                                  ),
-                                                                  Text(
-                                                                    FFLocalizations.of(
-                                                                            context)
-                                                                        .getText(
-                                                                      'z5qbtuxr' /* 3rd Party Method */,
-                                                                    ),
-                                                                    style: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodySmall
-                                                                        .override(
-                                                                          font:
-                                                                              GoogleFonts.inter(
-                                                                            fontWeight:
-                                                                                FontWeight.w500,
-                                                                            fontStyle:
-                                                                                FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                                                                          Text(
+                                                                            walletMethod.methodType,
+                                                                            style: FlutterFlowTheme.of(context).bodySmall.override(
+                                                                                  fontFamily: 'Inter',
+                                                                                  fontWeight: FontWeight.w500,
+                                                                                  color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                ),
                                                                           ),
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).secondaryText,
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                          fontWeight:
-                                                                              FontWeight.w500,
-                                                                          fontStyle: FlutterFlowTheme.of(context)
-                                                                              .bodySmall
-                                                                              .fontStyle,
-                                                                        ),
+                                                                          Row(
+                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                            children: [
+                                                                              RichText(
+                                                                                textScaler: MediaQuery.of(context).textScaler,
+                                                                                text: TextSpan(
+                                                                                  children: [
+                                                                                    TextSpan(
+                                                                                      text: '# I.D. : ',
+                                                                                      style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                    ),
+                                                                                    TextSpan(
+                                                                                      text: walletMethod.methodId,
+                                                                                      style: const TextStyle(),
+                                                                                    )
+                                                                                  ],
+                                                                                  style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                ),
+                                                                              ),
+                                                                              Icon(Icons.content_copy_rounded, color: FlutterFlowTheme.of(context).secondaryText, size: 18.0),
+                                                                            ],
+                                                                          ),
+                                                                          Row(
+                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                            children: [
+                                                                              RichText(
+                                                                                textScaler: MediaQuery.of(context).textScaler,
+                                                                                text: TextSpan(
+                                                                                  children: [
+                                                                                    TextSpan(
+                                                                                      text: '# Account : ',
+                                                                                      style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                    ),
+                                                                                    TextSpan(
+                                                                                      text: walletMethod.methodAccount,
+                                                                                      style: const TextStyle(),
+                                                                                    )
+                                                                                  ],
+                                                                                  style: FlutterFlowTheme.of(context).labelMedium,
+                                                                                ),
+                                                                              ),
+                                                                              Icon(Icons.content_copy_rounded, color: FlutterFlowTheme.of(context).secondaryText, size: 18.0),
+                                                                            ],
+                                                                          ),
+                                                                        ].divide(const SizedBox(height: 4.0)),
+                                                                      );
+                                                                    },
                                                                   ),
                                                                 ],
-                                                                Row(
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .max,
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceBetween,
-                                                                  children: [
-                                                                    RichText(
-                                                                      textScaler:
-                                                                          MediaQuery.of(context)
-                                                                              .textScaler,
-                                                                      text:
-                                                                          TextSpan(
-                                                                        children: [
-                                                                          TextSpan(
-                                                                            text:
-                                                                                FFLocalizations.of(context).getText(
-                                                                              'dkc63i06' /* # I.D. :  */,
-                                                                            ),
-                                                                            style: FlutterFlowTheme.of(context).labelMedium.override(
-                                                                                  font: GoogleFonts.inter(
-                                                                                    fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                  ),
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                ),
-                                                                          ),
-                                                                          TextSpan(
-                                                                            text:
-                                                                                FFLocalizations.of(context).getText(
-                                                                              'qai4coun' /* Hello World  */,
-                                                                            ),
-                                                                            style:
-                                                                                const TextStyle(),
-                                                                          )
-                                                                        ],
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .labelMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.inter(
-                                                                                fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                              ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                                Row(
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .max,
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceBetween,
-                                                                  children: [
-                                                                    RichText(
-                                                                      textScaler:
-                                                                          MediaQuery.of(context)
-                                                                              .textScaler,
-                                                                      text:
-                                                                          TextSpan(
-                                                                        children: [
-                                                                          TextSpan(
-                                                                            text:
-                                                                                FFLocalizations.of(context).getText(
-                                                                              'nu3esj9t' /* # Account :  */,
-                                                                            ),
-                                                                            style: FlutterFlowTheme.of(context).labelMedium.override(
-                                                                                  font: GoogleFonts.inter(
-                                                                                    fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                    fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                  ),
-                                                                                  letterSpacing: 0.0,
-                                                                                  fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                  fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                                ),
-                                                                          ),
-                                                                          TextSpan(
-                                                                            text:
-                                                                                FFLocalizations.of(context).getText(
-                                                                              'cxd0n0hc' /* Hello World  */,
-                                                                            ),
-                                                                            style:
-                                                                                const TextStyle(),
-                                                                          )
-                                                                        ],
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .labelMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.inter(
-                                                                                fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                              ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).labelMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).labelMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ].divide(
-                                                                  const SizedBox(
-                                                                      height:
-                                                                          4.0)),
+                                                              ),
                                                             ),
                                                           ),
-                                                        ),
                                                       ],
                                                     ),
                                                   ),
@@ -4509,6 +4337,23 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                     curve: Curves
                                                                         .ease,
                                                                   );
+
+                                                                  if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null) {
+                                                                    try {
+                                                                      final currentAddress = await WalletService().getAddress();
+                                                                      if (currentAddress != null) {
+                                                                        await WalletService().sendTransaction(
+                                                                          recipient: 'CONTRACT_MARKETPLACE_SYSTEM',
+                                                                          amount: 0.0,
+                                                                          sender: currentAddress,
+                                                                          type: 'call_contract',
+                                                                          data: '{"function":"raiseDispute","args":["${columnOrderRecord.reference.id}"]}',
+                                                                        );
+                                                                      }
+                                                                    } catch (e) {
+                                                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Dispute Failed: $e')));
+                                                                    }
+                                                                  }
 
                                                                   await columnOrderRecord
                                                                       .reference

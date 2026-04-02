@@ -158,7 +158,7 @@ class _FeedpageWidgetState extends State<FeedpageWidget>
                               SubmissionRecord.collection
                                   .whereArrayContainsAny(
                                       'thread',
-                                      _model.choiceChipsValues != ''
+                                      _model.choiceChipsValues != null && _model.choiceChipsValues!.isNotEmpty
                                           ? _model.choiceChipsValues
                                           : null)
                                   .orderBy('date', descending: true),
@@ -2251,50 +2251,54 @@ class _FeedpageWidgetState extends State<FeedpageWidget>
                                                   size: 24.0,
                                                 ),
                                                 onPressed: () async {
-                                                  safeSetState(() => _model
-                                                      .choiceChipsValueController
-                                                      ?.value = []);
+                                                  // Fetch all submissions for local search and algorithm
                                                   await querySubmissionRecordOnce()
-                                                      .then(
-                                                        (records) => _model
-                                                                .simpleSearchResults =
-                                                            TextSearch(
-                                                          records
-                                                              .map(
-                                                                (record) =>
-                                                                    TextSearchItem
-                                                                        .fromTerms(
-                                                                            record,
-                                                                            [
-                                                                      record
-                                                                          .header,
-                                                                      record
-                                                                          .submitter,
-                                                                      record
-                                                                          .type1choice,
-                                                                      record
-                                                                          .type2choice,
-                                                                      record
-                                                                          .type0choice
-                                                                    ]),
-                                                              )
-                                                              .toList(),
-                                                        )
-                                                                .search(_model
-                                                                    .wordSearcherTextController
-                                                                    .text)
-                                                                .map((r) =>
-                                                                    r.object)
-                                                                .toList(),
+                                                      .then((records) {
+                                                    var filteredRecords = records;
+                                                    
+                                                    // Apply Choice Chips Filter
+                                                    if (_model.choiceChipsValues != null && _model.choiceChipsValues!.isNotEmpty) {
+                                                      filteredRecords = filteredRecords.where((r) {
+                                                        return _model.choiceChipsValues!.any((chip) => r.thread.contains(chip));
+                                                      }).toList();
+                                                    }
+                                                    
+                                                    // Apply Text Search Filter
+                                                    if (_model.wordSearcherTextController.text.isNotEmpty) {
+                                                      filteredRecords = TextSearch(
+                                                        filteredRecords.map(
+                                                          (record) => TextSearchItem.fromTerms(record, [
+                                                            record.header,
+                                                            record.submitter,
+                                                            record.body,
+                                                            record.type1choice,
+                                                            record.type2choice,
+                                                            record.type0choice
+                                                          ]),
+                                                        ).toList(),
                                                       )
-                                                      .onError((_, __) => _model
-                                                              .simpleSearchResults =
-                                                          [])
-                                                      .whenComplete(() =>
-                                                          safeSetState(() {}));
+                                                      .search(_model.wordSearcherTextController.text)
+                                                      .map((r) => r.object)
+                                                      .toList();
+                                                    }
+                                                    
+                                                    // Apply Trending Algorithm
+                                                    filteredRecords.sort((a, b) {
+                                                      final now = DateTime.now();
+                                                      final aHours = now.difference(a.date ?? now).inHours.abs() + 1;
+                                                      final bHours = now.difference(b.date ?? now).inHours.abs() + 1;
+                                                      // Algorithm weights: recency dominates early, engagement multiplies
+                                                      final aScore = (a.ups * 2) + a.objectViews + (10000 / aHours);
+                                                      final bScore = (b.ups * 2) + b.objectViews + (10000 / bHours);
+                                                      return bScore.compareTo(aScore);
+                                                    });
+                                                    
+                                                    _model.simpleSearchResults = filteredRecords;
+                                                  })
+                                                  .onError((_, __) { _model.simpleSearchResults = []; })
+                                                  .whenComplete(() => safeSetState(() {}));
 
-                                                  FFAppState().showfullfeed =
-                                                      false;
+                                                  FFAppState().showfullfeed = false;
                                                   safeSetState(() {});
                                                 },
                                               ),

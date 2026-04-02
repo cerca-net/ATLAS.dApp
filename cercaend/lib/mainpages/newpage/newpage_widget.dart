@@ -138,16 +138,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                     ),
                   );
                 }
-                List<AnalyticsRecord> columnAnalyticsRecordList =
-                    snapshot.data!;
-                // Return an empty Container when the item does not exist.
-                if (snapshot.data!.isEmpty) {
-                  return Container();
-                }
-                final columnAnalyticsRecord =
-                    columnAnalyticsRecordList.isNotEmpty
-                        ? columnAnalyticsRecordList.first
-                        : null;
+                // Return an empty Container when the item does not exist. // No longer true, we let the user access the page anyway.
 
                 return Column(
                   mainAxisSize: MainAxisSize.max,
@@ -762,6 +753,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                       <String>[];
                                                                   try {
                                                                     showUploadMessage(
+
                                                                       context,
                                                                       'Uploading file...',
                                                                       showLoading:
@@ -794,6 +786,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                         .toList();
                                                                   } finally {
                                                                     ScaffoldMessenger.of(
+
                                                                             context)
                                                                         .hideCurrentSnackBar();
                                                                     _model.isDataUploading_uploadDataBnz =
@@ -815,12 +808,14 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                           downloadUrls;
                                                                     });
                                                                     showUploadMessage(
+
                                                                         context,
                                                                         'Success!');
                                                                   } else {
                                                                     safeSetState(
                                                                         () {});
                                                                     showUploadMessage(
+
                                                                         context,
                                                                         'Failed to upload data');
                                                                     return;
@@ -1929,6 +1924,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                   ),
                                                                 });
 
+
                                                                 context.goNamed(
                                                                     FeedpageWidget
                                                                         .routeName);
@@ -2336,6 +2332,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     <String>[];
                                                                 try {
                                                                   showUploadMessage(
+
                                                                     context,
                                                                     'Uploading file...',
                                                                     showLoading:
@@ -2370,6 +2367,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                       .toList();
                                                                 } finally {
                                                                   ScaffoldMessenger.of(
+
                                                                           context)
                                                                       .hideCurrentSnackBar();
                                                                   _model.isDataUploading_uploadDataVideo =
@@ -2393,12 +2391,14 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                             .first;
                                                                   });
                                                                   showUploadMessage(
+
                                                                       context,
                                                                       'Success!');
                                                                 } else {
                                                                   safeSetState(
                                                                       () {});
                                                                   showUploadMessage(
+
                                                                       context,
                                                                       'Failed to upload data');
                                                                   return;
@@ -3297,6 +3297,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                   ),
                                                                 });
 
+
                                                                 context.pushNamed(
                                                                     FeedpageWidget
                                                                         .routeName);
@@ -3738,6 +3739,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                                     );
 
                                                                                     _model.timerController.onStopTimer();
+
                                                                                     context.safePop();
                                                                                     FFAppState().recorded = 'salidaAudio';
                                                                                     safeSetState(() {});
@@ -3814,6 +3816,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                         <String>[];
                                                                     try {
                                                                       showUploadMessage(
+
                                                                         context,
                                                                         'Uploading file...',
                                                                         showLoading:
@@ -3843,6 +3846,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                           .toList();
                                                                     } finally {
                                                                       ScaffoldMessenger.of(
+
                                                                               context)
                                                                           .hideCurrentSnackBar();
                                                                       _model.isDataUploading_submissionAudio =
@@ -3861,6 +3865,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                             downloadUrls.first;
                                                                       });
                                                                       showUploadMessage(
+
                                                                         context,
                                                                         'Success!',
                                                                       );
@@ -3868,6 +3873,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                       safeSetState(
                                                                           () {});
                                                                       showUploadMessage(
+
                                                                         context,
                                                                         'Failed to upload file',
                                                                       );
@@ -3965,6 +3971,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                           <String>[];
                                                                       try {
                                                                         showUploadMessage(
+
                                                                           context,
                                                                           'Uploading file...',
                                                                           showLoading:
@@ -3995,6 +4002,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                                 u!)
                                                                             .toList();
                                                                       } finally {
+
                                                                         ScaffoldMessenger.of(context)
                                                                             .hideCurrentSnackBar();
                                                                         _model.isDataUploading_uploadData3dt =
@@ -4013,12 +4021,14 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                               downloadUrls.first;
                                                                         });
                                                                         showUploadMessage(
+
                                                                             context,
                                                                             'Success!');
                                                                       } else {
                                                                         safeSetState(
                                                                             () {});
                                                                         showUploadMessage(
+
                                                                             context,
                                                                             'Failed to upload data');
                                                                         return;
@@ -5157,6 +5167,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     },
                                                                   ),
                                                                 });
+
 
                                                                 context.pushNamed(
                                                                     FeedpageWidget
@@ -6319,6 +6330,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     ),
                                                                   });
 
+
                                                                   context.goNamed(
                                                                       FeedpageWidget
                                                                           .routeName);
@@ -6830,6 +6842,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                       <String>[];
                                                                   try {
                                                                     showUploadMessage(
+
                                                                       context,
                                                                       'Uploading file...',
                                                                       showLoading:
@@ -6862,6 +6875,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                         .toList();
                                                                   } finally {
                                                                     ScaffoldMessenger.of(
+
                                                                             context)
                                                                         .hideCurrentSnackBar();
                                                                     _model.isDataUploading_uploadDataProduct =
@@ -6883,12 +6897,14 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                           downloadUrls;
                                                                     });
                                                                     showUploadMessage(
+
                                                                         context,
                                                                         'Success!');
                                                                   } else {
                                                                     safeSetState(
                                                                         () {});
                                                                     showUploadMessage(
+
                                                                         context,
                                                                         'Failed to upload data');
                                                                     return;
@@ -8776,6 +8792,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     ),
                                                                   });
 
+
                                                                   context.pushNamed(
                                                                       FeedpageWidget
                                                                           .routeName);
@@ -9271,6 +9288,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                           <String>[];
                                                                       try {
                                                                         showUploadMessage(
+
                                                                           context,
                                                                           'Uploading file...',
                                                                           showLoading:
@@ -9301,6 +9319,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                                 u!)
                                                                             .toList();
                                                                       } finally {
+
                                                                         ScaffoldMessenger.of(context)
                                                                             .hideCurrentSnackBar();
                                                                         _model.isDataUploading_uploadDataService =
@@ -9319,12 +9338,14 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                               downloadUrls;
                                                                         });
                                                                         showUploadMessage(
+
                                                                             context,
                                                                             'Success!');
                                                                       } else {
                                                                         safeSetState(
                                                                             () {});
                                                                         showUploadMessage(
+
                                                                             context,
                                                                             'Failed to upload data');
                                                                         return;
@@ -11127,6 +11148,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                   ),
                                                                 });
 
+
                                                                 context.goNamed(
                                                                     FeedpageWidget
                                                                         .routeName);
@@ -11631,6 +11653,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                       <String>[];
                                                                   try {
                                                                     showUploadMessage(
+
                                                                       context,
                                                                       'Uploading file...',
                                                                       showLoading:
@@ -11663,6 +11686,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                         .toList();
                                                                   } finally {
                                                                     ScaffoldMessenger.of(
+
                                                                             context)
                                                                         .hideCurrentSnackBar();
                                                                     _model.isDataUploading_uploadDataEvent =
@@ -11684,12 +11708,14 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                           downloadUrls;
                                                                     });
                                                                     showUploadMessage(
+
                                                                         context,
                                                                         'Success!');
                                                                   } else {
                                                                     safeSetState(
                                                                         () {});
                                                                     showUploadMessage(
+
                                                                         context,
                                                                         'Failed to upload data');
                                                                     return;
@@ -13614,6 +13640,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                       },
                                                                     ),
                                                                   });
+
 
                                                                   context.goNamed(
                                                                       FeedpageWidget

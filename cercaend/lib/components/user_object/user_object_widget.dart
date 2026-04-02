@@ -1213,6 +1213,7 @@ class _UserObjectWidgetState extends State<UserObjectWidget>
                                                   .reference
                                                   .delete();
 
+
                                               context.goNamed(
                                                   UserpageWidget.routeName);
                                             },

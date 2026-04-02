@@ -40,8 +40,6 @@ class _ObjectWidgetState extends State<ObjectWidget>
     with TickerProviderStateMixin {
   late ObjectModel _model;
   ObjectEnergyState? _energyState;
-  final String _currentUserAddress =
-      FFAppState().walletAddress; // Assume wallet address is stored here
 
   final animationsMap = <String, AnimationInfo>{};
 
@@ -97,82 +95,6 @@ class _ObjectWidgetState extends State<ObjectWidget>
       setState(() {
         _energyState = state;
       });
-    }
-  }
-
-  Future<void> _tipObject() async {
-    if (_currentUserAddress.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please connect wallet first')),
-      );
-      return;
-    }
-
-    final docId = widget.object?.reference.id;
-    if (docId == null) return;
-
-    final amount = await showDialog<int>(
-      context: context,
-      builder: (context) {
-        final amountController = TextEditingController();
-        return AlertDialog(
-          title: Text(_energyState?.isFossilized == true
-              ? 'Revive Object'
-              : 'Energize (Tip)'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(_energyState?.isFossilized == true
-                  ? 'Fossilized. Needs at least 50 TCOIN to revive.'
-                  : 'Enter TCOIN amount to send:'),
-              TextField(
-                controller: amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(hintText: '10'),
-              )
-            ],
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel')),
-            TextButton(
-              onPressed: () {
-                final val = int.tryParse(amountController.text);
-                Navigator.pop(context, val);
-              },
-              child: const Text('Send Energy'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (amount != null && amount > 0) {
-      // Optimistic Update
-      setState(() {
-        if (_energyState != null) {
-          _energyState = ObjectEnergyState(
-            objectId: _energyState!.objectId,
-            tipBalance: _energyState!.tipBalance + amount,
-            influenceScore: _energyState!.influenceScore + (amount * 5),
-            status: _energyState!.status == 'fossilized' && amount >= 50
-                ? 'active'
-                : _energyState!.status,
-            upvotes: _energyState!.upvotes,
-            downvotes: _energyState!.downvotes,
-            objectType: _energyState!.objectType,
-          );
-        }
-      });
-
-      final result = await EnergyService()
-          .energizeObject(docId, _currentUserAddress, amount);
-      if (result != null && mounted) {
-        setState(() {
-          _energyState = result;
-        });
-      }
     }
   }
 
@@ -257,26 +179,6 @@ class _ObjectWidgetState extends State<ObjectWidget>
             ),
           ),
           const SizedBox(height: 8),
-          InkWell(
-            onTap: _tipObject,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 6.0),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: theme.primary,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Text(
-                isFossilized ? 'REVIVE OBJECT' : 'ENERGIZE',
-                style: theme.titleSmall.override(
-                  font: GoogleFonts.inter(),
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );

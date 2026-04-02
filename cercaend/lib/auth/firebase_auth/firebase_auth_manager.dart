@@ -17,6 +17,8 @@ import 'github_auth.dart';
 export '../base_auth_user_provider.dart';
 
 import '/services/blockchain/wallet_service.dart';
+import '/app_state.dart';
+import '/services/blockchain/blockchain_service.dart';
 
 class FirebasePhoneAuthManager extends ChangeNotifier {
   bool? _triggerOnCodeSent;
@@ -59,7 +61,17 @@ class FirebaseAuthManager extends AuthManager
   @override
   Future signOut() async {
     try {
+      try {
+        await BlockchainService().stopNode();
+      } catch (e) {
+        print('Warning: Failed to stop blockchain node gracefully on signout: $e');
+      }
       await WalletService().logout();
+      // Clear wallet state from global app state
+      FFAppState().isWalletConnected = false;
+      FFAppState().walletAddress = '';
+      FFAppState().walletBalance = 0.0;
+      FFAppState().sessionToken = '';
     } catch (e) {
       print('Warning: Failed to clear local wallet storage on signout');
     }
@@ -76,7 +88,9 @@ class FirebaseAuthManager extends AuthManager
       await currentUser?.delete();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
+
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text(
@@ -100,7 +114,9 @@ class FirebaseAuthManager extends AuthManager
       await updateUserDocument(email: email);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
+
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text(
@@ -123,7 +139,9 @@ class FirebaseAuthManager extends AuthManager
       await currentUser?.updatePassword(newPassword);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
+
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: ${e.message!}')),
         );
@@ -139,12 +157,15 @@ class FirebaseAuthManager extends AuthManager
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
+
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.message!}')),
       );
       return null;
     }
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Password reset email sent')),
     );
@@ -324,7 +345,9 @@ class FirebaseAuthManager extends AuthManager
           'Error: The supplied auth credential is incorrect, malformed or has expired',
         _ => 'Error: ${e.message!}',
       };
+
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMsg)),
       );

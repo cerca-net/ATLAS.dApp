@@ -509,7 +509,9 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                             onTap: () async {
                               GoRouter.of(context).prepareAuthEvent();
                               await authManager.signOut();
+
                               GoRouter.of(context).clearRedirectLocation();
+
 
                               context.goNamedAuth(StartingPageWidget.routeName,
                                   context.mounted);

@@ -769,32 +769,21 @@ class _UserratingWidgetState extends State<UserratingWidget> {
                                                         },
                                                       ),
                                                     });
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(
+
+                                                    ScaffoldMessenger.of(context).showSnackBar(
                                                       SnackBar(
                                                         content: Text(
                                                           'SUCCESS',
                                                           style: TextStyle(
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
+                                                            color: FlutterFlowTheme.of(context).primaryText,
                                                           ),
                                                         ),
-                                                        duration:
-                                                            const Duration(
-                                                                milliseconds:
-                                                                    4000),
-                                                        backgroundColor:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .secondary,
+                                                        duration: const Duration(milliseconds: 4000),
+                                                        backgroundColor: FlutterFlowTheme.of(context).secondary,
                                                       ),
                                                     );
 
-                                                    context.pushNamed(
-                                                        FeedpageWidget
-                                                            .routeName);
+                                                    context.pushNamed(FeedpageWidget.routeName);
                                                   },
                                                 ),
                                               ),

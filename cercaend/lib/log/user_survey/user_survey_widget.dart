@@ -407,6 +407,7 @@ class _UserSurveyWidgetState extends State<UserSurveyWidget>
                                                                                 <String>[];
                                                                             try {
                                                                               showUploadMessage(
+
                                                                                 context,
                                                                                 'Uploading file...',
                                                                                 showLoading: true,
@@ -430,6 +431,7 @@ class _UserSurveyWidgetState extends State<UserSurveyWidget>
                                                                                   .map((u) => u!)
                                                                                   .toList();
                                                                             } finally {
+
                                                                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                                                               _model.isDataUploading_uploadData7b4 = false;
                                                                             }
@@ -439,9 +441,11 @@ class _UserSurveyWidgetState extends State<UserSurveyWidget>
                                                                                 _model.uploadedLocalFile_uploadData7b4 = selectedUploadedFiles.first;
                                                                                 _model.uploadedFileUrl_uploadData7b4 = downloadUrls.first;
                                                                               });
+
                                                                               showUploadMessage(context, 'Success!');
                                                                             } else {
                                                                               safeSetState(() {});
+
                                                                               showUploadMessage(context, 'Failed to upload data');
                                                                               return;
                                                                             }
@@ -2187,6 +2191,7 @@ Picture */
                                                         dateCreated:
                                                             getCurrentTimestamp,
                                                       ));
+
 
                                                   context.goNamed(
                                                       UserpageWidget.routeName);
