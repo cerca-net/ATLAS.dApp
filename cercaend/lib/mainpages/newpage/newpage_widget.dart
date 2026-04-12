@@ -1884,20 +1884,30 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     type2choice:
                                                                         () {
                                                                       if (_model
-                                                                              .choiceChipsPVValue ==
-                                                                          'Movie') {
+                                                                              .choiceChipsPIValue ==
+                                                                          'Photo') {
                                                                         return _model
-                                                                            .choiceChipsPVMValue;
+                                                                            .choiceChipsPIPValue;
                                                                       } else if (_model
-                                                                              .choiceChipsPVValue ==
-                                                                          'Short') {
+                                                                              .choiceChipsPIValue ==
+                                                                          'Art') {
                                                                         return _model
-                                                                            .choiceChipsPVSValue;
+                                                                            .choiceChipsPIAValue;
                                                                       } else if (_model
-                                                                              .choiceChipsPVValue ==
-                                                                          'Clip') {
+                                                                              .choiceChipsPIValue ==
+                                                                          'Media') {
                                                                         return _model
-                                                                            .choiceChipsPVCValue;
+                                                                            .choiceChipsPIMValue;
+                                                                      } else if (_model
+                                                                              .choiceChipsPIValue ==
+                                                                          'Data') {
+                                                                        return _model
+                                                                            .choiceChipsPIDtValue;
+                                                                      } else if (_model
+                                                                              .choiceChipsPIValue ==
+                                                                          'Design') {
+                                                                        return _model
+                                                                            .choiceChipsPIDgValue;
                                                                       } else {
                                                                         return '';
                                                                       }
@@ -1909,7 +1919,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     {
                                                                       'thread':
                                                                           _model
-                                                                              .choiceChipsThreadVValues,
+                                                                              .choiceChipsThreadIValues,
                                                                       'imagesextra':
                                                                           _model
                                                                               .uploadedFileUrls_uploadDataBnz,
@@ -1917,8 +1927,8 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                   ),
                                                                 });
 
-                                                                await rowPostCreditsRecord!
-                                                                    .reference
+                                                                await rowPostCreditsRecord
+                                                                    ?.reference
                                                                     .update({
                                                                   ...mapToFirestore(
                                                                     {
@@ -3290,8 +3300,8 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                   ),
                                                                 });
 
-                                                                await rowPostCreditsRecord!
-                                                                    .reference
+                                                                await rowPostCreditsRecord
+                                                                    ?.reference
                                                                     .update({
                                                                   ...mapToFirestore(
                                                                     {
@@ -5142,6 +5152,11 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                               .choiceChipsPAValue ==
                                                                           'Podcast') {
                                                                         return _model
+                                                                            .choiceChipsPAPValue;
+                                                                      } else if (_model
+                                                                              .choiceChipsPAValue ==
+                                                                          'Note') {
+                                                                        return _model
                                                                             .choiceChipsPANValue;
                                                                       } else {
                                                                         return '';
@@ -5161,8 +5176,8 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                   ),
                                                                 });
 
-                                                                await rowPostCreditsRecord!
-                                                                    .reference
+                                                                await rowPostCreditsRecord
+                                                                    ?.reference
                                                                     .update({
                                                                   ...mapToFirestore(
                                                                     {
@@ -6324,9 +6339,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     ),
                                                                   });
 
-                                                                  await rowPostCreditsRecord!
-                                                                      .reference
-                                                                      .update({
+                                                                  await rowPostCreditsRecord?.reference.update({
                                                                     ...mapToFirestore(
                                                                       {
                                                                         'generation_i':
@@ -8786,9 +8799,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     ),
                                                                   }, submissionRecordReference);
 
-                                                                  await rowItemsCreditsRecord!
-                                                                      .reference
-                                                                      .update({
+                                                                  await rowItemsCreditsRecord?.reference.update({
                                                                     ...mapToFirestore(
                                                                       {
                                                                         'generation_i':
@@ -8802,9 +8813,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                       FeedpageWidget
                                                                           .routeName);
 
-                                                                  await columnAnalyticsRecord!
-                                                                      .reference
-                                                                      .update({
+                                                                  await columnAnalyticsRecord?.reference.update({
                                                                     ...mapToFirestore(
                                                                       {
                                                                         'objectAvgReference':
@@ -11140,39 +11149,33 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     },
                                                                   ),
                                                                 });
+                                                                 await rowItemsCreditsRecord?.reference.update({
+                                                                   ...mapToFirestore(
+                                                                     {
+                                                                       'generation_i':
+                                                                           FieldValue.increment(
+                                                                               1.0),
+                                                                     },
+                                                                   ),
+                                                                 });
 
-                                                                await rowItemsCreditsRecord!
-                                                                    .reference
-                                                                    .update({
-                                                                  ...mapToFirestore(
-                                                                    {
-                                                                      'generation_i':
-                                                                          FieldValue.increment(
-                                                                              1.0),
-                                                                    },
-                                                                  ),
-                                                                });
+                                                                 context.goNamed(
+                                                                     FeedpageWidget
+                                                                         .routeName);
 
-
-                                                                context.goNamed(
-                                                                    FeedpageWidget
-                                                                        .routeName);
-
-                                                                await columnAnalyticsRecord!
-                                                                    .reference
-                                                                    .update({
-                                                                  ...mapToFirestore(
-                                                                    {
-                                                                      'objectAvgReference':
-                                                                          FieldValue
-                                                                              .arrayUnion([
-                                                                        double.tryParse(_model
-                                                                            .textController10
-                                                                            .text)
-                                                                      ]),
-                                                                    },
-                                                                  ),
-                                                                });
+                                                                 await columnAnalyticsRecord?.reference.update({
+                                                                   ...mapToFirestore(
+                                                                     {
+                                                                       'objectAvgReference':
+                                                                           FieldValue
+                                                                               .arrayUnion([
+                                                                         double.tryParse(_model
+                                                                             .textController10
+                                                                             .text)
+                                                                       ]),
+                                                                     },
+                                                                   ),
+                                                                 });
                                                               },
                                                               text: FFLocalizations
                                                                       .of(context)
@@ -13635,9 +13638,7 @@ class _NewpageWidgetState extends State<NewpageWidget> {
                                                                     ),
                                                                   });
 
-                                                                  await rowItemsCreditsRecord!
-                                                                      .reference
-                                                                      .update({
+                                                                  await rowItemsCreditsRecord?.reference.update({
                                                                     ...mapToFirestore(
                                                                       {
                                                                         'generation_i':

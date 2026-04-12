@@ -19,15 +19,15 @@ void main() async {
     return txt.substring(0, startIdx) + replacement + txt.substring(endIdx);
   }
 
-  final startStr1 = '''                                                                if (columnOrderRecord
+  const startStr1 = '''                                                                if (columnOrderRecord
                                                                         .paymentMethod !=
                                                                     'Data Unit') ...[''';
   
-  final endStr1 = '''                                                                  ],
+  const endStr1 = '''                                                                  ],
                                                                 ),
                                                                 ],''';
 
-  final replacement1 = '''                                                                if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null)
+  const replacement1 = '''                                                                if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null)
                                                                   FutureBuilder<WalletMethodsRecord>(
                                                                     future: WalletMethodsRecord.getDocumentOnce(columnOrderRecord.walletMethod!),
                                                                     builder: (context, snapshot) {
@@ -103,11 +103,11 @@ void main() async {
 
   text = replaceBlock(text, startStr1, endStr1, replacement1);
 
-  final startStr2 = '''                                                                if (columnOrderRecord
+  const startStr2 = '''                                                                if (columnOrderRecord
                                                                         .walletMethod !=
                                                                     'Token') ...[''';
 
-  final replacement2 = '''                                                                if (columnOrderRecord.walletMethod != null)
+  const replacement2 = '''                                                                if (columnOrderRecord.walletMethod != null)
                                                                   FutureBuilder<WalletMethodsRecord>(
                                                                     future: WalletMethodsRecord.getDocumentOnce(columnOrderRecord.walletMethod!),
                                                                     builder: (context, snapshot) {

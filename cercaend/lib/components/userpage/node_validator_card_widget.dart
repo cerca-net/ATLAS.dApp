@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../mainpages/userpage/userpage_model.dart';
+import '../../flutter_flow/flutter_flow_theme.dart';
 
 class NodeValidatorCardWidget extends StatelessWidget {
   final UserpageModel model;
@@ -22,22 +23,28 @@ class NodeValidatorCardWidget extends StatelessWidget {
 
   Widget _buildControlBtn(
       IconData icon, String label, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withOpacity(0.3)),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 16),
+                const SizedBox(width: 4),
+                Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600)),
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
-        ],
+        ),
       ),
     );
   }
@@ -65,9 +72,9 @@ class NodeValidatorCardWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -97,10 +104,10 @@ class NodeValidatorCardWidget extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               colors: [
-                Color(0xFF2D3748),
-                Color(0xFF1A202C),
+                Color.alphaBlend(Colors.black.withValues(alpha: 0.4), FlutterFlowTheme.of(context).primary),
+                Color.alphaBlend(Colors.black.withValues(alpha: 0.4), FlutterFlowTheme.of(context).tertiary),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -108,12 +115,12 @@ class NodeValidatorCardWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(16.0),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               )
             ],
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,10 +135,10 @@ class NodeValidatorCardWidget extends StatelessWidget {
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: (model.nodeStatus?.state == 'running')
-                              ? Colors.green.withOpacity(0.2)
+                              ? Colors.green.withValues(alpha: 0.2)
                               : (model.nodeStatus?.state == 'paused')
-                                  ? Colors.amber.withOpacity(0.2)
-                                  : Colors.red.withOpacity(0.1),
+                                  ? Colors.amber.withValues(alpha: 0.2)
+                                  : Colors.red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -176,8 +183,8 @@ class NodeValidatorCardWidget extends StatelessWidget {
                         horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: (model.networkStatus?.isValidator == true)
-                          ? Colors.green.withOpacity(0.2)
-                          : Colors.grey.withOpacity(0.2),
+                          ? Colors.green.withValues(alpha: 0.2)
+                          : Colors.grey.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -226,29 +233,25 @@ class NodeValidatorCardWidget extends StatelessWidget {
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.lock, color: Colors.black54, size: 16),
-                              SizedBox(width: 4),
-                              Text('STAKED',
-                                  style: TextStyle(
-                                      color: Colors.black54,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
+                          const Icon(Icons.lock, color: Colors.black54, size: 16),
+                          const SizedBox(width: 4),
+                          const Text('STAKED',
+                              style: TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600)),
+                          const Spacer(),
                           Text(
                             '${model.networkStatus?.stakeAmount ?? 0}',
                             style: GoogleFonts.outfit(
                               color: Colors.black87,
-                              fontSize: 22,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          const SizedBox(width: 4),
                           const Text('TCOIN',
                               style: TextStyle(
                                   color: Colors.black54, fontSize: 10)),
@@ -261,35 +264,31 @@ class NodeValidatorCardWidget extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border:
-                            Border.all(color: Colors.white.withOpacity(0.1)),
+                            Border.all(color: Colors.white.withValues(alpha: 0.1)),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.emoji_events,
-                                  color: Colors.amber, size: 16),
-                              SizedBox(width: 4),
-                              Text('REWARDS',
-                                  style: TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
+                          const Icon(Icons.emoji_events,
+                              color: Colors.amber, size: 16),
+                          const SizedBox(width: 4),
+                          const Text('REWARDS',
+                              style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600)),
+                          const Spacer(),
                           Text(
                             '${model.networkStatus?.rewardsEarned ?? 0}',
                             style: GoogleFonts.outfit(
                               color: Colors.white,
-                              fontSize: 22,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          const SizedBox(width: 4),
                           const Text('TCOIN',
                               style: TextStyle(
                                   color: Colors.white38, fontSize: 10)),
@@ -307,7 +306,7 @@ class NodeValidatorCardWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -351,8 +350,11 @@ class NodeValidatorCardWidget extends StatelessWidget {
                                 ? null
                                 : onRegisterValidator,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFF83B46),
+                              backgroundColor: Colors.white.withValues(alpha: 0.2),
                               foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 12),
                             ),
@@ -375,63 +377,57 @@ class NodeValidatorCardWidget extends StatelessWidget {
 
               // Node Controls (only if validator)
               if (model.networkStatus?.isValidator == true) ...[
-                const SizedBox(height: 4),
-                const Text('Node Controls',
-                    style: TextStyle(color: Colors.white54, fontSize: 11)),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 10, horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildControlBtn(
-                          Icons.play_arrow, 'Start', Colors.green, onStartNode),
-                      _buildControlBtn(
-                          Icons.pause, 'Pause', Colors.amber, onPauseNode),
-                      _buildControlBtn(
-                          Icons.stop, 'Stop', Colors.red, onStopNode),
-                      _buildControlBtn(
-                          Icons.sync, 'Sync', Colors.blue, onSyncNode),
-                    ],
-                  ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _buildControlBtn(
+                        Icons.play_arrow, 'Start', Colors.white, onStartNode),
+                    _buildControlBtn(
+                        Icons.pause, 'Pause', Colors.white, onPauseNode),
+                    _buildControlBtn(
+                        Icons.stop, 'Stop', Colors.white, onStopNode),
+                    _buildControlBtn(
+                        Icons.sync, 'Sync', Colors.white, onSyncNode),
+                  ],
                 ),
 
                 const SizedBox(height: 16),
 
                 // Node Logs Section
-                const Text('Node Logs',
-                    style: TextStyle(color: Colors.white54, fontSize: 11)),
-                const SizedBox(height: 8),
-                Container(
-                  height: 100,
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0D1117),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white.withOpacity(0.05)),
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: model.nodeLogs.isEmpty
-                          ? [
-                              const Text('Waiting for node activity...',
-                                  style: TextStyle(
-                                      color: Colors.white24, fontSize: 10))
-                            ]
-                          : model.nodeLogs
-                              .map((log) => _buildLogEntry(
-                                  '[${log.timestamp.split(' ').last}] ${log.message}',
-                                  log.level))
-                              .toList(),
+                Stack(
+                  children: [
+                    Container(
+                      height: 100,
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0D1117),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: model.nodeLogs.isEmpty
+                              ? [
+                                  const Text('Waiting for node activity...',
+                                      style: TextStyle(
+                                          color: Colors.white24, fontSize: 10))
+                                ]
+                              : model.nodeLogs
+                                  .map((log) => _buildLogEntry(
+                                      '[${log.timestamp.split(' ').last}] ${log.message}',
+                                      log.level))
+                                  .toList(),
+                        ),
+                      ),
                     ),
-                  ),
+                    const Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Icon(Icons.terminal, color: Colors.white38, size: 16),
+                    ),
+                  ],
                 ),
               ],
             ],
@@ -445,7 +441,7 @@ class NodeValidatorCardWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(

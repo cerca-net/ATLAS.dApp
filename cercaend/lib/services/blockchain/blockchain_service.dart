@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -168,7 +169,7 @@ class BlockchainService {
         throw BlockchainException('Failed to get status from network: ${response.body}');
       }
     } catch (e) {
-      print('Network error getting network status: $e');
+      debugPrint('Network error getting network status: $e');
       return NetworkStatusResponse(
         blockHeight: 0,
         txPoolSize: 0,
@@ -225,7 +226,7 @@ class BlockchainService {
         throw BlockchainException('Failed to get peers: ${response.body}');
       }
     } catch (e) {
-      print('Network error getting peers: $e');
+      debugPrint('Network error getting peers: $e');
       return {'success': false, 'count': 0, 'peers': []};
     }
   }
@@ -265,11 +266,11 @@ class BlockchainService {
         return data['nonce'] ?? 0;
       } else {
         // If the endpoint doesn't exist yet or errors, default to 0 (or handle as needed)
-        print('Warning: Failed to fetch nonce: ${response.body}');
+        debugPrint('Warning: Failed to fetch nonce: ${response.body}');
         return 0;
       }
     } catch (e) {
-      print('Network error fetching nonce: $e');
+      debugPrint('Network error fetching nonce: $e');
       return 0; // Fallback
     }
   }
@@ -338,11 +339,11 @@ class BlockchainService {
         return [];
       } else {
         // Fallback for empty feed or errors
-        print('Warning: Failed to fetch feed: ${response.body}');
+        debugPrint('Warning: Failed to fetch feed: ${response.body}');
         return [];
       }
     } catch (e) {
-      print('Network error fetching feed: $e');
+      debugPrint('Network error fetching feed: $e');
       return [];
     }
   }
@@ -393,7 +394,7 @@ class BlockchainService {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Network error liking post: $e');
+      debugPrint('Network error liking post: $e');
       return false;
     }
   }
@@ -413,7 +414,7 @@ class BlockchainService {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Network error tipping post: $e');
+      debugPrint('Network error tipping post: $e');
       return false;
     }
   }
@@ -436,7 +437,7 @@ class BlockchainService {
       }
       return null;
     } catch (e) {
-      print('Network error getting social identity: $e');
+      debugPrint('Network error getting social identity: $e');
       return null;
     }
   }

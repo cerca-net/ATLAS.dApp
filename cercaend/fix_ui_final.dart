@@ -4,8 +4,8 @@ void main() async {
   final file = File(r"c:\Users\beatr\Desktop\ATLAS\cercachain-fix-userpage-syntax-errors\cercachain-fix-userpage-syntax-errors\cercaend\lib\mainpages\orderpage\orderpage_widget.dart");
   List<String> lines = await file.readAsLines();
 
-  final b2Start = 4239;
-  final b2End = 4411; // inclusive
+  const b2Start = 4239;
+  const b2End = 4411; // inclusive
   
   String builder2 = """                                                                if (columnOrderRecord.walletMethod != null)
                                                                   FutureBuilder<WalletMethodsRecord>(
@@ -86,8 +86,8 @@ void main() async {
   lines.removeRange(b2Start, b2End + 1);
   lines.insert(b2Start, builder2);
 
-  final b1Start = 1483;
-  final b1End = 1668;
+  const b1Start = 1483;
+  const b1End = 1668;
   
   String builder1 = """                                                                if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null)
                                                                   FutureBuilder<WalletMethodsRecord>(

@@ -139,13 +139,13 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                               borderWidth: 1.0,
                               buttonSize: 60.0,
                               icon: Icon(
-                                Icons.add_circle_outline_rounded,
+                                Icons.view_in_ar,
                                 color:
                                     FlutterFlowTheme.of(context).secondaryText,
                                 size: 30.0,
                               ),
                               onPressed: () {
-                                print('IconButton pressed ...');
+                                debugPrint('IconButton pressed ...');
                               },
                             ),
                             Expanded(
@@ -163,7 +163,7 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                                               0.0, 0.0, 0.0, 4.0),
                                       child: Text(
                                         FFLocalizations.of(context).getText(
-                                          'wdamqwvh' /* Welcome */,
+                                          'wdamqwvh' /* Data Units */,
                                         ),
                                         style: FlutterFlowTheme.of(context)
                                             .headlineMedium
@@ -193,7 +193,7 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                                     ),
                                     Text(
                                       FFLocalizations.of(context).getText(
-                                        '2li0qa9j' /* Your recent activity is below. */,
+                                        '2li0qa9j' /* Your network environment contribution is below. */,
                                       ),
                                       style: FlutterFlowTheme.of(context)
                                           .bodySmall
@@ -394,7 +394,7 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                             ),
                             yAxisLabelInfo: AxisLabelInfo(
                               title: FFLocalizations.of(context).getText(
-                                '2ostvmuv' /* Avg. Grade */,
+                                '2ostvmuv' /* Unit Volume */,
                               ),
                               titleTextStyle: FlutterFlowTheme.of(context)
                                   .bodyMedium
@@ -454,7 +454,7 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                               16.0, 12.0, 0.0, 4.0),
                           child: Text(
                             FFLocalizations.of(context).getText(
-                              'ud6yronp' /* Tasks */,
+                              'ud6yronp' /* Recent Data Units */,
                             ),
                             style: FlutterFlowTheme.of(context)
                                 .headlineMedium
@@ -482,7 +482,7 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                               16.0, 0.0, 0.0, 0.0),
                           child: Text(
                             FFLocalizations.of(context).getText(
-                              '2p1i1td9' /* A summary of outstanding tasks... */,
+                              '2p1i1td9' /* A summary of your hashed unit blocks... */,
                             ),
                             style:
                                 FlutterFlowTheme.of(context).bodySmall.override(
@@ -571,7 +571,7 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                                                   child: Text(
                                                     FFLocalizations.of(context)
                                                         .getText(
-                                                      'uskvzpmt' /* Task Type */,
+                                                      'uskvzpmt' /* Unit Type */,
                                                     ),
                                                     style: FlutterFlowTheme.of(
                                                             context)
@@ -607,7 +607,7 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                                                 Text(
                                                   FFLocalizations.of(context)
                                                       .getText(
-                                                    '9yo8urjf' /* Task Description here this one... */,
+                                                    '9yo8urjf' /* Environmental data block verified on-chain. */,
                                                   ),
                                                   style: FlutterFlowTheme.of(
                                                           context)
@@ -656,7 +656,7 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                                                           FFLocalizations.of(
                                                                   context)
                                                               .getText(
-                                                            'fv62yqmh' /* Due */,
+                                                            'fv62yqmh' /* Mined */,
                                                           ),
                                                           style: FlutterFlowTheme
                                                                   .of(context)
@@ -796,7 +796,7 @@ class _HashingpageWidgetState extends State<HashingpageWidget>
                                                               FFLocalizations.of(
                                                                       context)
                                                                   .getText(
-                                                                'qcyv31hu' /* Update */,
+                                                                'qcyv31hu' /* Verify */,
                                                               ),
                                                               style: FlutterFlowTheme
                                                                       .of(context)

@@ -833,7 +833,7 @@ class _SignupWidgetState extends State<SignupWidget> {
                                     0.0, 0.0, 0.0, 16.0),
                                 child: FFButtonWidget(
                                   onPressed: () {
-                                    print('Button pressed ...');
+                                    debugPrint('Button pressed ...');
                                   },
                                   text: FFLocalizations.of(context).getText(
                                     '2j06gm58' /* Continue with Metamask */,

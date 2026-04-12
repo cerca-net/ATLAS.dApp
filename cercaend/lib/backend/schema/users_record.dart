@@ -246,6 +246,31 @@ class UsersRecord extends FirestoreRecord {
   List<DocumentReference> get usersFollwoingMe => _usersFollwoingMe ?? const [];
   bool hasUsersFollwoingMe() => _usersFollwoingMe != null;
 
+  // "verification_id_url" field.
+  String? _verificationIdUrl;
+  String get verificationIdUrl => _verificationIdUrl ?? '';
+  bool hasVerificationIdUrl() => _verificationIdUrl != null;
+
+  // "verification_selfie_url" field.
+  String? _verificationSelfieUrl;
+  String get verificationSelfieUrl => _verificationSelfieUrl ?? '';
+  bool hasVerificationSelfieUrl() => _verificationSelfieUrl != null;
+
+  // "verification_location_url" field.
+  String? _verificationLocationUrl;
+  String get verificationLocationUrl => _verificationLocationUrl ?? '';
+  bool hasVerificationLocationUrl() => _verificationLocationUrl != null;
+
+  // "verification_municipality" field.
+  String? _verificationMunicipality;
+  String get verificationMunicipality => _verificationMunicipality ?? '';
+  bool hasVerificationMunicipality() => _verificationMunicipality != null;
+
+  // "verification_submitted_at" field.
+  DateTime? _verificationSubmittedAt;
+  DateTime? get verificationSubmittedAt => _verificationSubmittedAt;
+  bool hasVerificationSubmittedAt() => _verificationSubmittedAt != null;
+
   void _initializeFields() {
     _bio = snapshotData['bio'] as String?;
     _email = snapshotData['email'] as String?;
@@ -293,6 +318,14 @@ class UsersRecord extends FirestoreRecord {
     _userCredits = snapshotData['userCredits'] as DocumentReference?;
     _followingUsers = getDataList(snapshotData['following_users']);
     _usersFollwoingMe = getDataList(snapshotData['users_follwoing_me']);
+    _verificationIdUrl = snapshotData['verification_id_url'] as String?;
+    _verificationSelfieUrl = snapshotData['verification_selfie_url'] as String?;
+    _verificationLocationUrl =
+        snapshotData['verification_location_url'] as String?;
+    _verificationMunicipality =
+        snapshotData['verification_municipality'] as String?;
+    _verificationSubmittedAt =
+        snapshotData['verification_submitted_at'] as DateTime?;
   }
 
   static CollectionReference get collection =>
@@ -358,6 +391,11 @@ Map<String, dynamic> createUsersRecordData({
   int? ratings,
   DocumentReference? userCredits,
   String? walletAddress,
+  String? verificationIdUrl,
+  String? verificationSelfieUrl,
+  String? verificationLocationUrl,
+  String? verificationMunicipality,
+  DateTime? verificationSubmittedAt,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -390,6 +428,11 @@ Map<String, dynamic> createUsersRecordData({
       'ratings': ratings,
       'userCredits': userCredits,
       'wallet_address': walletAddress,
+      'verification_id_url': verificationIdUrl,
+      'verification_selfie_url': verificationSelfieUrl,
+      'verification_location_url': verificationLocationUrl,
+      'verification_municipality': verificationMunicipality,
+      'verification_submitted_at': verificationSubmittedAt,
     }.withoutNulls,
   );
 
@@ -447,7 +490,12 @@ class UsersRecordDocumentEquality implements Equality<UsersRecord> {
         e1?.userCredits == e2?.userCredits &&
         e1?.walletAddress == e2?.walletAddress &&
         listEquality.equals(e1?.followingUsers, e2?.followingUsers) &&
-        listEquality.equals(e1?.usersFollwoingMe, e2?.usersFollwoingMe);
+        listEquality.equals(e1?.usersFollwoingMe, e2?.usersFollwoingMe) &&
+        e1?.verificationIdUrl == e2?.verificationIdUrl &&
+        e1?.verificationSelfieUrl == e2?.verificationSelfieUrl &&
+        e1?.verificationLocationUrl == e2?.verificationLocationUrl &&
+        e1?.verificationMunicipality == e2?.verificationMunicipality &&
+        e1?.verificationSubmittedAt == e2?.verificationSubmittedAt;
   }
 
   @override
@@ -497,7 +545,12 @@ class UsersRecordDocumentEquality implements Equality<UsersRecord> {
         e?.userCredits,
         e?.walletAddress,
         e?.followingUsers,
-        e?.usersFollwoingMe
+        e?.usersFollwoingMe,
+        e?.verificationIdUrl,
+        e?.verificationSelfieUrl,
+        e?.verificationLocationUrl,
+        e?.verificationMunicipality,
+        e?.verificationSubmittedAt,
       ]);
 
   @override

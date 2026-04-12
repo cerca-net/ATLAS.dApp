@@ -15,16 +15,14 @@ import '/flutter_flow/flutter_flow_choice_chips.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_media_display.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_toggle_icon.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_video_player.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
-import '/flutter_flow/random_data_util.dart' as random_data;
+
 import '/index.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -97,7 +95,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
         });
       }
     } catch (e) {
-      print('Userpage: Error fetching balance: $e');
+      debugPrint('Userpage: Error fetching balance: $e');
     }
   }
 
@@ -110,7 +108,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
     try {
       final res =
           await _blockchainService.requestFaucet(FFAppState().walletAddress);
-      
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -197,7 +195,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
         });
       }
     } catch (e) {
-      print('Failed to fetch network status: $e');
+      debugPrint('Failed to fetch network status: $e');
     }
   }
 
@@ -210,7 +208,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
         });
       }
     } catch (e) {
-      print('Failed to fetch node status: $e');
+      debugPrint('Failed to fetch node status: $e');
     }
   }
 
@@ -223,7 +221,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
         });
       }
     } catch (e) {
-      print('Failed to fetch node logs: $e');
+      debugPrint('Failed to fetch node logs: $e');
     }
   }
 
@@ -238,7 +236,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
         });
       }
     } catch (e) {
-      print('Failed to fetch social identity: $e');
+      debugPrint('Failed to fetch social identity: $e');
     }
   }
 
@@ -360,7 +358,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                               decoration: BoxDecoration(
                                 color: FlutterFlowTheme.of(context)
                                     .primary
-                                    .withOpacity(0.2),
+                                    .withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(Icons.send_rounded,
@@ -396,7 +394,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                         hintText: 'Enter wallet address or select contact',
                         hintStyle: const TextStyle(color: Colors.white38),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.1),
+                        fillColor: Colors.white.withValues(alpha: 0.1),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -419,7 +417,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                         margin: const EdgeInsets.only(top: 8),
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
+                          color: Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -430,7 +428,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                       backgroundColor:
                                           FlutterFlowTheme.of(context)
                                               .primary
-                                              .withOpacity(0.3),
+                                              .withValues(alpha: 0.3),
                                       radius: 16,
                                       child: Text(contact['name']![0],
                                           style: const TextStyle(
@@ -471,7 +469,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                         hintText: '0.00',
                         hintStyle: const TextStyle(color: Colors.white38),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.1),
+                        fillColor: Colors.white.withValues(alpha: 0.1),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -507,7 +505,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -562,6 +560,29 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                     amount: amount,
                                     sender: FFAppState().walletAddress,
                                   );
+                                  if (result['success'] == true) {
+                                    DocumentReference? recipientRef;
+                                    try {
+                                      final query = await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .where('wallet_address', isEqualTo: recipient)
+                                          .get();
+                                      if (query.docs.isNotEmpty) {
+                                        recipientRef = query.docs.first.reference;
+                                      }
+                                    } catch (_) {}
+
+                                    await TransactionsRecord.collection.add(createTransactionsRecordData(
+                                      userMadeby: currentUserReference,
+                                      userMadeto: recipientRef,
+                                      idTransaction: result['hash'] as String?,
+                                      date: getCurrentTimestamp,
+                                      totalRefValueTransaction: amount,
+                                      userIn: recipient,
+                                      userOut: FFAppState().walletAddress,
+                                    ));
+                                  }
+
                                   if (context.mounted) {
                                     Navigator.of(context).pop();
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -619,7 +640,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
@@ -630,217 +651,6 @@ class _UserpageWidgetState extends State<UserpageWidget>
                     fontWeight: FontWeight.w500)),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildNetworkDashboard() {
-    final status = _model.networkStatus;
-    if (status == null) {
-      return const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Syncing with Blockchain Network...',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          SizedBox(height: 16),
-          Center(
-            child: SizedBox(
-              width: 30,
-              height: 30,
-              child: CircularProgressIndicator(
-                  color: Colors.white, strokeWidth: 2),
-            ),
-          ),
-        ],
-      );
-    }
-
-    String displayMode = 'OBSERVER';
-    if (status.isValidator) {
-      displayMode = 'LIGHT NODE';
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Node Controls
-        Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildControlBtn(Icons.play_arrow, 'Start', Colors.green,
-                  () => _blockchainService.startNode()),
-              _buildControlBtn(Icons.pause, 'Pause', Colors.amber,
-                  () => _blockchainService.pauseNode()),
-              _buildControlBtn(Icons.stop, 'Stop', Colors.red,
-                  () => _blockchainService.stopNode()),
-              _buildControlBtn(Icons.sync, 'Sync', Colors.blue,
-                  () => _blockchainService.syncNode()),
-            ],
-          ),
-        ),
-
-        // Network Stats Grid
-        GridView.count(
-          shrinkWrap: true,
-          crossAxisCount: 2,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 2.2, // More compact
-          padding: const EdgeInsets.only(bottom: 12),
-          children: [
-            _buildMetricCard(
-                'Block Height', '${status.blockHeight}', Icons.layers),
-            _buildMetricCard(
-                'Validators', '${status.totalValidators}', Icons.people),
-            _buildMetricCard('TX Pool', '${status.txPoolSize}', Icons.list_alt),
-            _buildMetricCard(
-                'Mode', displayMode, Icons.settings_input_component),
-          ],
-        ),
-
-        // Validator Status Card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0x33FFFFFF),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    status.isValidator
-                        ? Icons.check_circle
-                        : Icons.warning_amber_rounded,
-                    color: status.isValidator
-                        ? Colors.greenAccent
-                        : Colors.orangeAccent,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    status.isValidator ? 'ACTIVE VALIDATOR' : 'NOT VALIDATING',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _buildInfoRow(
-                  'Address',
-                  status.validatorAddress.isNotEmpty
-                      ? status.validatorAddress
-                      : 'N/A'),
-              _buildInfoRow('Staked', '${status.stakeAmount} TCOIN'),
-              _buildInfoRow('Wallet Balance', '${status.walletBalance} TCOIN'),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButton(
-      BuildContext context, String label, IconData icon, VoidCallback onTap) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: Colors.white, size: 24),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatBox(String label, String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: Colors.white70, size: 20),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white54, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildControlBtn(
-      IconData icon, String label, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: () async {
-        try {
-          onTap();
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Node $label command sent')));
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('Error: $e'), backgroundColor: Colors.red));
-        }
-      },
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 4),
-          Text(label,
-              style: const TextStyle(color: Colors.white70, fontSize: 10)),
-        ],
       ),
     );
   }
@@ -903,182 +713,6 @@ class _UserpageWidgetState extends State<UserpageWidget>
     );
   }
 
-  Widget _buildMetricCard(String label, String value, IconData icon) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0x33FFFFFF),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white70, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 10),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLogEntry(String message, String type) {
-    Color bgColor;
-    switch (type) {
-      case 'success':
-        bgColor = Colors.green.withOpacity(0.2);
-        break;
-      case 'error':
-        bgColor = Colors.red.withOpacity(0.2);
-        break;
-      case 'warning':
-        bgColor = Colors.orange.withOpacity(0.2);
-        break;
-      default:
-        bgColor = Colors.blue.withOpacity(0.15);
-    }
-    return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        message,
-        style: GoogleFonts.robotoMono(color: Colors.white70, fontSize: 10),
-      ),
-    );
-  }
-
-  Widget _buildNetworkMetric(String label, String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white54, size: 18),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white54, fontSize: 9),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label,
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 12, fontFamily: 'Courier New'),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMnemonicView() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Secret Recovery Phrase',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Write down these 12 words in order and keep them safe.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white24),
-            ),
-            child: Text(
-              _mnemonic ?? '',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: 'Courier',
-                color: Colors.white,
-                fontSize: 16,
-                height: 1.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          FFButtonWidget(
-            onPressed: _confirmSavedKeys,
-            text: 'I have saved my keys',
-            options: FFButtonOptions(
-              width: double.infinity,
-              height: 44.0,
-              color: FlutterFlowTheme.of(context).primary,
-              textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                    fontFamily: 'Readex Pro',
-                    color: Colors.white,
-                  ),
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: const BorderSide(
-                color: Colors.transparent,
-                width: 1.0,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _model.dispose();
@@ -1107,8 +741,8 @@ class _UserpageWidgetState extends State<UserpageWidget>
               child: Container(
                 width: double.infinity,
                 height: double.infinity,
-                constraints: const BoxConstraints(
-                  maxWidth: 1170.0,
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width,
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12.0),
@@ -1963,7 +1597,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                           Text(
                                                                             valueOrDefault<String>(
                                                                               formatNumber(
-                                                                                userProfileContainerUsersRecord.pinnedUsers.length,
+                                                                                userProfileContainerUsersRecord.userPins.length,
                                                                                 formatType: FormatType.compact,
                                                                               ),
                                                                               '0',
@@ -2037,51 +1671,25 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                             color:
                                                                                 FlutterFlowTheme.of(context).alternate,
                                                                           ),
-                                                                          FutureBuilder<
-                                                                              int>(
-                                                                            future:
-                                                                                querySubmissionRecordCount(
-                                                                              queryBuilder: (submissionRecord) => submissionRecord.where(
-                                                                                'pins',
-                                                                                arrayContains: currentUserReference,
+                                                                          AuthUserStreamWidget(
+                                                                            builder: (context) =>
+                                                                                Text(
+                                                                              valueOrDefault<String>(
+                                                                                (currentUserDocument?.pinnedObjects.toList() ?? []).length.toString(),
+                                                                                '0',
                                                                               ),
-                                                                            ),
-                                                                            builder:
-                                                                                (context, snapshot) {
-                                                                              // Customize what your widget looks like when it's loading.
-                                                                              if (!snapshot.hasData) {
-                                                                                return Center(
-                                                                                  child: SizedBox(
-                                                                                    width: 50.0,
-                                                                                    height: 50.0,
-                                                                                    child: CircularProgressIndicator(
-                                                                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                                                                        FlutterFlowTheme.of(context).primary,
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                );
-                                                                              }
-                                                                              int textCount = snapshot.data!;
-
-                                                                              return Text(
-                                                                                valueOrDefault<String>(
-                                                                                  textCount.toString(),
-                                                                                  '0',
-                                                                                ),
-                                                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                      font: GoogleFonts.inter(
-                                                                                        fontWeight: FontWeight.w500,
-                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                      ),
-                                                                                      color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                      fontSize: 16.0,
-                                                                                      letterSpacing: 0.0,
+                                                                              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                    font: GoogleFonts.inter(
                                                                                       fontWeight: FontWeight.w500,
                                                                                       fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                     ),
-                                                                              );
-                                                                            },
+                                                                                    color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                    fontSize: 16.0,
+                                                                                    letterSpacing: 0.0,
+                                                                                    fontWeight: FontWeight.w500,
+                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                  ),
+                                                                            ),
                                                                           ),
                                                                         ],
                                                                       ),
@@ -2128,7 +1736,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                             MainAxisAlignment.center,
                                                                         children: [
                                                                           Icon(
-                                                                            Icons.link_outlined,
+                                                                            Icons.view_in_ar,
                                                                             color:
                                                                                 FlutterFlowTheme.of(context).secondaryText,
                                                                             size:
@@ -2892,7 +2500,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                         FFButtonWidget(
                                                                           onPressed:
                                                                               () {
-                                                                            print('Button pressed ...');
+                                                                            debugPrint('Button pressed ...');
                                                                           },
                                                                           text: listViewOrderRecord
                                                                               .orderStats!
@@ -3783,10 +3391,6 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                             List<AnalyticsRecord>
                                                 columnAnalyticsRecordList =
                                                 snapshot.data!;
-                                            // Return an empty Container when the item does not exist.
-                                            if (snapshot.data!.isEmpty) {
-                                              return Container();
-                                            }
                                             final columnAnalyticsRecord =
                                                 columnAnalyticsRecordList
                                                         .isNotEmpty
@@ -3977,34 +3581,50 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                       ],
                                                     ),
                                                   ),
-                                                  if (_model
-                                                          .choiceChipsAnayticsValue ==
-                                                      FFLocalizations.of(
-                                                              context)
-                                                          .getText(
-                                                        'ffcxey0n' /* Order */,
-                                                      ))
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(0.0,
-                                                              8.0, 0.0, 0.0),
-                                                      child: Container(
-                                                        width: 100.0,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .alternate,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      12.0),
+                                                  if (_model.choiceChipsAnayticsValue == FFLocalizations.of(context).getText('ffcxey0n' /* Order */,) || _model.choiceChipsAnayticsValue == 'Order')
+                                                    StreamBuilder<List<OrderRecord>>(
+                                                      stream: queryOrderRecord(
+                                                        queryBuilder: (orderRecord) => orderRecord.where(
+                                                          'user_ref',
+                                                          isEqualTo: currentUserReference,
                                                         ),
-                                                        child: Column(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
+                                                      ),
+                                                      builder: (context, snapshot) {
+                                                        if (!snapshot.hasData) {
+                                                          return Container();
+                                                        }
+                                                        final orderRecords = snapshot.data!;
+                                                        final completedOrders = orderRecords.where((o) => o.orderCompleted == true || o.orderStats?.name == 'Completed').toList();
+                                                        final orderAccum = completedOrders.length;
+                                                        final double totalRefSum = completedOrders.fold(0.0, (acc, o) => acc + o.refValue);
+                                                        final double orderAvgRef = orderAccum > 0 ? totalRefSum / orderAccum : 0.0;
+                                                        double totalMins = 0;
+                                                        int ordersWithTime = 0;
+                                                        for (final o in completedOrders) {
+                                                          if (o.orderComlpletionDate != null && o.date != null) {
+                                                            totalMins += o.orderComlpletionDate!.difference(o.date!).inMinutes;
+                                                            ordersWithTime++;
+                                                          }
+                                                        }
+                                                        final double orderAvgTime = ordersWithTime > 0 ? totalMins / ordersWithTime : 0.0;
+                                                        final int totalItems = completedOrders.fold(0, (acc, o) => acc + o.items.length);
+                                                        final double bagOrderRatio = orderAccum > 0 ? totalItems / orderAccum : 0.0;
+                                                        final double orderAccumRef = completedOrders.fold(0.0, (acc, o) => acc + o.totalRefValue);
+                                                        
+                                                        return Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.stretch,
                                                           children: [
+                                                            Padding(
+                                                              padding: const EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 0.0),
+                                                              child: Container(
+                                                                width: 100.0,
+                                                                decoration: BoxDecoration(
+                                                                  color: FlutterFlowTheme.of(context).alternate,
+                                                                  borderRadius: BorderRadius.circular(12.0),
+                                                                ),
+                                                                child: Column(
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
                                                             Padding(
                                                               padding:
                                                                   const EdgeInsetsDirectional
@@ -4089,7 +3709,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                   TextSpan(
                                                                                     text: valueOrDefault<String>(
                                                                                       formatNumber(
-                                                                                        columnAnalyticsRecord?.orderAccum,
+                                                                                        orderAccum,
                                                                                         formatType: FormatType.compact,
                                                                                       ),
                                                                                       '0',
@@ -4177,7 +3797,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                 children: [
                                                                                   TextSpan(
                                                                                     text: valueOrDefault<String>(
-                                                                                      columnAnalyticsRecord?.orderAvgRef.toString(),
+                                                                                      orderAvgRef.toStringAsFixed(2),
                                                                                       '0',
                                                                                     ),
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -4267,7 +3887,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                     children: [
                                                                                       TextSpan(
                                                                                         text: valueOrDefault<String>(
-                                                                                          columnAnalyticsRecord?.orderAvgTime.toString(),
+                                                                                          orderAvgTime.toStringAsFixed(2),
                                                                                           '0',
                                                                                         ),
                                                                                         style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -4409,7 +4029,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                   children: [
                                                                                     TextSpan(
                                                                                       text: valueOrDefault<String>(
-                                                                                        columnAnalyticsRecord?.bagOrderRatio.toString(),
+                                                                                        bagOrderRatio.toStringAsFixed(2),
                                                                                         '0.00',
                                                                                       ),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -4561,34 +4181,31 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                   const SizedBox(
                                                                       height:
                                                                           8.0)),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  if (_model
-                                                          .choiceChipsAnayticsValue ==
-                                                      'Order')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(0.0,
-                                                              8.0, 0.0, 0.0),
-                                                      child: Container(
-                                                        width: 100.0,
-                                                        height: 180.0,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .alternate,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      12.0),
-                                                        ),
-                                                        child: Column(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          children: [
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsetsDirectional
+                                                                      .fromSTEB(0.0,
+                                                                      8.0, 0.0, 0.0),
+                                                              child: Container(
+                                                                width: 100.0,
+                                                                height: 180.0,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  color: FlutterFlowTheme
+                                                                          .of(context)
+                                                                      .alternate,
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              12.0),
+                                                                ),
+                                                                child: Column(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize.min,
+                                                                  children: [
                                                             Padding(
                                                               padding:
                                                                   const EdgeInsetsDirectional
@@ -4672,7 +4289,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                   children: [
                                                                                     TextSpan(
                                                                                       text: valueOrDefault<String>(
-                                                                                        columnAnalyticsRecord?.orderAccumRef.toString(),
+                                                                                        orderAccumRef.toStringAsFixed(2),
                                                                                         '0.00',
                                                                                       ),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -4763,11 +4380,11 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                 FlutterFlowBarChart(
                                                                               barData: [
                                                                                 FFBarChartData(
-                                                                                  yData: List.generate(random_data.randomInteger(0, 10), (index) => random_data.randomInteger(0, 10)),
+                                                                                  yData: (columnAnalyticsRecord != null && columnAnalyticsRecord.orderAvgReference.isNotEmpty) ? columnAnalyticsRecord.orderAvgReference : [0.0],
                                                                                   color: FlutterFlowTheme.of(context).secondary,
                                                                                 )
                                                                               ],
-                                                                              xLabels: List.generate(random_data.randomInteger(0, 10), (index) => random_data.randomInteger(0, 10)).map((e) => e.toString()).toList(),
+                                                                              xLabels: ((columnAnalyticsRecord != null && columnAnalyticsRecord.orderAvgReference.isNotEmpty) ? columnAnalyticsRecord.orderAvgReference : [0.0]).asMap().keys.map((e) => (e + 1).toString()).toList(),
                                                                               barWidth: 12.0,
                                                                               barBorderRadius: BorderRadius.circular(4.0),
                                                                               groupSpace: 4.0,
@@ -4828,8 +4445,12 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                   const SizedBox(
                                                                       height:
                                                                           8.0)),
-                                                        ),
-                                                      ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
                                                     ),
                                                   if (_model
                                                           .choiceChipsAnayticsValue ==
@@ -4877,20 +4498,26 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                   children: [
                                                                     _buildMetricColumn(
                                                                         'Overall',
-                                                                        _model.socialIdentity?.reputation?.overall.toStringAsFixed(1) ??
-                                                                            '0.0',
+                                                                        (_model.socialIdentity?.reputation?.overall ??
+                                                                                0.0)
+                                                                            .toStringAsFixed(
+                                                                                1),
                                                                         Icons
                                                                             .verified),
                                                                     _buildMetricColumn(
                                                                         'Social',
-                                                                        _model.socialIdentity?.reputation?.social.toStringAsFixed(1) ??
-                                                                            '0.0',
+                                                                        (_model.socialIdentity?.reputation?.social ??
+                                                                                0.0)
+                                                                            .toStringAsFixed(
+                                                                                1),
                                                                         Icons
                                                                             .people),
                                                                     _buildMetricColumn(
                                                                         'Commerce',
-                                                                        _model.socialIdentity?.reputation?.commerce.toStringAsFixed(1) ??
-                                                                            '0.0',
+                                                                        (_model.socialIdentity?.reputation?.commerce ??
+                                                                                0.0)
+                                                                            .toStringAsFixed(
+                                                                                1),
                                                                         Icons
                                                                             .shopping_cart),
                                                                   ],
@@ -4973,13 +4600,59 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                     ),
                                                   if (_model
                                                           .choiceChipsAnayticsValue ==
-                                                      'Objects')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(0.0,
-                                                              8.0, 0.0, 0.0),
-                                                      child: Container(
+                                                      'Objects' || _model.choiceChipsAnayticsValue == 'User')
+                                                    StreamBuilder<List<SubmissionRecord>>(
+                                                      stream: querySubmissionRecord(
+                                                        queryBuilder: (submissionRecord) => submissionRecord.where(
+                                                          'poster',
+                                                          isEqualTo: currentUserReference,
+                                                        ),
+                                                      ),
+                                                      builder: (context, snapshot) {
+                                                        if (!snapshot.hasData) {
+                                                          return Center(
+                                                            child: SizedBox(
+                                                              width: 50.0,
+                                                              height: 50.0,
+                                                              child: CircularProgressIndicator(
+                                                                valueColor: AlwaysStoppedAnimation<Color>(
+                                                                  FlutterFlowTheme.of(context).primary,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          );
+                                                        }
+                                                        final objectRecords = snapshot.data!;
+                                                        int totalViews = objectRecords.fold(0, (acc, record) => acc + record.objectViews);
+                                                        int totalVotes = objectRecords.fold(0, (acc, record) => acc + record.ups);
+                                                        int totalPins = objectRecords.fold(0, (acc, record) => acc + record.pins.length);
+                                                        int totalShares = objectRecords.fold(0, (acc, record) => acc + record.shares.length);
+                                                        int totalReach = objectRecords.fold(0, (acc, record) => acc + record.objectViewers.length);
+                                                        int totalInteractions = totalVotes + totalPins + totalShares;
+
+                                                        double voteRate = totalViews > 0 ? (totalVotes / totalViews * 100) : 0.0;
+                                                        double pinIndex = totalViews > 0 ? (totalPins / totalViews * 100) : 0.0;
+                                                        double shareRate = totalViews > 0 ? (totalShares / totalViews * 100) : 0.0;
+                                                        double interactionRate = totalViews > 0 ? (totalInteractions / totalViews * 100) : 0.0;
+                                                        double reachPerformance = totalViews > 0 ? (totalReach / totalViews * 100) : 0.0;
+                                                        
+                                                        String topPerformerName = 'N/A';
+                                                        if (objectRecords.isNotEmpty) {
+                                                          final topRecord = objectRecords.reduce((curr, next) => (curr.objectViews + curr.ups) > (next.objectViews + next.ups) ? curr : next);
+                                                          topPerformerName = topRecord.header.isNotEmpty ? topRecord.header : 'Unnamed Post';
+                                                        }
+
+                                                        return Column(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                          children: [
+                                                            if (_model.choiceChipsAnayticsValue == 'Objects')
+                                                              Padding(
+                                                          padding:
+                                                              const EdgeInsetsDirectional
+                                                                  .fromSTEB(0.0,
+                                                                  8.0, 0.0, 0.0),
+                                                          child: Container(
                                                         width: 100.0,
                                                         height: 220.0,
                                                         decoration:
@@ -5097,7 +4770,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                             ),
                                                                                             Text(
                                                                                               valueOrDefault<String>(
-                                                                                                columnAnalyticsRecord?.objectVoterate.toString(),
+                                                                                                voteRate.toStringAsFixed(1),
                                                                                                 '0',
                                                                                               ),
                                                                                               style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -5153,47 +4826,21 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                               color: FlutterFlowTheme.of(context).secondaryText,
                                                                                               size: 24.0,
                                                                                             ),
-                                                                                            FutureBuilder<int>(
-                                                                                              future: querySubmissionRecordCount(
-                                                                                                queryBuilder: (submissionRecord) => submissionRecord.where(
-                                                                                                  'pins',
-                                                                                                  arrayContains: currentUserReference,
-                                                                                                ),
+                                                                                            Text(
+                                                                                              valueOrDefault<String>(
+                                                                                                pinIndex.toStringAsFixed(1),
+                                                                                                '0',
                                                                                               ),
-                                                                                              builder: (context, snapshot) {
-                                                                                                // Customize what your widget looks like when it's loading.
-                                                                                                if (!snapshot.hasData) {
-                                                                                                  return Center(
-                                                                                                    child: SizedBox(
-                                                                                                      width: 50.0,
-                                                                                                      height: 50.0,
-                                                                                                      child: CircularProgressIndicator(
-                                                                                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                                                                                          FlutterFlowTheme.of(context).primary,
-                                                                                                        ),
-                                                                                                      ),
+                                                                                              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                    font: GoogleFonts.inter(
+                                                                                                      fontWeight: FontWeight.w500,
+                                                                                                      fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                                     ),
-                                                                                                  );
-                                                                                                }
-                                                                                                int textCount = snapshot.data!;
-
-                                                                                                return Text(
-                                                                                                  valueOrDefault<String>(
-                                                                                                    columnAnalyticsRecord?.objectPin.toString(),
-                                                                                                    '0',
+                                                                                                    color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                                    letterSpacing: 0.0,
+                                                                                                    fontWeight: FontWeight.w500,
+                                                                                                    fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
                                                                                                   ),
-                                                                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                        font: GoogleFonts.inter(
-                                                                                                          fontWeight: FontWeight.w500,
-                                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                        ),
-                                                                                                        color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                                        letterSpacing: 0.0,
-                                                                                                        fontWeight: FontWeight.w500,
-                                                                                                        fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                                      ),
-                                                                                                );
-                                                                                              },
                                                                                             ),
                                                                                           ],
                                                                                         ),
@@ -5239,7 +4886,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                             ),
                                                                                             Text(
                                                                                               valueOrDefault<String>(
-                                                                                                columnAnalyticsRecord?.objectShare.toString(),
+                                                                                                shareRate.toStringAsFixed(1),
                                                                                                 '0',
                                                                                               ),
                                                                                               style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -5301,7 +4948,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                     TextSpan(
                                                                                       text: valueOrDefault<String>(
                                                                                         formatNumber(
-                                                                                          columnAnalyticsRecord?.objectViewsAccum,
+                                                                                          totalViews,
                                                                                           formatType: FormatType.compact,
                                                                                         ),
                                                                                         '0',
@@ -5350,7 +4997,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                           ),
                                                                                     ),
                                                                                     TextSpan(
-                                                                                      text: columnAnalyticsRecord?.performance.toString(),
+                                                                                      text: interactionRate.toStringAsFixed(1),
                                                                                       style: const TextStyle(),
                                                                                     ),
                                                                                     TextSpan(
@@ -5417,7 +5064,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                     ),
                                                                                     TextSpan(
                                                                                       text: valueOrDefault<String>(
-                                                                                        columnAnalyticsRecord?.objectReach.toString(),
+                                                                                        totalReach.toString(),
                                                                                         '0',
                                                                                       ),
                                                                                       style: TextStyle(
@@ -5464,7 +5111,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                           ),
                                                                                     ),
                                                                                     TextSpan(
-                                                                                      text: columnAnalyticsRecord?.objectReach.toString(),
+                                                                                      text: reachPerformance.toStringAsFixed(1),
                                                                                       style: const TextStyle(),
                                                                                     ),
                                                                                     TextSpan(
@@ -5531,7 +5178,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                     ),
                                                                                     TextSpan(
                                                                                       text: valueOrDefault<String>(
-                                                                                        columnAnalyticsRecord?.objectVoterate.toString(),
+                                                                                        voteRate.toStringAsFixed(1),
                                                                                         '0',
                                                                                       ),
                                                                                       style: TextStyle(
@@ -5578,7 +5225,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                           ),
                                                                                     ),
                                                                                     TextSpan(
-                                                                                      text: columnAnalyticsRecord?.objectVoterate.toString(),
+                                                                                      text: interactionRate.toStringAsFixed(1),
                                                                                       style: const TextStyle(),
                                                                                     ),
                                                                                     TextSpan(
@@ -5736,7 +5383,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                               padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 12.0, 0.0),
                                                                               child: FlutterFlowChoiceChips(
                                                                                 options: [
-                                                                                  ChipData(columnAnalyticsRecord!.topPerformer)
+                                                                                  ChipData(topPerformerName)
                                                                                 ],
                                                                                 onChanged: (val) => safeSetState(() => _model.choiceChipsValue2 = val?.firstOrNull),
                                                                                 selectedChipStyle: ChipStyle(
@@ -5884,9 +5531,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                       ),
                                                                                 ),
                                                                                 TextSpan(
-                                                                                  text: FFLocalizations.of(context).getText(
-                                                                                    'z93v6apx' /* 69 */,
-                                                                                  ),
+                                                                                  text: shareRate.toStringAsFixed(1),
                                                                                   style: const TextStyle(),
                                                                                 ),
                                                                                 TextSpan(
@@ -6185,7 +5830,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                             ),
                                                                                             TextSpan(
                                                                                               text: valueOrDefault<String>(
-                                                                                                columnAnalyticsRecord?.userImpressions.toString(),
+                                                                                                formatNumber(totalViews, formatType: FormatType.compact),
                                                                                                 '0',
                                                                                               ),
                                                                                               style: TextStyle(
@@ -6251,7 +5896,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                             TextSpan(
                                                                                               text: valueOrDefault<String>(
                                                                                                 formatNumber(
-                                                                                                  columnAnalyticsRecord?.userPin,
+                                                                                                  totalPins,
                                                                                                   formatType: FormatType.compact,
                                                                                                 ),
                                                                                                 '0',
@@ -6313,7 +5958,7 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                             TextSpan(
                                                                                               text: valueOrDefault<String>(
                                                                                                 formatNumber(
-                                                                                                  columnAnalyticsRecord?.objectViewsAccum,
+                                                                                                  totalViews,
                                                                                                   formatType: FormatType.compact,
                                                                                                 ),
                                                                                                 '0',
@@ -6348,23 +5993,6 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                       ),
                                                                       Expanded(
                                                                         child:
-                                                                            Column(
-                                                                          mainAxisSize:
-                                                                              MainAxisSize.max,
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.spaceEvenly,
-                                                                          crossAxisAlignment:
-                                                                              CrossAxisAlignment.center,
-                                                                          children: [
-                                                                            CircularPercentIndicator(
-                                                                              percent: 0.64,
-                                                                              radius: 27.0,
-                                                                              lineWidth: 8.0,
-                                                                              animation: true,
-                                                                              animateFromLastPercent: true,
-                                                                              progressColor: FlutterFlowTheme.of(context).secondary,
-                                                                              backgroundColor: FlutterFlowTheme.of(context).alternate,
-                                                                            ),
                                                                             StreamBuilder<List<UserRatingsRecord>>(
                                                                               stream: queryUserRatingsRecord(
                                                                                 queryBuilder: (userRatingsRecord) => userRatingsRecord
@@ -6390,47 +6018,66 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                                   );
                                                                                 }
                                                                                 List<UserRatingsRecord> richTextUserRatingsRecordList = snapshot.data!;
+                                                                                final double avgRating = (functions.averageRating(richTextUserRatingsRecordList.map((e) => e.value).whereType<int>().toList()) ?? 0).toDouble();
+                                                                                final double percentValue = (avgRating / 5.0).clamp(0.0, 1.0);
 
-                                                                                return RichText(
-                                                                                  textScaler: MediaQuery.of(context).textScaler,
-                                                                                  text: TextSpan(
-                                                                                    children: [
-                                                                                      TextSpan(
-                                                                                        text: FFLocalizations.of(context).getText(
-                                                                                          'rxvx4t4s' /* Avg Rating    */,
-                                                                                        ),
-                                                                                        style: TextStyle(
-                                                                                          color: FlutterFlowTheme.of(context).success,
-                                                                                          fontSize: 12.0,
-                                                                                        ),
-                                                                                      ),
-                                                                                      TextSpan(
-                                                                                        text: formatNumber(
-                                                                                          functions.averageRating(richTextUserRatingsRecordList.map((e) => e.value).toList()),
-                                                                                          formatType: FormatType.decimal,
-                                                                                          decimalType: DecimalType.automatic,
-                                                                                        ),
-                                                                                        style: const TextStyle(),
-                                                                                      )
-                                                                                    ],
-                                                                                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                          font: GoogleFonts.montserrat(
-                                                                                            fontWeight: FontWeight.w500,
-                                                                                            fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                return Column(
+                                                                                  mainAxisSize:
+                                                                                      MainAxisSize.max,
+                                                                                  mainAxisAlignment:
+                                                                                      MainAxisAlignment.spaceEvenly,
+                                                                                  crossAxisAlignment:
+                                                                                      CrossAxisAlignment.center,
+                                                                                  children: [
+                                                                                    CircularPercentIndicator(
+                                                                                      percent: percentValue,
+                                                                                      radius: 27.0,
+                                                                                      lineWidth: 8.0,
+                                                                                      animation: true,
+                                                                                      animateFromLastPercent: true,
+                                                                                      progressColor: FlutterFlowTheme.of(context).secondary,
+                                                                                      backgroundColor: FlutterFlowTheme.of(context).alternate,
+                                                                                    ),
+                                                                                    RichText(
+                                                                                      textScaler: MediaQuery.of(context).textScaler,
+                                                                                      text: TextSpan(
+                                                                                        children: [
+                                                                                          TextSpan(
+                                                                                            text: FFLocalizations.of(context).getText(
+                                                                                              'rxvx4t4s' /* Avg Rating    */,
+                                                                                            ),
+                                                                                            style: TextStyle(
+                                                                                              color: FlutterFlowTheme.of(context).success,
+                                                                                              fontSize: 12.0,
+                                                                                            ),
                                                                                           ),
-                                                                                          color: FlutterFlowTheme.of(context).secondaryText,
-                                                                                          fontSize: 12.0,
-                                                                                          letterSpacing: 0.0,
-                                                                                          fontWeight: FontWeight.w500,
-                                                                                          fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                                        ),
-                                                                                  ),
-                                                                                  textAlign: TextAlign.center,
+                                                                                          TextSpan(
+                                                                                            text: formatNumber(
+                                                                                              avgRating,
+                                                                                              formatType: FormatType.decimal,
+                                                                                              decimalType: DecimalType.automatic,
+                                                                                            ),
+                                                                                            style: const TextStyle(),
+                                                                                          )
+                                                                                        ],
+                                                                                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                              font: GoogleFonts.montserrat(
+                                                                                                fontWeight: FontWeight.w500,
+                                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                              ),
+                                                                                              color: FlutterFlowTheme.of(context).secondaryText,
+                                                                                              fontSize: 12.0,
+                                                                                              letterSpacing: 0.0,
+                                                                                              fontWeight: FontWeight.w500,
+                                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                                                                                            ),
+                                                                                      ),
+                                                                                      textAlign: TextAlign.center,
+                                                                                    ),
+                                                                                  ],
                                                                                 );
                                                                               },
                                                                             ),
-                                                                          ],
-                                                                        ),
                                                                       ),
                                                                     ].divide(const SizedBox(
                                                                         width:
@@ -6814,6 +6461,10 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                         ),
                                                       ),
                                                     ),
+                                                  ],
+                                                );
+                                              },
+                                            ),
                                                 ]
                                                     .addToStart(const SizedBox(
                                                         height: 8.0))
@@ -7056,7 +6707,15 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                     shrinkWrap: true,
                                                     physics:
                                                         const NeverScrollableScrollPhysics(),
-                                                    crossAxisCount: 2,
+                                                    crossAxisCount: () {
+                                                      if (MediaQuery.sizeOf(context).width < 430.0) {
+                                                        return 2;
+                                                      } else if (MediaQuery.sizeOf(context).width <= 1024.0) {
+                                                        return 3;
+                                                      } else {
+                                                        return 5;
+                                                      }
+                                                    }(),
                                                     crossAxisSpacing: 10.0,
                                                     mainAxisSpacing: 10.0,
                                                     builderDelegate:
@@ -7753,8 +7412,16 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                         physics:
                                                             const NeverScrollableScrollPhysics(),
                                                         gridDelegate:
-                                                            const SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                                                          crossAxisCount: 2,
+                                                            SliverSimpleGridDelegateWithFixedCrossAxisCount(
+                                                          crossAxisCount: () {
+                                                       if (MediaQuery.sizeOf(context).width < 430.0) {
+                                                         return 2;
+                                                       } else if (MediaQuery.sizeOf(context).width <= 1024.0) {
+                                                         return 3;
+                                                       } else {
+                                                         return 5;
+                                                       }
+                                                     }(),
                                                         ),
                                                         crossAxisSpacing: 12.0,
                                                         mainAxisSpacing: 8.0,
@@ -8595,8 +8262,26 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                               snapshot.data!;
                                                           if (listViewWalletMethodsRecordList
                                                               .isEmpty) {
-                                                            return Image.asset(
-                                                              '',
+                                                            return Center(
+                                                              child: Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(
+                                                                        16.0),
+                                                                child: Text(
+                                                                  'No other transaction methods found.',
+                                                                  style: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .override(
+                                                                        font: GoogleFonts
+                                                                            .inter(
+                                                                          color:
+                                                                              FlutterFlowTheme.of(context).secondaryText,
+                                                                        ),
+                                                                      ),
+                                                                ),
+                                                              ),
                                                             );
                                                           }
 
@@ -8991,10 +8676,10 @@ class _UserpageWidgetState extends State<UserpageWidget>
                                                                 children: [
                                                                   // Wallet Credit Card Style Display
                                                                   WalletCardWidget(
-                                                                    onSend: _showSendTransactionModal,
-                                                                    onReceive: () {},
-                                                                    onFaucet: _requestFaucet,
-                                                                    onHistory: () {},
+                                                                    onSend:
+                                                                        _showSendTransactionModal,
+                                                                    onFaucet:
+                                                                        _requestFaucet,
                                                                   ),
                                                                   const SizedBox(
                                                                       height:
@@ -9002,28 +8687,38 @@ class _UserpageWidgetState extends State<UserpageWidget>
 
                                                                   // Validator & Node Card - Credit Card Style
                                                                   NodeValidatorCardWidget(
-                                                                    model: _model,
-                                                                    onStartNode: () async {
-                                                                      await _blockchainService.startNode();
+                                                                    model:
+                                                                        _model,
+                                                                    onStartNode:
+                                                                        () async {
+                                                                      await _blockchainService
+                                                                          .startNode();
                                                                       await _fetchNodeStatus();
                                                                       await _fetchNodeLogs();
                                                                     },
-                                                                    onPauseNode: () async {
-                                                                      await _blockchainService.pauseNode();
+                                                                    onPauseNode:
+                                                                        () async {
+                                                                      await _blockchainService
+                                                                          .pauseNode();
                                                                       await _fetchNodeStatus();
                                                                       await _fetchNodeLogs();
                                                                     },
-                                                                    onStopNode: () async {
-                                                                      await _blockchainService.stopNode();
+                                                                    onStopNode:
+                                                                        () async {
+                                                                      await _blockchainService
+                                                                          .stopNode();
                                                                       await _fetchNodeStatus();
                                                                       await _fetchNodeLogs();
                                                                     },
-                                                                    onSyncNode: () async {
-                                                                      await _blockchainService.syncNode();
+                                                                    onSyncNode:
+                                                                        () async {
+                                                                      await _blockchainService
+                                                                          .syncNode();
                                                                       await _fetchNodeStatus();
                                                                       await _fetchNodeLogs();
                                                                     },
-                                                                    onRegisterValidator: _registerValidator,
+                                                                    onRegisterValidator:
+                                                                        _registerValidator,
                                                                   ),
                                                                 ],
                                                               );
@@ -9058,3 +8753,5 @@ class _UserpageWidgetState extends State<UserpageWidget>
     );
   }
 }
+
+

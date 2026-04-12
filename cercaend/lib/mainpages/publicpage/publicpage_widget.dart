@@ -217,8 +217,8 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                   child: Container(
                     width: double.infinity,
                     height: double.infinity,
-                    constraints: const BoxConstraints(
-                      maxWidth: 1170.0,
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.sizeOf(context).width,
                     ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12.0),
@@ -249,10 +249,6 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                         }
                         List<AnalyticsRecord> stackAnalyticsRecordList =
                             snapshot.data!;
-                        // Return an empty Container when the item does not exist.
-                        if (snapshot.data!.isEmpty) {
-                          return Container();
-                        }
                         final stackAnalyticsRecord =
                             stackAnalyticsRecordList.isNotEmpty
                                 ? stackAnalyticsRecordList.first
@@ -1856,10 +1852,10 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                                                 child: ClipRRect(
                                                                                   borderRadius: BorderRadius.circular(12.0),
                                                                                   child: FlutterMap(
-                                                                                    options: MapOptions(
-                                                                                      initialCenter: const latlong2.LatLng(0.0, 0.0), // Default generic location
+                                                                                    options: const MapOptions(
+                                                                                      initialCenter: latlong2.LatLng(0.0, 0.0), // Default generic location
                                                                                       initialZoom: 1.0,
-                                                                                      interactionOptions: const InteractionOptions(
+                                                                                      interactionOptions: InteractionOptions(
                                                                                         flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                                                                                       ),
                                                                                     ),
@@ -2099,8 +2095,15 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                                     true,
                                                                 physics:
                                                                     const NeverScrollableScrollPhysics(),
-                                                                crossAxisCount:
-                                                                    2,
+                                                                crossAxisCount: () {
+                                                                  if (MediaQuery.sizeOf(context).width < 430.0) {
+                                                                    return 2;
+                                                                  } else if (MediaQuery.sizeOf(context).width <= 1024.0) {
+                                                                    return 3;
+                                                                  } else {
+                                                                    return 5;
+                                                                  }
+                                                                }(),
                                                                 crossAxisSpacing:
                                                                     10.0,
                                                                 mainAxisSpacing:
@@ -2674,9 +2677,16 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                                       physics:
                                                                           const NeverScrollableScrollPhysics(),
                                                                       gridDelegate:
-                                                                          const SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                                                                        crossAxisCount:
-                                                                            2,
+                                                                          SliverSimpleGridDelegateWithFixedCrossAxisCount(
+                                                                        crossAxisCount: () {
+                                                                          if (MediaQuery.sizeOf(context).width < 430.0) {
+                                                                            return 2;
+                                                                          } else if (MediaQuery.sizeOf(context).width <= 1024.0) {
+                                                                            return 3;
+                                                                          } else {
+                                                                            return 5;
+                                                                          }
+                                                                        }(),
                                                                       ),
                                                                       crossAxisSpacing:
                                                                           12.0,
@@ -3131,7 +3141,10 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                               ))
                                                 Builder(
                                                   builder: (context) {
-                                                    if (!_model.isPinned) {
+                                                    if (!publicpageUsersRecord
+                                                        .pinnedUsers
+                                                        .contains(
+                                                            currentUserReference)) {
                                                       return FFButtonWidget(
                                                         onPressed: () async {
                                                           await publicpageUsersRecord
@@ -3161,8 +3174,7 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                               },
                                                             ),
                                                           });
-                                                          _model.isPinned =
-                                                              true;
+                                                          // Removed manual isPinned state change.
                                                           safeSetState(() {});
                                                         },
                                                         text:
@@ -3270,15 +3282,14 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                               },
                                                             ),
                                                           });
-                                                          _model.isPinned =
-                                                              false;
+                                                          // Removed manual isPinned state change.
                                                           safeSetState(() {});
                                                         },
                                                         text:
                                                             FFLocalizations.of(
                                                                     context)
                                                                 .getText(
-                                                          'c7daje6u' /* pin */,
+                                                          'orfoq8sw' /* unpin */,
                                                         ),
                                                         icon: const FaIcon(
                                                           FontAwesomeIcons
@@ -3355,12 +3366,10 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                               Row(
                                                 mainAxisSize: MainAxisSize.max,
                                                 children: [
-                                                  if (publicpageUsersRecord
-                                                          .followingUsers
-                                                          .contains(
-                                                              publicpageUsersRecord
-                                                                  .reference) ==
-                                                      false)
+                                                  if (!publicpageUsersRecord
+                                                      .pinnedUsers
+                                                      .contains(
+                                                          currentUserReference))
                                                     Flexible(
                                                       child: FFButtonWidget(
                                                         onPressed: () async {
@@ -3369,7 +3378,7 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                               .update({
                                                             ...mapToFirestore(
                                                               {
-                                                                'users_follwoing_me':
+                                                                'pinned_users':
                                                                     FieldValue
                                                                         .arrayUnion([
                                                                   currentUserReference
@@ -3382,7 +3391,7 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                               .update({
                                                             ...mapToFirestore(
                                                               {
-                                                                'following_users':
+                                                                'user_pins':
                                                                     FieldValue
                                                                         .arrayUnion([
                                                                   publicpageUsersRecord
@@ -3396,7 +3405,7 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                             FFLocalizations.of(
                                                                     context)
                                                                 .getText(
-                                                          'orfoq8sw' /* unpin */,
+                                                          'c7daje6u' /* pin */,
                                                         ),
                                                         icon: const FaIcon(
                                                           FontAwesomeIcons
@@ -3426,10 +3435,10 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                           iconColor:
                                                               FlutterFlowTheme.of(
                                                                       context)
-                                                                  .secondaryText,
+                                                                  .secondary,
                                                           color: FlutterFlowTheme
                                                                   .of(context)
-                                                              .alternate,
+                                                              .secondaryBackground,
                                                           textStyle:
                                                               FlutterFlowTheme.of(
                                                                       context)
@@ -3469,11 +3478,9 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                       ),
                                                     ),
                                                   if (publicpageUsersRecord
-                                                          .followingUsers
-                                                          .contains(
-                                                              publicpageUsersRecord
-                                                                  .reference) ==
-                                                      true)
+                                                      .pinnedUsers
+                                                      .contains(
+                                                          currentUserReference))
                                                     Flexible(
                                                       child: FFButtonWidget(
                                                         onPressed: () async {
@@ -3482,7 +3489,7 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                               .update({
                                                             ...mapToFirestore(
                                                               {
-                                                                'users_follwoing_me':
+                                                                'pinned_users':
                                                                     FieldValue
                                                                         .arrayRemove([
                                                                   currentUserReference
@@ -3495,7 +3502,7 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                               .update({
                                                             ...mapToFirestore(
                                                               {
-                                                                'following_users':
+                                                                'user_pins':
                                                                     FieldValue
                                                                         .arrayRemove([
                                                                   publicpageUsersRecord
@@ -3509,7 +3516,7 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                             FFLocalizations.of(
                                                                     context)
                                                                 .getText(
-                                                          '37ex09zx' /* pin */,
+                                                          'orfoq8sw' /* unpin */,
                                                         ),
                                                         icon: const FaIcon(
                                                           FontAwesomeIcons
@@ -4571,13 +4578,20 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                                                     ),
                                                                                   ),
                                                                                   builder: (context, snapshot) {
-                                                                                    List<String> options = [
-                                                                                      'Token'
-                                                                                    ];
+                                                                                    List<String> options = [];
+                                                                                    bool currentUserHasWallet = currentUserDocument?.walletAddress.isNotEmpty == true;
+                                                                                    bool publicUserHasWallet = publicpageUsersRecord.walletAddress.isNotEmpty;
+                                                                                    if (currentUserHasWallet && publicUserHasWallet) {
+                                                                                      options.add('Token');
+                                                                                    }
                                                                                     if (snapshot.hasData) {
                                                                                       options.addAll(snapshot.data!.map((e) => e.methodType));
                                                                                     }
                                                                                     options = options.unique((e) => e).toList();
+
+                                                                                    _model.choiceChipsWALLETMETHODSValueController ??= FormFieldController<List<String>>(
+                                                                                      options.contains('Token') ? ['Token'] : (options.isNotEmpty ? [options.first] : []),
+                                                                                    );
 
                                                                                     return FlutterFlowChoiceChips(
                                                                                       options: options.map((label) => ChipData(label)).toList(),
@@ -4622,9 +4636,7 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                                                       rowSpacing: 8.0,
                                                                                       multiselect: false,
                                                                                       alignment: WrapAlignment.center,
-                                                                                      controller: _model.choiceChipsWALLETMETHODSValueController ??= FormFieldController<List<String>>(
-                                                                                        ['Token'],
-                                                                                      ),
+                                                                                      controller: _model.choiceChipsWALLETMETHODSValueController!,
                                                                                       wrapped: false,
                                                                                     );
                                                                                   },
@@ -4729,6 +4741,39 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                                     FFButtonWidget(
                                                                   onPressed:
                                                                       () async {
+                                                                    bool
+                                                                        currentUserHasWallet =
+                                                                        currentUserDocument?.walletAddress.isNotEmpty ==
+                                                                            true;
+                                                                    bool
+                                                                        publicUserHasWallet =
+                                                                        publicpageUsersRecord
+                                                                            .walletAddress
+                                                                            .isNotEmpty;
+
+                                                                    if (!currentUserHasWallet ||
+                                                                        !publicUserHasWallet) {
+                                                                      ScaffoldMessenger.of(
+                                                                              context)
+                                                                          .showSnackBar(
+                                                                        SnackBar(
+                                                                          content:
+                                                                              Text(
+                                                                            'Both users must have a registered wallet before placing an order on the network.',
+                                                                            style:
+                                                                                TextStyle(
+                                                                              color: FlutterFlowTheme.of(context).primaryText,
+                                                                            ),
+                                                                          ),
+                                                                          duration:
+                                                                              const Duration(milliseconds: 4000),
+                                                                          backgroundColor:
+                                                                              FlutterFlowTheme.of(context).error,
+                                                                        ),
+                                                                      );
+                                                                      return;
+                                                                    }
+
                                                                     await OrderRecord
                                                                         .collection
                                                                         .doc()
@@ -4800,7 +4845,6 @@ class _PublicpageWidgetState extends State<PublicpageWidget>
                                                                         },
                                                                       ),
                                                                     });
-
 
                                                                     context
                                                                         .pushNamed(

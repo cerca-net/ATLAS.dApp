@@ -1,11 +1,11 @@
-import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:elliptic/elliptic.dart' as elliptic;
 
 void main() {
-  final mnemonic = "abandon ability able about above absent absorb abstract absurd abuse access accident";
+  const mnemonic = "abandon ability able about above absent absorb abstract absurd abuse access accident";
   final mnemonicBytes = utf8.encode(mnemonic);
   final seedHash = sha256.convert(mnemonicBytes).bytes;
   
@@ -18,8 +18,8 @@ void main() {
     final xBytes = publicKey.X.toRadixString(16).padLeft(64, '0');
     final yBytes = publicKey.Y.toRadixString(16).padLeft(64, '0');
     
-    print("Address logic succeeded");
+    debugPrint("Address logic succeeded");
   } catch(e) {
-    print("Error: $e");
+    debugPrint("Error: $e");
   }
 }

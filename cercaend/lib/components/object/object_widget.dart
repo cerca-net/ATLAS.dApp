@@ -108,13 +108,13 @@ class _ObjectWidgetState extends State<ObjectWidget>
       width: double.infinity,
       decoration: BoxDecoration(
         color: isFossilized
-            ? theme.secondaryBackground.withOpacity(0.5)
+            ? theme.secondaryBackground.withValues(alpha: 0.5)
             : theme.alternate,
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
           color: isFossilized
-              ? Colors.red.withOpacity(0.3)
-              : theme.primary.withOpacity(0.3),
+              ? Colors.red.withValues(alpha: 0.3)
+              : theme.primary.withValues(alpha: 0.3),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
@@ -1014,6 +1014,20 @@ class _ObjectWidgetState extends State<ObjectWidget>
                                                               },
                                                             ),
                                                           });
+
+                                                          await currentUserReference!
+                                                              .update({
+                                                            ...mapToFirestore(
+                                                              {
+                                                                'pinned_objects':
+                                                                    FieldValue
+                                                                        .arrayRemove([
+                                                                  columnSubmissionRecord
+                                                                      .reference
+                                                                ]),
+                                                              },
+                                                            ),
+                                                          });
                                                         } else {
                                                           if (animationsMap[
                                                                   'toggleIconOnActionTriggerAnimation'] !=
@@ -1033,6 +1047,20 @@ class _ObjectWidgetState extends State<ObjectWidget>
                                                                 'pins': FieldValue
                                                                     .arrayUnion([
                                                                   currentUserReference
+                                                                ]),
+                                                              },
+                                                            ),
+                                                          });
+
+                                                          await currentUserReference!
+                                                              .update({
+                                                            ...mapToFirestore(
+                                                              {
+                                                                'pinned_objects':
+                                                                    FieldValue
+                                                                        .arrayUnion([
+                                                                  columnSubmissionRecord
+                                                                      .reference
                                                                 ]),
                                                               },
                                                             ),

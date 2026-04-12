@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '/auth/firebase_auth/auth_util.dart';
 
 class TransactionHistoryWidget extends StatefulWidget {
-  const TransactionHistoryWidget({Key? key}) : super(key: key);
+  const TransactionHistoryWidget({super.key});
 
   @override
   _TransactionHistoryWidgetState createState() =>
@@ -454,7 +454,7 @@ class _TransactionHistoryWidgetState extends State<TransactionHistoryWidget> {
                                                     TextSpan(
                                                       text:
                                                           listViewTransactionsRecord
-                                                              .userIn,
+                                                              .userOut,
                                                       style:
                                                           FlutterFlowTheme.of(
                                                                   context)
@@ -931,7 +931,7 @@ class _TransactionHistoryWidgetState extends State<TransactionHistoryWidget> {
                                                     TextSpan(
                                                       text:
                                                           listViewTransactionsRecord
-                                                              .userOut,
+                                                              .userIn,
                                                       style:
                                                           FlutterFlowTheme.of(
                                                                   context)
@@ -1044,7 +1044,7 @@ class _TransactionHistoryWidgetState extends State<TransactionHistoryWidget> {
                                                     TextSpan(
                                                       text:
                                                           listViewTransactionsRecord
-                                                              .userIn,
+                                                              .userOut,
                                                       style:
                                                           FlutterFlowTheme.of(
                                                                   context)

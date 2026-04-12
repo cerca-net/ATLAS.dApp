@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'blockchain_service.dart';
@@ -79,7 +80,7 @@ class EnergyService {
       }
       return null;
     } catch (e) {
-      print('EnergyService: Error fetching energy for $firebaseDocId: $e');
+      debugPrint('EnergyService: Error fetching energy for $firebaseDocId: $e');
       return null;
     }
   }
@@ -110,7 +111,7 @@ class EnergyService {
       }
       return null;
     } catch (e) {
-      print('EnergyService: Error energizing $firebaseDocId: $e');
+      debugPrint('EnergyService: Error energizing $firebaseDocId: $e');
       return null;
     }
   }

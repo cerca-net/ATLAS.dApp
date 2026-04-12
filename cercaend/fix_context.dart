@@ -32,7 +32,7 @@ void main() {
     var filepath = entry.key;
     final dartFile = File(filepath);
     if (!dartFile.existsSync()) {
-      print('File not found: ' + filepath);
+      print('File not found: $filepath');
       continue;
     }
 
@@ -60,13 +60,13 @@ void main() {
         }
 
         if (!alreadyHasMounted) {
-          var insertStr = indentStr + 'if (!context.mounted) return;';
+          var insertStr = '${indentStr}if (!context.mounted) return;';
           dartLines.insert(ln, insertStr);
         }
       }
     }
 
-    dartFile.writeAsStringSync(dartLines.join('\n') + '\n');
-    print('Fixed: ' + filepath);
+    dartFile.writeAsStringSync('${dartLines.join('\n')}\n');
+    print('Fixed: $filepath');
   }
 }

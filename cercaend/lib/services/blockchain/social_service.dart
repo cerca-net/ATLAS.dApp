@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'blockchain_service.dart';
 
 class SocialService {
@@ -18,7 +19,7 @@ class SocialService {
       return await _blockchainService.getSocialFeed(
           userId: userId, limit: limit);
     } catch (e) {
-      print('SocialService: Error fetching feed: $e');
+      debugPrint('SocialService: Error fetching feed: $e');
       return [];
     }
   }
@@ -39,7 +40,7 @@ class SocialService {
       return await _blockchainService.createPost(authorId, content,
           mediaUrls: mediaUrls);
     } catch (e) {
-      print('SocialService: Error creating post: $e');
+      debugPrint('SocialService: Error creating post: $e');
       return null;
     }
   }
@@ -50,7 +51,7 @@ class SocialService {
     try {
       return await _blockchainService.likePost(postId, userId, type: 'like');
     } catch (e) {
-      print('SocialService: Error liking post: $e');
+      debugPrint('SocialService: Error liking post: $e');
       return false;
     }
   }
@@ -60,7 +61,7 @@ class SocialService {
     try {
       return await _blockchainService.tipPost(postId, userId, amount);
     } catch (e) {
-      print('SocialService: Error tipping post: $e');
+      debugPrint('SocialService: Error tipping post: $e');
       return false;
     }
   }

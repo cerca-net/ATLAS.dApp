@@ -1158,7 +1158,7 @@ class _MethodOrderWidgetState extends State<MethodOrderWidget> {
                                     size: 24.0,
                                   ),
                                   onPressed: () {
-                                    print('IconButton pressed ...');
+                                    debugPrint('IconButton pressed ...');
                                   },
                                 ),
                               ),

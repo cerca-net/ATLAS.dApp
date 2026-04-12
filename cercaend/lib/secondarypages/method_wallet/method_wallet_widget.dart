@@ -1300,7 +1300,7 @@ class _MethodWalletWidgetState extends State<MethodWalletWidget> {
                                 size: 20.0,
                               ),
                               onPressed: () {
-                                print('IconButton pressed ...');
+                                debugPrint('IconButton pressed ...');
                               },
                             ),
                             Row(

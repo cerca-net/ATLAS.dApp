@@ -170,7 +170,7 @@ class _FeedpageWidgetState extends State<FeedpageWidget>
                                   1024.0) {
                                 return 3;
                               } else {
-                                return 2;
+                                return 5;
                               }
                             }(),
                             crossAxisSpacing: 8.0,
@@ -288,9 +288,6 @@ class _FeedpageWidgetState extends State<FeedpageWidget>
                                                 columnAnalyticsRecordList =
                                                 snapshot.data!;
                                             // Return an empty Container when the item does not exist.
-                                            if (snapshot.data!.isEmpty) {
-                                              return Container();
-                                            }
                                             final columnAnalyticsRecord =
                                                 columnAnalyticsRecordList
                                                         .isNotEmpty

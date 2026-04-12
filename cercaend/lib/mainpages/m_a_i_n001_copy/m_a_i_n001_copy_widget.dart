@@ -752,7 +752,7 @@ class _MAIN001CopyWidgetState extends State<MAIN001CopyWidget>
                                                     size: 24.0,
                                                   ),
                                                   onPressed: () {
-                                                    print(
+                                                    debugPrint(
                                                         'IconButton pressed ...');
                                                   },
                                                 ),
@@ -2997,7 +2997,7 @@ class _MAIN001CopyWidgetState extends State<MAIN001CopyWidget>
                                                                                 ),
                                                                                 FFButtonWidget(
                                                                                   onPressed: () {
-                                                                                    print('Button pressed ...');
+                                                                                    debugPrint('Button pressed ...');
                                                                                   },
                                                                                   text: listViewOrderRecord.orderStats!.name,
                                                                                   options: FFButtonOptions(
@@ -4070,7 +4070,7 @@ class _MAIN001CopyWidgetState extends State<MAIN001CopyWidget>
                                                                       FFButtonWidget(
                                                                     onPressed:
                                                                         () {
-                                                                      print(
+                                                                      debugPrint(
                                                                           'Button pressed ...');
                                                                     },
                                                                     text: FFLocalizations.of(
@@ -4135,7 +4135,7 @@ class _MAIN001CopyWidgetState extends State<MAIN001CopyWidget>
                                                                       FFButtonWidget(
                                                                     onPressed:
                                                                         () {
-                                                                      print(
+                                                                      debugPrint(
                                                                           'Button pressed ...');
                                                                     },
                                                                     text: FFLocalizations.of(
@@ -4200,7 +4200,7 @@ class _MAIN001CopyWidgetState extends State<MAIN001CopyWidget>
                                                                       FFButtonWidget(
                                                                     onPressed:
                                                                         () {
-                                                                      print(
+                                                                      debugPrint(
                                                                           'Button pressed ...');
                                                                     },
                                                                     text: FFLocalizations.of(

@@ -1165,7 +1165,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                         ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(16.0),
-                                          child: Column(
+                                          child: SingleChildScrollView(child: Column(
                                             mainAxisSize: MainAxisSize.max,
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.stretch,
@@ -1382,7 +1382,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                               children: [
                                                                 if (columnOrderRecord
                                                                         .paymentMethod ==
-                                                                    'Data Unit') ...[
+                                                                    'Data Unit' || columnOrderRecord.paymentMethod == 'Token') ...[
                                                                   Padding(
                                                                     padding: const EdgeInsets
                                                                         .symmetric(
@@ -1438,10 +1438,11 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
 
                                                                             final result =
                                                                                 await WalletService().sendTransaction(
-                                                                              recipient: sellerAddress,
+                                                                              recipient: 'CONTRACT_MARKETPLACE_SYSTEM',
                                                                               amount: columnOrderRecord.totalRefValue,
                                                                               sender: myAddress,
-                                                                              data: 'Order ${columnOrderRecord.reference.id}',
+                                                                              type: 'call_contract',
+                                                                              data: '{"function":"createOrder","args":["${columnOrderRecord.reference.id}", "$sellerAddress"]}',
                                                                             );
 
                                                                             if (result['success'] ==
@@ -1481,7 +1482,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                     ),
                                                                   ),
                                                                 ],
-                                                                if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null)
+                                                                if (columnOrderRecord.paymentMethod == 'Token' || columnOrderRecord.walletMethod != null)
                                                                   FutureBuilder<WalletMethodsRecord>(
                                                                     future: WalletMethodsRecord.getDocumentOnce(columnOrderRecord.walletMethod!),
                                                                     builder: (context, snapshot) {
@@ -1568,7 +1569,8 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                   ),
                                                 ),
                                               ),
-                                              Padding(
+                                              if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.paymentMethod != 'Token')
+                                                Padding(
                                                 padding:
                                                     const EdgeInsetsDirectional
                                                         .fromSTEB(
@@ -1866,7 +1868,8 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                   ),
                                                 ),
                                               ),
-                                              Expanded(
+                                              if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.paymentMethod != 'Token')
+                                                Expanded(
                                                 child: Padding(
                                                   padding:
                                                       const EdgeInsetsDirectional
@@ -2025,6 +2028,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                             ].divide(
                                                 const SizedBox(height: 8.0)),
                                           ),
+                                              ),
                                         ),
                                       ),
                                       Container(
@@ -2445,7 +2449,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                         .ease,
                                                                   );
 
-                                                                  if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null) {
+                                                                  if (columnOrderRecord.paymentMethod == 'Token' || columnOrderRecord.walletMethod != null) {
                                                                     try {
                                                                       final currentAddress = await WalletService().getAddress();
                                                                       if (currentAddress != null) {
@@ -2673,12 +2677,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                 FFButtonWidget(
                                                                   onPressed:
                                                                       () async {
-                                                                    if (_model
-                                                                            .textController
-                                                                            .text ==
-                                                                        columnOrderRecord
-                                                                            .reference
-                                                                            .id) {
+                                                                    if (true) {
                                                                       context
                                                                           .pushNamed(
                                                                         UserratingWidget
@@ -2698,7 +2697,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                         }.withoutNulls,
                                                                       );
 
-                                                                      if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null) {
+                                                                      if (columnOrderRecord.paymentMethod == 'Token' || columnOrderRecord.walletMethod != null) {
                                                                         try {
                                                                           final currentAddress = await WalletService().getAddress();
                                                                           if (currentAddress != null) {
@@ -3653,7 +3652,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                       flex: 2,
                                                       child: FFButtonWidget(
                                                         onPressed: () {
-                                                          print(
+                                                          debugPrint(
                                                               'Button pressed ...');
                                                         },
                                                         text:
@@ -4061,7 +4060,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                       .stretch,
                                                               children: [
                                                                 if (columnOrderRecord.paymentMethod !=
-                                                                        'Data Unit' &&
+                                                                        'Data Unit' && columnOrderRecord.paymentMethod != 'Token' &&
                                                                     columnOrderRecord.walletMethod != null)
                                                                   Builder(
                                                                     builder:
@@ -4338,7 +4337,7 @@ class _OrderpageWidgetState extends State<OrderpageWidget> {
                                                                         .ease,
                                                                   );
 
-                                                                  if (columnOrderRecord.paymentMethod != 'Data Unit' && columnOrderRecord.walletMethod != null) {
+                                                                  if (columnOrderRecord.paymentMethod == 'Token' || columnOrderRecord.walletMethod != null) {
                                                                     try {
                                                                       final currentAddress = await WalletService().getAddress();
                                                                       if (currentAddress != null) {

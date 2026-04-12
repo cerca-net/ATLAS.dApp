@@ -151,8 +151,7 @@ class PublicpageModel extends FlutterFlowModel<PublicpageWidget> {
 
   @override
   void initState(BuildContext context) {
-    choiceChipsWALLETMETHODSValueController =
-        FormFieldController<List<String>>(['Token']);
+    // Controller initialization moved to the widget to allow conditional default based on wallet existence
   }
 
   @override

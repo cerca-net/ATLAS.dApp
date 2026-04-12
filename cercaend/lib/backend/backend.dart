@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../auth/firebase_auth/auth_util.dart';
@@ -1405,7 +1406,7 @@ Future<int> queryCollectionCount(
   }
 
   return query.count().get().catchError((err) {
-    print('Error querying $collection: $err');
+    debugPrint('Error querying $collection: $err');
     throw err;
   }).then((value) => value.count!);
 }
@@ -1423,12 +1424,12 @@ Stream<List<T>> queryCollection<T>(
     query = query.limit(singleRecord ? 1 : limit);
   }
   return query.snapshots().handleError((err) {
-    print('Error querying $collection: $err');
+    debugPrint('Error querying $collection: $err');
   }).map((s) => s.docs
       .map(
         (d) => safeGet(
           () => recordBuilder(d),
-          (e) => print('Error serializing doc ${d.reference.path}:\n$e'),
+          (e) => debugPrint('Error serializing doc ${d.reference.path}:\n$e'),
         ),
       )
       .where((d) => d != null)
@@ -1452,7 +1453,7 @@ Future<List<T>> queryCollectionOnce<T>(
       .map(
         (d) => safeGet(
           () => recordBuilder(d),
-          (e) => print('Error serializing doc ${d.reference.path}:\n$e'),
+          (e) => debugPrint('Error serializing doc ${d.reference.path}:\n$e'),
         ),
       )
       .where((d) => d != null)
@@ -1517,7 +1518,7 @@ Future<FFFirestorePage<T>> queryCollectionPage<T>(
       .map(
         (d) => safeGet(
           () => recordBuilder(d),
-          (e) => print('Error serializing doc ${d.reference.path}:\n$e'),
+          (e) => debugPrint('Error serializing doc ${d.reference.path}:\n$e'),
         ),
       )
       .where((d) => d != null)

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:math';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
@@ -5,6 +6,7 @@ import 'package:hex/hex.dart';
 import 'package:elliptic/elliptic.dart' as elliptic;
 import 'package:ecdsa/ecdsa.dart' as ecdsa;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'blockchain_service.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import 'bip39_words.dart';
@@ -19,11 +21,18 @@ class WalletService {
 
   static const String _addressKey = 'wallet_address';
   static const String _mnemonicKey = 'wallet_mnemonic';
+  static const String _privKey = 'wallet_privkey';
+
+  String _getKey(String base) {
+    final authUid = FirebaseAuth.instance.currentUser?.uid ?? currentUserUid;
+    if (authUid.isEmpty) return base;
+    return '${base}_$authUid';
+  }
 
   /// Create a new wallet locally (Local Identity) and register address with node
   Future<Map<String, String>> createWallet() async {
     try {
-      print('WalletService: Starting wallet creation...');
+      debugPrint('WalletService: Starting wallet creation...');
 
       // 1. Generate Mnemonic
       final random = Random.secure();
@@ -33,7 +42,7 @@ class WalletService {
         words.add(bip39EnglishWords[index]);
       }
       final mnemonic = words.join(' ');
-      print('WalletService: Mnemonic generated');
+      debugPrint('WalletService: Mnemonic generated');
 
       // 2. Derive Keys locally using pure Dart (Safe for Flutter Web)
       final mnemonicBytes = utf8.encode(mnemonic);
@@ -44,7 +53,7 @@ class WalletService {
       final curve = elliptic.getP256();
       final privateKey = elliptic.PrivateKey(curve, privateKeyBytes);
       final publicKey = privateKey.publicKey;
-      print('WalletService: Deterministic KeyPair generated via pure Dart');
+      debugPrint('WalletService: Deterministic KeyPair generated via pure Dart');
 
       // 3. Construct ASN.1 DER Encoded Public Key
       final List<int> header = [
@@ -86,16 +95,16 @@ class WalletService {
         ...HEX.decode(yBytes)
       ];
       final List<int> derPublicKey = [...header, ...uncompressedPoint];
-      print('WalletService: DER public key constructed');
+      debugPrint('WalletService: DER public key constructed');
 
       // 4. Derive Address: SHA256(DER_PubKey) -> Last 20 Bytes -> Hex
       final pubKeyHash = sha256.convert(derPublicKey).bytes;
       final addressBytes = pubKeyHash.sublist(pubKeyHash.length - 20);
       final address = '0x${HEX.encode(addressBytes).toLowerCase()}';
-      print('WalletService: Address derived: $address');
+      debugPrint('WalletService: Address derived: $address');
 
       // 5. Connect to Backend
-      print('WalletService: Connecting to backend at http://localhost:8080...');
+      debugPrint('WalletService: Connecting to backend at http://localhost:8080...');
       bool registrationSuccess = false;
       try {
         final response = await _blockchainService.connectWallet(
@@ -106,16 +115,16 @@ class WalletService {
         );
         registrationSuccess = response.success;
       } catch (e) {
-        print('WalletService: Backend offline or network error: $e');
+        debugPrint('WalletService: Backend offline or network error: $e');
         // We still proceed so the user can see their local keys
       }
 
       // 6. Store Securely
-      print('WalletService: Storing keys locally...');
-      await _storage.write(key: _addressKey, value: address);
-      await _storage.write(key: _mnemonicKey, value: mnemonic);
-      await _storage.write(key: 'wallet_privkey', value: privateKey.toHex());
-      print('WalletService: Local storage complete');
+      debugPrint('WalletService: Storing keys locally for user $currentUserUid...');
+      await _storage.write(key: _getKey(_addressKey), value: address);
+      await _storage.write(key: _getKey(_mnemonicKey), value: mnemonic);
+      await _storage.write(key: _getKey(_privKey), value: privateKey.toHex());
+      debugPrint('WalletService: Local storage complete');
 
       // 7. Update user document in Firestore
       if (currentUserReference != null) {
@@ -123,9 +132,9 @@ class WalletService {
           await currentUserReference!.update({
             'wallet_address': address,
           });
-          print('WalletService: Firestore updated with $address');
+          debugPrint('WalletService: Firestore updated with $address');
         } catch (e) {
-          print('WalletService: Firestore update failed: $e');
+          debugPrint('WalletService: Firestore update failed: $e');
         }
       }
 
@@ -135,8 +144,8 @@ class WalletService {
         'registered': registrationSuccess.toString(),
       };
     } catch (e, stack) {
-      print('WalletService: FATAL ERROR: $e');
-      print('Stack Trace: $stack');
+      debugPrint('WalletService: FATAL ERROR: $e');
+      debugPrint('Stack Trace: $stack');
       throw Exception('Error creating wallet: $e');
     }
   }
@@ -153,7 +162,7 @@ class WalletService {
   /// Import an existing wallet from mnemonic
   Future<Map<String, String>> importWallet(String mnemonic) async {
     try {
-      print('WalletService: Starting wallet import...');
+      debugPrint('WalletService: Starting wallet import...');
 
       // Derive Keys locally using pure Dart (Safe for Flutter Web)
       final mnemonicBytes = utf8.encode(mnemonic.trim());
@@ -209,7 +218,7 @@ class WalletService {
       final addressBytes = pubKeyHash.sublist(pubKeyHash.length - 20);
       final address = '0x${HEX.encode(addressBytes).toLowerCase()}';
 
-      print('WalletService: Address imported: $address');
+      debugPrint('WalletService: Address imported: $address');
 
       bool registrationSuccess = false;
       try {
@@ -221,12 +230,12 @@ class WalletService {
         );
         registrationSuccess = response.success;
       } catch (e) {
-        print('WalletService: Backend offline or network error: $e');
+        debugPrint('WalletService: Backend offline or network error: $e');
       }
 
-      await _storage.write(key: _addressKey, value: address);
-      await _storage.write(key: _mnemonicKey, value: mnemonic.trim());
-      await _storage.write(key: 'wallet_privkey', value: privateKey.toHex());
+      await _storage.write(key: _getKey(_addressKey), value: address);
+      await _storage.write(key: _getKey(_mnemonicKey), value: mnemonic.trim());
+      await _storage.write(key: _getKey(_privKey), value: privateKey.toHex());
 
       if (currentUserReference != null) {
         await currentUserReference!.update({
@@ -244,11 +253,11 @@ class WalletService {
     }
   }
 
-  Future<String?> getAddress() async => await _storage.read(key: _addressKey);
-  Future<String?> getMnemonic() async => await _storage.read(key: _mnemonicKey);
+  Future<String?> getAddress() async => await _storage.read(key: _getKey(_addressKey));
+  Future<String?> getMnemonic() async => await _storage.read(key: _getKey(_mnemonicKey));
 
   Future<String?> getPublicKey() async {
-    final privateKeyHex = await _storage.read(key: 'wallet_privkey');
+    final privateKeyHex = await _storage.read(key: _getKey(_privKey));
     if (privateKeyHex == null) return null;
 
     final curve = elliptic.getP256();
@@ -313,14 +322,17 @@ class WalletService {
   }
 
   Future<void> logout() async {
-    await _storage.delete(key: _addressKey);
-    await _storage.delete(key: _mnemonicKey);
-    await _storage.delete(key: 'wallet_privkey');
+    final uid = currentUserUid;
+    if (uid.isNotEmpty) {
+      await _storage.delete(key: '${_addressKey}_$uid');
+      await _storage.delete(key: '${_mnemonicKey}_$uid');
+      await _storage.delete(key: '${_privKey}_$uid');
+    }
   }
 
   Future<String> signTransaction(Map<String, dynamic> tx) async {
     try {
-      final privateKeyHex = await _storage.read(key: 'wallet_privkey');
+      final privateKeyHex = await _storage.read(key: _getKey(_privKey));
       if (privateKeyHex == null) throw Exception('No private key found');
 
       // Reconstruct PrivateKey object

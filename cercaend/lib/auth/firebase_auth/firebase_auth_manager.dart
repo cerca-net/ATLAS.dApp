@@ -16,7 +16,6 @@ import 'github_auth.dart';
 
 export '../base_auth_user_provider.dart';
 
-import '/services/blockchain/wallet_service.dart';
 import '/app_state.dart';
 import '/services/blockchain/blockchain_service.dart';
 
@@ -64,16 +63,19 @@ class FirebaseAuthManager extends AuthManager
       try {
         await BlockchainService().stopNode();
       } catch (e) {
-        print('Warning: Failed to stop blockchain node gracefully on signout: $e');
+        debugPrint('Warning: Failed to stop blockchain node gracefully on signout: $e');
       }
-      await WalletService().logout();
+      // We no longer call WalletService().logout() here because we want to persist 
+      // the wallet keys for the user in SecureStorage. 
+      // The keys are user-specific, so they won't be accessible by other users.
+      
       // Clear wallet state from global app state
       FFAppState().isWalletConnected = false;
       FFAppState().walletAddress = '';
       FFAppState().walletBalance = 0.0;
       FFAppState().sessionToken = '';
     } catch (e) {
-      print('Warning: Failed to clear local wallet storage on signout');
+      debugPrint('Warning: Failed to clear session state on signout: $e');
     }
     return FirebaseAuth.instance.signOut();
   }
@@ -82,7 +84,7 @@ class FirebaseAuthManager extends AuthManager
   Future deleteUser(BuildContext context) async {
     try {
       if (!loggedIn) {
-        print('Error: delete user attempted with no logged in user!');
+        debugPrint('Error: delete user attempted with no logged in user!');
         return;
       }
       await currentUser?.delete();
@@ -107,7 +109,7 @@ class FirebaseAuthManager extends AuthManager
   }) async {
     try {
       if (!loggedIn) {
-        print('Error: update email attempted with no logged in user!');
+        debugPrint('Error: update email attempted with no logged in user!');
         return;
       }
       await currentUser?.updateEmail(email);
@@ -133,7 +135,7 @@ class FirebaseAuthManager extends AuthManager
   }) async {
     try {
       if (!loggedIn) {
-        print('Error: update password attempted with no logged in user!');
+        debugPrint('Error: update password attempted with no logged in user!');
         return;
       }
       await currentUser?.updatePassword(newPassword);

@@ -8,8 +8,8 @@ void main() async {
   // The lines from 4253 to 4425 (0-indexed 4252 to 4424)
   // Since we delete block 2 first to avoid shifting block 1's indices:
 
-  final b2Start = 4252;
-  final b2End = 4424; // inclusive index of the last line to remove.
+  const b2Start = 4252;
+  const b2End = 4424; // inclusive index of the last line to remove.
   // Wait, let's verify line 4424!
   
   String builder2 = """                                                                if (columnOrderRecord.walletMethod != null && columnOrderRecord.paymentMethod != 'Data Unit')
@@ -91,8 +91,8 @@ void main() async {
   lines.removeRange(b2Start, b2End + 1);
   lines.insert(b2Start, builder2);
 
-  final b1Start = 1486;
-  final b1End = 1679;
+  const b1Start = 1486;
+  const b1End = 1679;
   lines.removeRange(b1Start, b1End + 1);
   lines.insert(b1Start, builder2);
 

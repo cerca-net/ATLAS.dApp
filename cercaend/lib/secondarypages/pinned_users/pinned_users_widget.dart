@@ -407,7 +407,7 @@ class _PinnedUsersWidgetState extends State<PinnedUsersWidget> {
                                               valueOrDefault<String>(
                                                 formatNumber(
                                                   (currentUserDocument
-                                                              ?.pinnedUsers
+                                                              ?.userPins
                                                               .toList() ??
                                                           [])
                                                       .length,

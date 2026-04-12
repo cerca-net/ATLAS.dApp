@@ -150,7 +150,7 @@ class _FlutterFlowVideoPlayerState extends State<FlutterFlowVideoPlayer>
     _videoPlayers.add(_videoPlayerController!);
     _videoPlayerController!.addListener(() {
       if (_videoPlayerController!.value.hasError && !_loggedError) {
-        print(
+        debugPrint(
             'Error playing video: ${_videoPlayerController!.value.errorDescription}');
         _loggedError = true;
       }

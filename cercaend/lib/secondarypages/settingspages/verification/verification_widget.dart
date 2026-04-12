@@ -274,7 +274,7 @@ class _VerificationWidgetState extends State<VerificationWidget> {
                                                           size: 20.0,
                                                         ),
                                                         onPressed: () {
-                                                          print(
+                                                          debugPrint(
                                                               'IconButton pressed ...');
                                                         },
                                                       ),
@@ -643,8 +643,44 @@ class _VerificationWidgetState extends State<VerificationWidget> {
                                                         ),
                                                         FFButtonWidget(
                                                           onPressed: () async {
-                                                            await authManager
-                                                                .sendEmailVerification();
+                                                            // Validate email field
+                                                            if (_model.textController1.text.trim().isEmpty) {
+                                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                                SnackBar(
+                                                                  content: Text(
+                                                                    'Please enter your email address first.',
+                                                                    style: TextStyle(
+                                                                      color: FlutterFlowTheme.of(context).primaryText,
+                                                                    ),
+                                                                  ),
+                                                                  duration: const Duration(milliseconds: 3000),
+                                                                  backgroundColor: FlutterFlowTheme.of(context).error,
+                                                                ),
+                                                              );
+                                                              return;
+                                                            }
+                                                            // Save email and phone to Firestore
+                                                            await currentUserReference!.update(
+                                                              createUsersRecordData(
+                                                                email: _model.textController1.text.trim(),
+                                                                phoneNumber: _model.textController2.text.trim(),
+                                                              ),
+                                                            );
+                                                            // Send Firebase email verification
+                                                            await authManager.sendEmailVerification();
+                                                            if (!context.mounted) return;
+                                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                  'Verification email sent! Check your inbox.',
+                                                                  style: TextStyle(
+                                                                    color: FlutterFlowTheme.of(context).primaryText,
+                                                                  ),
+                                                                ),
+                                                                duration: const Duration(milliseconds: 4000),
+                                                                backgroundColor: FlutterFlowTheme.of(context).secondary,
+                                                              ),
+                                                            );
                                                           },
                                                           text: FFLocalizations
                                                                   .of(context)
@@ -938,8 +974,23 @@ class _VerificationWidgetState extends State<VerificationWidget> {
                                                             ),
                                                           ),
                                                           FFButtonWidget(
-                                                            onPressed:
-                                                                () async {
+                                                            onPressed: () async {
+                                                              // Validate: email verification (PIN is used as the email code placeholder)
+                                                              if (_model.pinCodeController!.text.length < 8) {
+                                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                                  SnackBar(
+                                                                    content: Text(
+                                                                      'Please enter the full 8-character code received.',
+                                                                      style: TextStyle(
+                                                                        color: FlutterFlowTheme.of(context).primaryText,
+                                                                      ),
+                                                                    ),
+                                                                    duration: const Duration(milliseconds: 4000),
+                                                                    backgroundColor: FlutterFlowTheme.of(context).error,
+                                                                  ),
+                                                                );
+                                                                return;
+                                                              }
                                                               await _model
                                                                   .pageViewController
                                                                   ?.nextPage(
@@ -2043,58 +2094,63 @@ class _VerificationWidgetState extends State<VerificationWidget> {
                                                                 .all(12.0),
                                                         child: FFButtonWidget(
                                                           onPressed: () async {
-                                                            if (() {
-                                                              if (_model
-                                                                      .uploadedFileUrl_uploadDataId !=
-                                                                  '') {
-                                                                return true;
-                                                              } else if (_model
-                                                                      .uploadedFileUrl_uploadselfieId !=
-                                                                  '') {
-                                                                return true;
-                                                              } else {
-                                                                return false;
-                                                              }
-                                                            }()) {
-                                                              await _model
-                                                                  .pageViewController
-                                                                  ?.nextPage(
-                                                                duration:
-                                                                    const Duration(
-                                                                        milliseconds:
-                                                                            300),
-                                                                curve:
-                                                                    Curves.ease,
-                                                              );
-                                                            } else {
-                                                              ScaffoldMessenger
-                                                                      .of(context)
-                                                                  .showSnackBar(
+                                                            // Validate: at least ID must be uploaded
+                                                            if (_model.uploadedFileUrl_uploadDataId.isEmpty) {
+                                                              ScaffoldMessenger.of(context).showSnackBar(
                                                                 SnackBar(
                                                                   content: Text(
-                                                                    'Please submit the requested data to proceed.',
-                                                                    style:
-                                                                        TextStyle(
-                                                                      color: FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .primaryText,
+                                                                    'Please upload your ID document before submitting.',
+                                                                    style: TextStyle(
+                                                                      color: FlutterFlowTheme.of(context).primaryText,
                                                                     ),
                                                                   ),
-                                                                  duration: const Duration(
-                                                                      milliseconds:
-                                                                          4000),
-                                                                  backgroundColor:
-                                                                      FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .secondary,
+                                                                  duration: const Duration(milliseconds: 4000),
+                                                                  backgroundColor: FlutterFlowTheme.of(context).error,
                                                                 ),
                                                               );
+                                                              return;
                                                             }
+                                                            // Build municipality label from choice chips
+                                                            final municipality = [
+                                                              _model.choiceChipsValue1,
+                                                              _model.choiceChipsValue2,
+                                                              _model.choiceChipsValue3,
+                                                              _model.choiceChipsValue4,
+                                                              _model.choiceChipsValue5,
+                                                              _model.choiceChipsValue6,
+                                                            ].where((v) => v != null && v.isNotEmpty).join(', ');
+                                                            // Persist all verification data to Firestore
+                                                            await currentUserReference!.update(
+                                                              createUsersRecordData(
+                                                                userVerifiedPending: true,
+                                                                verificationIdUrl: _model.uploadedFileUrl_uploadDataId,
+                                                                verificationSelfieUrl: _model.uploadedFileUrl_uploadselfieId,
+                                                                verificationLocationUrl: _model.uploadedFileUrl_uploadlocationId,
+                                                                verificationMunicipality: municipality,
+                                                                verificationSubmittedAt: getCurrentTimestamp,
+                                                              ),
+                                                            );
+                                                            if (!context.mounted) return;
+                                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                  'Verification submitted! Our team will review your request.',
+                                                                  style: TextStyle(
+                                                                    color: FlutterFlowTheme.of(context).primaryText,
+                                                                  ),
+                                                                ),
+                                                                duration: const Duration(milliseconds: 4000),
+                                                                backgroundColor: FlutterFlowTheme.of(context).secondary,
+                                                              ),
+                                                            );
+                                                            if (!context.mounted) return;
+                                                            context.pushNamed(
+                                                                UserpageWidget.routeName);
                                                           },
                                                           text: FFLocalizations
                                                                   .of(context)
                                                               .getText(
-                                                            'iy3hzx83' /* Verify */,
+                                                            '93x5e4ov' /* Verify */,
                                                           ),
                                                           options:
                                                               FFButtonOptions(
@@ -3608,19 +3664,59 @@ class _VerificationWidgetState extends State<VerificationWidget> {
                                                               const EdgeInsets
                                                                   .all(4.0),
                                                           child: FFButtonWidget(
-                                                            onPressed:
-                                                                () async {
-                                                              await currentUserReference!
-                                                                  .update(
-                                                                      createUsersRecordData(
-                                                                userVerifiedPending:
-                                                                    true,
-                                                              ));
-
-
+                                                            onPressed: () async {
+                                                              // Validate: at least ID must be uploaded
+                                                              if (_model.uploadedFileUrl_uploadDataId.isEmpty) {
+                                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                                  SnackBar(
+                                                                    content: Text(
+                                                                      'Please upload your ID document before submitting.',
+                                                                      style: TextStyle(
+                                                                        color: FlutterFlowTheme.of(context).primaryText,
+                                                                      ),
+                                                                    ),
+                                                                    duration: const Duration(milliseconds: 4000),
+                                                                    backgroundColor: FlutterFlowTheme.of(context).error,
+                                                                  ),
+                                                                );
+                                                                return;
+                                                              }
+                                                              // Build municipality label from choice chips
+                                                              final municipality = [
+                                                                _model.choiceChipsValue1,
+                                                                _model.choiceChipsValue2,
+                                                                _model.choiceChipsValue3,
+                                                                _model.choiceChipsValue4,
+                                                                _model.choiceChipsValue5,
+                                                                _model.choiceChipsValue6,
+                                                              ].where((v) => v != null && v.isNotEmpty).join(', ');
+                                                              // Persist all verification data to Firestore
+                                                              await currentUserReference!.update(
+                                                                createUsersRecordData(
+                                                                  userVerifiedPending: true,
+                                                                  verificationIdUrl: _model.uploadedFileUrl_uploadDataId,
+                                                                  verificationSelfieUrl: _model.uploadedFileUrl_uploadselfieId,
+                                                                  verificationLocationUrl: _model.uploadedFileUrl_uploadlocationId,
+                                                                  verificationMunicipality: municipality,
+                                                                  verificationSubmittedAt: getCurrentTimestamp,
+                                                                ),
+                                                              );
+                                                              if (!context.mounted) return;
+                                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                                SnackBar(
+                                                                  content: Text(
+                                                                    'Verification submitted! Our team will review your request.',
+                                                                    style: TextStyle(
+                                                                      color: FlutterFlowTheme.of(context).primaryText,
+                                                                    ),
+                                                                  ),
+                                                                  duration: const Duration(milliseconds: 4000),
+                                                                  backgroundColor: FlutterFlowTheme.of(context).secondary,
+                                                                ),
+                                                              );
+                                                              if (!context.mounted) return;
                                                               context.pushNamed(
-                                                                  UserpageWidget
-                                                                      .routeName);
+                                                                  UserpageWidget.routeName);
                                                             },
                                                             text: FFLocalizations
                                                                     .of(context)

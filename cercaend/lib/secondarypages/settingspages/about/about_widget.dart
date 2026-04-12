@@ -74,7 +74,7 @@ class _AboutWidgetState extends State<AboutWidget> {
                       size: 24.0,
                     ),
                     onPressed: () {
-                      print('IconButton pressed ...');
+                      debugPrint('IconButton pressed ...');
                     },
                   ),
                 ),
@@ -114,7 +114,7 @@ class _AboutWidgetState extends State<AboutWidget> {
                                 size: 24.0,
                               ),
                               onPressed: () {
-                                print('IconButton pressed ...');
+                                debugPrint('IconButton pressed ...');
                               },
                             ),
                           ],
