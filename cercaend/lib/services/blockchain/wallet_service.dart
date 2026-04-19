@@ -104,7 +104,7 @@ class WalletService {
       debugPrint('WalletService: Address derived: $address');
 
       // 5. Connect to Backend
-      debugPrint('WalletService: Connecting to backend at http://localhost:8080...');
+      debugPrint('WalletService: Connecting to backend at http://localhost:8081...');
       bool registrationSuccess = false;
       try {
         final response = await _blockchainService.connectWallet(
