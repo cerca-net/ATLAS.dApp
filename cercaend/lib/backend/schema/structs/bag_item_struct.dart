@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_getters_setters
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '/backend/supabase/supabase_shim.dart';
 
 import '/backend/schema/util/firestore_util.dart';
 
@@ -50,7 +50,7 @@ class BagItemStruct extends FFFirebaseStruct {
   bool hasRefValue() => _refValue != null;
 
   static BagItemStruct fromMap(Map<String, dynamic> data) => BagItemStruct(
-        itemRef: data['item_ref'] as DocumentReference?,
+        itemRef: safeDocRef(data['item_ref']),
         name: data['name'] as String?,
         image: data['image'] as String?,
         refValue: castToType<double>(data['ref_value']),

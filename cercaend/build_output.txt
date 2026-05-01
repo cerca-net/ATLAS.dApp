@@ -1,0 +1,125 @@
+﻿Compiling lib\main.dart for the Web...                          
+flutter : Unexpected wasm dry run failure (255):
+En línea: 1 Carácter: 1
++ flutter build web --no-tree-shake-icons 2>&1 | Out-File -FilePath bui ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Unexpected wasm dry run failure (255)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+Unhandled exception:
+Unsupported operation: Cannot extract a file path from a org-dartlang-untranslatable-uri URI
+#0      _Uri.toFilePath (dart:core/uri.dart:3433)
+#1      DryRunSummarizer._lintChecks (package:dart2wasm/dry_run.dart:150)
+#2      DryRunSummarizer.summarize (package:dart2wasm/dry_run.dart:221)
+#3      compileToModule (package:dart2wasm/compile.dart:224)
+<asynchronous suspension>
+#4      generateWasm (package:dart2wasm/generate_wasm.dart:81)
+<asynchronous suspension>
+#5      main (file:///C:/b/s/w/ir/x/w/sdk/pkg/dart2wasm/bin/dart2wasm.dart:10)
+<asynchronous suspension>
+
+Use --no-wasm-dry-run to disable these warnings.
+Target dart2js failed: ProcessException: Process exited abnormally with exit code 1:
+Error: Couldn't resolve the package 'cloud_firestore_web' in 'package:cloud_firestore_web/cloud_firestore_web.dart'.
+Error: Couldn't resolve the package 'firebase_auth_web' in 'package:firebase_auth_web/firebase_auth_web.dart'.
+Error: Couldn't resolve the package 'firebase_core_web' in 'package:firebase_core_web/firebase_core_web.dart'.
+Error: Couldn't resolve the package 'firebase_performance_web' in 
+'package:firebase_performance_web/firebase_performance_web.dart'.
+Error: Couldn't resolve the package 'firebase_storage_web' in 'package:firebase_storage_web/firebase_storage_web.dart'.
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:11:8:
+Error: Not found: 'package:cloud_firestore_web/cloud_firestore_web.dart'
+import 'package:cloud_firestore_web/cloud_firestore_web.dart';
+       ^
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:13:8:
+Error: Not found: 'package:firebase_auth_web/firebase_auth_web.dart'
+import 'package:firebase_auth_web/firebase_auth_web.dart';
+       ^
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:14:8:
+Error: Not found: 'package:firebase_core_web/firebase_core_web.dart'
+import 'package:firebase_core_web/firebase_core_web.dart';
+       ^
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:15:8:
+Error: Not found: 'package:firebase_performance_web/firebase_performance_web.dart'
+import 'package:firebase_performance_web/firebase_performance_web.dart';
+       ^
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:16:8:
+Error: Not found: 'package:firebase_storage_web/firebase_storage_web.dart'
+import 'package:firebase_storage_web/firebase_storage_web.dart';
+       ^
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:34:3:
+Error: Undefined name 'FirebaseFirestoreWeb'.
+  FirebaseFirestoreWeb.registerWith(registrar);
+  ^^^^^^^^^^^^^^^^^^^^
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:36:3:
+Error: Undefined name 'FirebaseAuthWeb'.
+  FirebaseAuthWeb.registerWith(registrar);
+  ^^^^^^^^^^^^^^^
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:37:3:
+Error: Undefined name 'FirebaseCoreWeb'.
+  FirebaseCoreWeb.registerWith(registrar);
+  ^^^^^^^^^^^^^^^
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:38:3:
+Error: Undefined name 'FirebasePerformanceWeb'.
+  FirebasePerformanceWeb.registerWith(registrar);
+  ^^^^^^^^^^^^^^^^^^^^^^
+.dart_tool/flutter_build/5c6c3daeb125309875260ab2531d68c1/web_plugin_registrant.dart:39:3:
+Error: Undefined name 'FirebaseStorageWeb'.
+  FirebaseStorageWeb.registerWith(registrar);
+  ^^^^^^^^^^^^^^^^^^
+Error: Compilation failed.
+  Command: C:\Users\beatr\flutter\bin\cache\dart-sdk\bin\dart.exe compile js 
+--platform-binaries=C:\Users\beatr\flutter\bin\cache\flutter_web_sdk\kernel --invoker=flutter_tool 
+-Ddart.vm.product=true -DFLUTTER_VERSION=3.38.5 -DFLUTTER_CHANNEL=stable 
+-DFLUTTER_GIT_URL=https://github.com/flutter/flutter.git -DFLUTTER_FRAMEWORK_REVISION=f6ff1529fd 
+-DFLUTTER_ENGINE_REVISION=1527ae0ec5 -DFLUTTER_DART_VERSION=3.10.4 -DFLUTTER_WEB_USE_SKIA=true 
+-DFLUTTER_WEB_USE_SKWASM=false 
+-DFLUTTER_WEB_CANVASKIT_URL=https://www.gstatic.com/flutter-canvaskit/1527ae0ec577a4ef50e65f6fefcfc1326707d9bf/ 
+--native-null-assertions --no-source-maps -O4 --minify -o C:\Users\beatr\Desktop\ATLAS\cercachain-fix-userpage-syntax-e
+rrors\cercachain-fix-userpage-syntax-errors\cercaend\.dart_tool\flutter_build\5c6c3daeb125309875260ab2531d68c1\app.dill
+ --packages=C:\Users\beatr\Desktop\ATLAS\cercachain-fix-userpage-syntax-errors\cercachain-fix-userpage-syntax-errors\ce
+rcaend\.dart_tool\package_config.json --cfe-only C:\Users\beatr\Desktop\ATLAS\cercachain-fix-userpage-syntax-errors\cer
+cachain-fix-userpage-syntax-errors\cercaend\.dart_tool\flutter_build\5c6c3daeb125309875260ab2531d68c1\main.dart
+#0      RunResult.throwException (package:flutter_tools/src/base/process.dart:153:5)
+#1      _DefaultProcessUtils.run (package:flutter_tools/src/base/process.dart:379:19)
+<asynchronous suspension>
+#2      Dart2JSTarget.build (package:flutter_tools/src/build_system/targets/web.dart:207:5)
+<asynchronous suspension>
+#3      _BuildInstance._invokeInternal (package:flutter_tools/src/build_system/build_system.dart:895:9)
+<asynchronous suspension>
+#4      Future.wait.<anonymous closure> (dart:async/future.dart:546:21)
+<asynchronous suspension>
+#5      _BuildInstance.invokeTarget (package:flutter_tools/src/build_system/build_system.dart:833:32)
+<asynchronous suspension>
+#6      Future.wait.<anonymous closure> (dart:async/future.dart:546:21)
+<asynchronous suspension>
+#7      _BuildInstance.invokeTarget (package:flutter_tools/src/build_system/build_system.dart:833:32)
+<asynchronous suspension>
+#8      FlutterBuildSystem.build (package:flutter_tools/src/build_system/build_system.dart:653:16)
+<asynchronous suspension>
+#9      WebBuilder.buildWeb (package:flutter_tools/src/web/compile.dart:94:34)
+<asynchronous suspension>
+#10     BuildWebCommand.runCommand (package:flutter_tools/src/commands/build_web.dart:296:5)
+<asynchronous suspension>
+#11     FlutterCommand.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command.dart:1559:27)
+<asynchronous suspension>
+#12     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#13     CommandRunner.runCommand (package:args/command_runner.dart:212:13)
+<asynchronous suspension>
+#14     FlutterCommandRunner.runCommand.<anonymous closure> 
+(package:flutter_tools/src/runner/flutter_command_runner.dart:487:9)
+<asynchronous suspension>
+#15     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#16     FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:422:5)
+<asynchronous suspension>
+#17     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:104:11)
+<asynchronous suspension>
+#18     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#19     main (package:flutter_tools/executable.dart:103:3)
+<asynchronous suspension>
+
+Compiling lib\main.dart for the Web...                             43,1s
+Error: Failed to compile application for the Web.

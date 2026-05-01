@@ -271,6 +271,36 @@ class UsersRecord extends FirestoreRecord {
   DateTime? get verificationSubmittedAt => _verificationSubmittedAt;
   bool hasVerificationSubmittedAt() => _verificationSubmittedAt != null;
 
+  // Safe helper to convert a stored string path to a DocumentReference
+  static DocumentReference? _toRef(dynamic value) {
+    if (value == null) return null;
+    if (value is DocumentReference) return value;
+    if (value is String && value.isNotEmpty) {
+      // Stored as path like "users/abc123"
+      return FirebaseFirestore.instance.doc(value.contains('/') ? value : 'unknown/$value');
+    }
+    return null;
+  }
+
+  // Safe helper for bool
+  static bool? _toBool(dynamic value) {
+    if (value == null) return null;
+    if (value is bool) return value;
+    if (value is String) {
+      if (value.toLowerCase() == 'true') return true;
+      if (value.toLowerCase() == 'false') return false;
+    }
+    return null;
+  }
+
+  // Safe helper for DateTime
+  static DateTime? _toDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
   void _initializeFields() {
     _bio = snapshotData['bio'] as String?;
     _email = snapshotData['email'] as String?;
@@ -281,9 +311,9 @@ class UsersRecord extends FirestoreRecord {
     _displayName = snapshotData['display_name'] as String?;
     _photoUrl = snapshotData['photo_url'] as String?;
     _uid = snapshotData['uid'] as String?;
-    _createdTime = snapshotData['created_time'] as DateTime?;
+    _createdTime = _toDateTime(snapshotData['created_time']);
     _phoneNumber = snapshotData['phone_number'] as String?;
-    _lastActiveTime = snapshotData['last_active_time'] as DateTime?;
+    _lastActiveTime = _toDateTime(snapshotData['last_active_time']);
     _role = snapshotData['role'] as String?;
     _title = snapshotData['title'] as String?;
     _banner = snapshotData['banner'] as String?;
@@ -291,7 +321,7 @@ class UsersRecord extends FirestoreRecord {
     _usernames = snapshotData['usernames'] as String?;
     _pinnedUsers = getDataList(snapshotData['pinned_users']);
     _userPins = getDataList(snapshotData['user_pins']);
-    _bagRef = snapshotData['bag_ref'] as DocumentReference?;
+    _bagRef = _toRef(snapshotData['bag_ref']);
     _userOccupations = getDataList(snapshotData['user_occupations']);
     _userInterests = getDataList(snapshotData['user_interests']);
     _pinnedObjects = getDataList(snapshotData['pinned_objects']);
@@ -299,7 +329,7 @@ class UsersRecord extends FirestoreRecord {
     _walletMethodsUser = getDataList(snapshotData['wallet_methods_user']);
     _walletAddress = snapshotData['wallet_address'] as String?;
     _userBagObjects = getDataList(snapshotData['user_bag_objects']);
-    _orderRef = snapshotData['order_ref'] as DocumentReference?;
+    _orderRef = _toRef(snapshotData['order_ref']);
     _orderMethodsUser = getDataList(snapshotData['order_methods_user']);
     _userPlaces = getDataList(snapshotData['user_places']);
     _userType = snapshotData['user_type'] as String?;
@@ -307,15 +337,15 @@ class UsersRecord extends FirestoreRecord {
     _userPosts = getDataList(snapshotData['user_posts']);
     _userTransactions = getDataList(snapshotData['user_transactions']);
     _shortDescription = snapshotData['shortDescription'] as String?;
-    _analyticsRef = snapshotData['analytics_ref'] as DocumentReference?;
-    _userVerified = snapshotData['user_verified'] as bool?;
-    _userVerifiedPending = snapshotData['user_verified_pending'] as bool?;
-    _userIsAdmin = snapshotData['user_is_admin'] as bool?;
+    _analyticsRef = _toRef(snapshotData['analytics_ref']);
+    _userVerified = _toBool(snapshotData['user_verified']);
+    _userVerifiedPending = _toBool(snapshotData['user_verified_pending']);
+    _userIsAdmin = _toBool(snapshotData['user_is_admin']);
     _uRatings = getDataList(snapshotData['u_ratings']);
     _avgURating = castToType<double>(snapshotData['avg_u_rating']);
     _ratings = castToType<int>(snapshotData['ratings']);
     _userRatings = getDataList(snapshotData['user_ratings']);
-    _userCredits = snapshotData['userCredits'] as DocumentReference?;
+    _userCredits = _toRef(snapshotData['userCredits']);
     _followingUsers = getDataList(snapshotData['following_users']);
     _usersFollwoingMe = getDataList(snapshotData['users_follwoing_me']);
     _verificationIdUrl = snapshotData['verification_id_url'] as String?;
@@ -325,7 +355,7 @@ class UsersRecord extends FirestoreRecord {
     _verificationMunicipality =
         snapshotData['verification_municipality'] as String?;
     _verificationSubmittedAt =
-        snapshotData['verification_submitted_at'] as DateTime?;
+        _toDateTime(snapshotData['verification_submitted_at']);
   }
 
   static CollectionReference get collection =>

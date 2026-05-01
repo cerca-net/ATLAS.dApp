@@ -36,9 +36,9 @@ class ThreadRecord extends FirestoreRecord {
   bool hasObjectThread() => _objectThread != null;
 
   void _initializeFields() {
-    _userRef = snapshotData['user_ref'] as DocumentReference?;
+    _userRef = safeDocRef(snapshotData['user_ref']);
     _publicRef = getDataList(snapshotData['public_ref']);
-    _submissionRef = snapshotData['submission_ref'] as DocumentReference?;
+    _submissionRef = safeDocRef(snapshotData['submission_ref']);
     _objectThread = getDataList(snapshotData['object_thread']);
   }
 

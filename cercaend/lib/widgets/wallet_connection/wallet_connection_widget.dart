@@ -82,6 +82,14 @@ class _WalletConnectionWidgetState extends State<WalletConnectionWidget> {
         appState.sessionToken = '';
         appState.walletBalance = 0.0;
 
+        try {
+          if (currentUserReference != null) {
+            await currentUserReference!.update({'wallet_address': _walletAddress});
+          }
+        } catch (e) {
+          debugPrint('Failed to save wallet address to database: $e');
+        }
+
         _showMnemonicDialog(_mnemonic);
       }
     } catch (e) {
@@ -124,6 +132,14 @@ class _WalletConnectionWidgetState extends State<WalletConnectionWidget> {
         appState.walletAddress = _walletAddress;
         appState.sessionToken = '';
         appState.walletBalance = 0.0;
+
+        try {
+          if (currentUserReference != null) {
+            await currentUserReference!.update({'wallet_address': _walletAddress});
+          }
+        } catch (e) {
+          debugPrint('Failed to save imported wallet address to database: $e');
+        }
       }
     } catch (e) {
       if (mounted) {

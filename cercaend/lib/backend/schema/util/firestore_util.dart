@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '/backend/supabase/supabase_shim.dart';
 
 import '/backend/schema/util/schema_util.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -36,9 +36,26 @@ Map<String, dynamic> mapFromFirestore(Map<String, dynamic> data) =>
     mergeNestedFields(data)
         .where((k, _) => k != FirestoreUtilData.name)
         .map((key, value) {
-      // Handle Timestamp
+      // Handle Timestamp (Firebase)
       if (value is Timestamp) {
         value = value.toDate();
+      }
+      // Handle boolean strings from Supabase text columns
+      if (value is String) {
+        final lower = value.toLowerCase();
+        if (lower == 'true') {
+          value = true;
+        } else if (lower == 'false') {
+          value = false;
+        }
+      }
+      // Handle stringified DateTime (Supabase) — only for date-like patterns
+      // Must look like a date: starts with 4 digits, contains dashes
+      if (value is String && value.length >= 10 && RegExp(r'^\d{4}-\d{2}').hasMatch(value)) {
+        final parsed = DateTime.tryParse(value);
+        if (parsed != null) {
+          value = parsed;
+        }
       }
       // Handle list of Timestamp
       if (value is Iterable && value.isNotEmpty && value.first is Timestamp) {
@@ -67,6 +84,22 @@ Map<String, dynamic> mapFromFirestore(Map<String, dynamic> data) =>
 
 Map<String, dynamic> mapToFirestore(Map<String, dynamic> data) =>
     data.where((k, v) => k != FirestoreUtilData.name).map((key, value) {
+      // Handle DocumentReference → serialize to ID string for Supabase
+      if (value is DocumentReference) {
+        value = value.id;
+      }
+      // Handle list of DocumentReference
+      if (value is Iterable && value.isNotEmpty && value.first is DocumentReference) {
+        value = value.map((v) => (v as DocumentReference).id).toList();
+      }
+      // Handle DateTime → ISO string for Supabase text columns
+      if (value is DateTime) {
+        value = value.toIso8601String();
+      }
+      // Handle Timestamp
+      if (value is Timestamp) {
+        value = value.toDate().toIso8601String();
+      }
       // Handle GeoPoint
       if (value is LatLng) {
         value = value.toGeoPoint();
@@ -112,6 +145,16 @@ extension GeoPointExtension on LatLng {
 
 extension LatLngExtension on GeoPoint {
   LatLng toLatLng() => LatLng(latitude, longitude);
+}
+
+/// Safely converts a value to DocumentReference, handling String paths from Supabase
+DocumentReference? safeDocRef(dynamic value) {
+  if (value == null) return null;
+  if (value is DocumentReference) return value;
+  if (value is String && value.isNotEmpty) {
+    return FirebaseFirestore.instance.doc(value.contains('/') ? value : 'unknown/$value');
+  }
+  return null;
 }
 
 DocumentReference toRef(String ref) => FirebaseFirestore.instance.doc(ref);

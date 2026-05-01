@@ -46,10 +46,10 @@ class ChatMessagesRecord extends FirestoreRecord {
   bool hasVideo() => _video != null;
 
   void _initializeFields() {
-    _user = snapshotData['user'] as DocumentReference?;
-    _chat = snapshotData['chat'] as DocumentReference?;
+    _user = safeDocRef(snapshotData['user']);
+    _chat = safeDocRef(snapshotData['chat']);
     _text = snapshotData['text'] as String?;
-    _timestamp = snapshotData['timestamp'] as DateTime?;
+    _timestamp = snapshotData['timestamp'] is DateTime ? snapshotData['timestamp'] as DateTime : null;
     _image = snapshotData['image'] as String?;
     _video = snapshotData['video'] as String?;
   }

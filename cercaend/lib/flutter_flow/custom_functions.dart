@@ -1,5 +1,5 @@
 import '/backend/backend.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../backend/supabase/supabase_shim.dart';
 import '/backend/schema/custom_records.dart';
 
 double sumofBagitemsListRefvalues(List<double>? refvaluefromiteminlist) {

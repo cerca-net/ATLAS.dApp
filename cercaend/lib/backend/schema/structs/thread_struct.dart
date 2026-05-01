@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_getters_setters
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '/backend/supabase/supabase_shim.dart';
 
 import '/backend/schema/util/firestore_util.dart';
 import '/backend/schema/util/schema_util.dart';
@@ -90,8 +90,8 @@ class ThreadStruct extends FFFirebaseStruct {
   bool hasThread5() => _thread5 != null;
 
   static ThreadStruct fromMap(Map<String, dynamic> data) => ThreadStruct(
-        userRef: data['user_ref'] as DocumentReference?,
-        subissionRef: data['subission_ref'] as DocumentReference?,
+        userRef: safeDocRef(data['user_ref']),
+        subissionRef: safeDocRef(data['subission_ref']),
         objectThread: getDataList(data['object_thread']),
         thread1: data['thread_1'] as String?,
         thread2: data['thread_2'] as String?,

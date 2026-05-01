@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// Firebase Auth has been replaced by Supabase Auth.
+// This file is kept as a stub to prevent import errors.
 
-Future<UserCredential?> anonymousSignInFunc() =>
-    FirebaseAuth.instance.signInAnonymously();
+Future<dynamic> anonymousSignInFunc() async => null;

@@ -38,10 +38,10 @@ class RatingsRecord extends FirestoreRecord {
   DocumentReference get parentReference => reference.parent.parent!;
 
   void _initializeFields() {
-    _userRef = snapshotData['user_ref'] as DocumentReference?;
+    _userRef = safeDocRef(snapshotData['user_ref']);
     _value = castToType<int>(snapshotData['value']);
     _comment = snapshotData['comment'] as String?;
-    _date = snapshotData['date'] as DateTime?;
+    _date = snapshotData['date'] is DateTime ? snapshotData['date'] as DateTime : null;
   }
 
   static Query<Map<String, dynamic>> collection([DocumentReference? parent]) =>

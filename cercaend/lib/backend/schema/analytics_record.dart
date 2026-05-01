@@ -161,7 +161,7 @@ class AnalyticsRecord extends FirestoreRecord {
   bool hasRatings() => _ratings != null;
 
   void _initializeFields() {
-    _userRef = snapshotData['user_ref'] as DocumentReference?;
+    _userRef = safeDocRef(snapshotData['user_ref']);
     _userObjects = getDataList(snapshotData['user_objects']);
     _userOrders = getDataList(snapshotData['user_orders']);
     _objectViewsAccum = castToType<int>(snapshotData['object_views_accum']);
@@ -188,7 +188,7 @@ class AnalyticsRecord extends FirestoreRecord {
     _orderUserRevList = getDataList(snapshotData['order_user_rev_list']);
     _pubusersRef = getDataList(snapshotData['pubusers_ref']);
     _ordersAsMaker = getDataList(snapshotData['orders_as_maker']);
-    _dateCreated = snapshotData['date_created'] as DateTime?;
+    _dateCreated = snapshotData['date_created'] is DateTime ? snapshotData['date_created'] as DateTime : null;
     _ratings = getDataList(snapshotData['ratings']);
   }
 

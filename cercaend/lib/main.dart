@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'auth/firebase_auth/firebase_user_provider.dart';
+import 'auth/supabase_auth/supabase_user_provider.dart';
 import 'auth/firebase_auth/auth_util.dart';
 
 import '/backend/supabase/supabase.dart';
-import 'backend/firebase/firebase_config.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
@@ -22,8 +21,6 @@ void main() async {
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
   GoogleFonts.config.allowRuntimeFetching = false;
-
-  await initFirebase();
 
   await SupaFlow.initialize();
 
@@ -87,7 +84,7 @@ class _MyAppState extends State<MyApp> {
 
     _appStateNotifier = AppStateNotifier.instance;
     _router = createRouter(_appStateNotifier);
-    userStream = cercaendFirebaseUserStream()
+    userStream = cercaendSupabaseUserStream()
       ..listen((user) {
         _appStateNotifier.update(user);
       });

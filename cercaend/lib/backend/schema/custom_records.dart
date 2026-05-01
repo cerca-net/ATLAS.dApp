@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '/backend/supabase/supabase_shim.dart';
 
 class UserPostsRecord {
   final DocumentReference reference;

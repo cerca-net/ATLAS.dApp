@@ -46,7 +46,7 @@ class WalletMethodsRecord extends FirestoreRecord {
   bool hasMethodThread() => _methodThread != null;
 
   void _initializeFields() {
-    _methodPoster = snapshotData['method_poster'] as DocumentReference?;
+    _methodPoster = safeDocRef(snapshotData['method_poster']);
     _methodName = snapshotData['method_name'] as String?;
     _methodType = snapshotData['method_type'] as String?;
     _methodId = snapshotData['method_id'] as String?;

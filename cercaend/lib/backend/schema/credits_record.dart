@@ -41,7 +41,7 @@ class CreditsRecord extends FirestoreRecord {
   bool hasTransitionI() => _transitionI != null;
 
   void _initializeFields() {
-    _userRef = snapshotData['userRef'] as DocumentReference?;
+    _userRef = safeDocRef(snapshotData['userRef']);
     _fX = castToType<double>(snapshotData['f_x']);
     _generationI = castToType<double>(snapshotData['generation_i']);
     _participationI = castToType<double>(snapshotData['participation_i']);

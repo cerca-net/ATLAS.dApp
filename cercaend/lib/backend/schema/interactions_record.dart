@@ -32,7 +32,7 @@ class InteractionsRecord extends FirestoreRecord {
   bool hasValue() => _value != null;
 
   void _initializeFields() {
-    _userRef = snapshotData['user_ref'] as DocumentReference?;
+    _userRef = safeDocRef(snapshotData['user_ref']);
     _type = snapshotData['type'] is InteractionTypes
         ? snapshotData['type']
         : deserializeEnum<InteractionTypes>(snapshotData['type']);

@@ -36,10 +36,10 @@ class UserRatingsRecord extends FirestoreRecord {
   bool hasDate() => _date != null;
 
   void _initializeFields() {
-    _ratedUser = snapshotData['rated_user'] as DocumentReference?;
+    _ratedUser = safeDocRef(snapshotData['rated_user']);
     _value = castToType<int>(snapshotData['value']);
     _comment = snapshotData['comment'] as String?;
-    _date = snapshotData['date'] as DateTime?;
+    _date = snapshotData['date'] is DateTime ? snapshotData['date'] as DateTime : null;
   }
 
   static CollectionReference get collection =>

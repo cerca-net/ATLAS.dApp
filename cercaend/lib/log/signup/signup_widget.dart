@@ -54,36 +54,8 @@ class _SignupWidgetState extends State<SignupWidget> {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-      body: StreamBuilder<List<UsernamesRecord>>(
-        stream: queryUsernamesRecord(
-          singleRecord: true,
-        ),
-        builder: (context, snapshot) {
-          // Customize what your widget looks like when it's loading.
-          if (!snapshot.hasData) {
-            return Center(
-              child: SizedBox(
-                width: 50.0,
-                height: 50.0,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    FlutterFlowTheme.of(context).primary,
-                  ),
-                ),
-              ),
-            );
-          }
-          List<UsernamesRecord> formContainerUsernamesRecordList =
-              snapshot.data!;
-          // Return an empty Container when the item does not exist.
-          if (snapshot.data!.isEmpty) {
-            return Container();
-          }
-          final formContainerUsernamesRecord =
-              formContainerUsernamesRecordList.isNotEmpty
-                  ? formContainerUsernamesRecordList.first
-                  : null;
-
+      body: Builder(
+        builder: (context) {
           return Container(
             width: double.infinity,
             height: double.infinity,
@@ -549,31 +521,6 @@ class _SignupWidgetState extends State<SignupWidget> {
                                     0.0, 0.0, 0.0, 16.0),
                                 child: FFButtonWidget(
                                   onPressed: () async {
-                                    if (formContainerUsernamesRecord
-                                            ?.usernamesInUse
-                                            .contains(_model
-                                                .emailAddressTextController2
-                                                .text) ==
-                                        true) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'user not available',
-                                            style: TextStyle(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryText,
-                                            ),
-                                          ),
-                                          duration: const Duration(
-                                              milliseconds: 4000),
-                                          backgroundColor:
-                                              FlutterFlowTheme.of(context)
-                                                  .secondary,
-                                        ),
-                                      );
-                                    } else {
                                       GoRouter.of(context).prepareAuthEvent();
 
                                       final user = await authManager
@@ -586,44 +533,25 @@ class _SignupWidgetState extends State<SignupWidget> {
                                         return;
                                       }
 
-                                      await UsersRecord.collection
-                                          .doc(user.uid)
-                                          .update(createUsersRecordData(
-                                            username: _model
-                                                .emailAddressTextController2
-                                                .text,
-                                            userVerified: false,
-                                            userVerifiedPending: false,
-                                          ));
-
-                                      await formContainerUsernamesRecord!
-                                          .reference
-                                          .update({
-                                        ...mapToFirestore(
-                                          {
-                                            'usernames_in_use':
-                                                FieldValue.arrayUnion([
-                                              _model.emailAddressTextController2
-                                                  .text
-                                            ]),
-                                          },
-                                        ),
-                                      });
-
-                                      await CreditsRecord.collection
-                                          .doc()
-                                          .set(createCreditsRecordData(
-                                            userRef: currentUserReference,
-                                            fX: 0.0,
-                                            generationI: 100.0,
-                                          ));
-
+                                      // Update username in users table (best-effort)
+                                      try {
+                                        await UsersRecord.collection
+                                            .doc(user.uid)
+                                            .set(createUsersRecordData(
+                                              username: _model
+                                                  .emailAddressTextController2
+                                                  .text,
+                                              userVerified: false,
+                                              userVerifiedPending: false,
+                                            ));
+                                      } catch (e) {
+                                        debugPrint('Error updating username after signup: $e');
+                                      }
 
                                       context.pushNamedAuth(
                                           FeedpageWidget.routeName,
                                           context.mounted);
-                                    }
-                                  },
+                                    },
                                   text: FFLocalizations.of(context).getText(
                                     't2wf7c91' /* Create Account */,
                                   ),
@@ -717,61 +645,10 @@ class _SignupWidgetState extends State<SignupWidget> {
                                     if (user == null) {
                                       return;
                                     }
-                                    if (formContainerUsernamesRecord
-                                            ?.usernamesInUse
-                                            .contains(_model
-                                                .emailAddressTextController2
-                                                .text) ==
-                                        true) {
 
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'user not available',
-                                            style: TextStyle(
-                                              color:
-
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryText,
-                                            ),
-                                          ),
-                                          duration: const Duration(
-                                              milliseconds: 4000),
-                                          backgroundColor:
-
-                                              FlutterFlowTheme.of(context)
-                                                  .secondary,
-                                        ),
-                                      );
-                                    } else {
-                                      await formContainerUsernamesRecord!
-                                          .reference
-                                          .update({
-                                        ...mapToFirestore(
-                                          {
-                                            'usernames_in_use':
-                                                FieldValue.arrayUnion([
-                                              _model.emailAddressTextController2
-                                                  .text
-                                            ]),
-                                          },
-                                        ),
-                                      });
-
-                                      await CreditsRecord.collection
-                                          .doc()
-                                          .set(createCreditsRecordData(
-                                            userRef: currentUserReference,
-                                            fX: 0.0,
-                                            generationI: 100.0,
-                                          ));
-
-
-                                      context.pushNamedAuth(
-                                          FeedpageWidget.routeName,
-                                          context.mounted);
-                                    }
+                                    context.pushNamedAuth(
+                                        FeedpageWidget.routeName,
+                                        context.mounted);
                                   },
                                   text: FFLocalizations.of(context).getText(
                                     'l0vok5gn' /* Continue with Google */,

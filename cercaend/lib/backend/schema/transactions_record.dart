@@ -71,16 +71,16 @@ class TransactionsRecord extends FirestoreRecord {
   bool hasUserOut() => _userOut != null;
 
   void _initializeFields() {
-    _userMadeby = snapshotData['user_madeby'] as DocumentReference?;
-    _userMadeto = snapshotData['user_madeto'] as DocumentReference?;
+    _userMadeby = safeDocRef(snapshotData['user_madeby']);
+    _userMadeto = safeDocRef(snapshotData['user_madeto']);
     _items = getDataList(snapshotData['items']);
     _idTransaction = snapshotData['id_transaction'] as String?;
-    _date = snapshotData['date'] as DateTime?;
+    _date = snapshotData['date'] is DateTime ? snapshotData['date'] as DateTime : null;
     _totalRefValueTransaction =
         castToType<double>(snapshotData['total_ref_value_transaction']);
-    _orderRef = snapshotData['order_ref'] as DocumentReference?;
-    _wMethod = snapshotData['w_method'] as DocumentReference?;
-    _oMethod = snapshotData['o_method'] as DocumentReference?;
+    _orderRef = safeDocRef(snapshotData['order_ref']);
+    _wMethod = safeDocRef(snapshotData['w_method']);
+    _oMethod = safeDocRef(snapshotData['o_method']);
     _userIn = snapshotData['UserIn'] as String?;
     _userOut = snapshotData['userOut'] as String?;
   }

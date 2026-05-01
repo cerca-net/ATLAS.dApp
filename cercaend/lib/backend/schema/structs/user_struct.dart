@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_getters_setters
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '/backend/supabase/supabase_shim.dart';
 
 import '/backend/schema/util/firestore_util.dart';
 
@@ -41,7 +41,7 @@ class UserStruct extends FFFirebaseStruct {
   static UserStruct fromMap(Map<String, dynamic> data) => UserStruct(
         username: data['username'] as String?,
         avatar: data['avatar'] as String?,
-        userId: data['user_id'] as DocumentReference?,
+        userId: safeDocRef(data['user_id']),
       );
 
   static UserStruct? maybeFromMap(dynamic data) =>

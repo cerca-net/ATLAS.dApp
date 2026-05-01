@@ -41,7 +41,7 @@ class OrderMethodsRecord extends FirestoreRecord {
   bool hasMethodThread() => _methodThread != null;
 
   void _initializeFields() {
-    _methodPoster = snapshotData['method_poster'] as DocumentReference?;
+    _methodPoster = safeDocRef(snapshotData['method_poster']);
     _methodType = snapshotData['method_type'] as String?;
     _methodTag = snapshotData['method_tag'] as String?;
     _methodName = snapshotData['method_name'] as String?;

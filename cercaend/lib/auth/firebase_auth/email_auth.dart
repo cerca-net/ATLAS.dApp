@@ -1,17 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// Firebase Auth has been replaced by Supabase Auth.
+// This file is kept as a stub to prevent import errors.
 
-Future<UserCredential?> emailSignInFunc(
-  String email,
-  String password,
-) =>
-    FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: email.trim(), password: password);
-
-Future<UserCredential?> emailCreateAccountFunc(
-  String email,
-  String password,
-) =>
-    FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: email.trim(),
-      password: password,
-    );
+Future<dynamic> emailSignInFunc(String email, String password) async => null;
+Future<dynamic> emailCreateAccountFunc(String email, String password) async => null;

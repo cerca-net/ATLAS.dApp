@@ -58,12 +58,12 @@ class ChatsRecord extends FirestoreRecord {
 
   void _initializeFields() {
     _users = getDataList(snapshotData['users']);
-    _userA = snapshotData['user_a'] as DocumentReference?;
-    _userB = snapshotData['user_b'] as DocumentReference?;
+    _userA = safeDocRef(snapshotData['user_a']);
+    _userB = safeDocRef(snapshotData['user_b']);
     _lastMessage = snapshotData['last_message'] as String?;
-    _lastMessageTime = snapshotData['last_message_time'] as DateTime?;
+    _lastMessageTime = snapshotData['last_message_time'] is DateTime ? snapshotData['last_message_time'] as DateTime : null;
     _lastMessageSentBy =
-        snapshotData['last_message_sent_by'] as DocumentReference?;
+        safeDocRef(snapshotData['last_message_sent_by']);
     _lastMessageSeenBy = getDataList(snapshotData['last_message_seen_by']);
     _groupChatId = castToType<int>(snapshotData['group_chat_id']);
   }

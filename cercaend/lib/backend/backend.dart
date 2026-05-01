@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'supabase/supabase_shim.dart';
+// firebase_auth removed — auth is Supabase-backed via auth_util.dart
 import '../auth/firebase_auth/auth_util.dart';
 
 import '../flutter_flow/flutter_flow_util.dart';
@@ -27,8 +27,8 @@ import 'dart:async';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 export 'dart:async' show StreamSubscription;
-export 'package:cloud_firestore/cloud_firestore.dart' hide Order;
-export 'package:firebase_core/firebase_core.dart';
+export 'supabase/supabase_shim.dart' hide Order;
+// firebase_core removed — Supabase is the backend
 export 'schema/index.dart';
 export 'schema/util/firestore_util.dart';
 export 'schema/util/schema_util.dart';
@@ -1470,16 +1470,16 @@ Filter filterArrayContainsAny(String field, List? list) =>
         ? Filter(field, arrayContainsAny: null)
         : Filter(field, arrayContainsAny: list);
 
-extension QueryExtension on Query {
-  Query whereIn(String field, List? list) => (list?.isEmpty ?? true)
+extension QueryExtension<T> on Query<T> {
+  Query<T> whereIn(String field, List? list) => (list?.isEmpty ?? true)
       ? where(field, whereIn: null)
       : where(field, whereIn: list);
 
-  Query whereNotIn(String field, List? list) => (list?.isEmpty ?? true)
+  Query<T> whereNotIn(String field, List? list) => (list?.isEmpty ?? true)
       ? where(field, whereNotIn: null)
       : where(field, whereNotIn: list);
 
-  Query whereArrayContainsAny(String field, List? list) =>
+  Query<T> whereArrayContainsAny(String field, List? list) =>
       (list?.isEmpty ?? true)
           ? where(field, arrayContainsAny: null)
           : where(field, arrayContainsAny: list);
@@ -1488,7 +1488,7 @@ extension QueryExtension on Query {
 class FFFirestorePage<T> {
   final List<T> data;
   final Stream<List<T>>? dataStream;
-  final QueryDocumentSnapshot? nextPageMarker;
+  final DocumentSnapshot? nextPageMarker;
 
   FFFirestorePage(this.data, this.dataStream, this.nextPageMarker);
 }
@@ -1530,24 +1530,25 @@ Future<FFFirestorePage<T>> queryCollectionPage<T>(
   return FFFirestorePage(data, dataStream, nextPageToken);
 }
 
-// Creates a Firestore document representing the logged in user if it doesn't yet exist
-Future maybeCreateUser(User user) async {
-  final userRecord = UsersRecord.collection.doc(user.uid);
+// Creates a Supabase user record if it doesn't yet exist
+Future maybeCreateUser(dynamic user) async {
+  final uid = user is Map ? (user['uid'] ?? user['id'] ?? '') as String : currentUserUid;
+  if (uid.isEmpty) return;
+  
+  final userRecord = UsersRecord.collection.doc(uid);
   final userExists = await userRecord.get().then((u) => u.exists);
   if (userExists) {
     currentUserDocument = await UsersRecord.getDocumentOnce(userRecord);
     return;
   }
 
+  final email = user is Map ? (user['email'] ?? '') as String : currentUserEmail;
+  final displayName = user is Map ? (user['display_name'] ?? '') as String : currentUserDisplayName;
+
   final userData = createUsersRecordData(
-    email: user.email ??
-        FirebaseAuth.instance.currentUser?.email ??
-        user.providerData.firstOrNull?.email,
-    displayName:
-        user.displayName ?? FirebaseAuth.instance.currentUser?.displayName,
-    photoUrl: user.photoURL,
-    uid: user.uid,
-    phoneNumber: user.phoneNumber,
+    email: email,
+    displayName: displayName,
+    uid: uid,
     createdTime: getCurrentTimestamp,
   );
 

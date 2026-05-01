@@ -1,23 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+// Firebase Auth has been replaced by Supabase Auth.
+// This file is kept as a stub to prevent import errors.
 
-final _googleSignIn = GoogleSignIn(scopes: ['profile', 'email']);
-
-Future<UserCredential?> googleSignInFunc() async {
-  if (kIsWeb) {
-    // Once signed in, return the UserCredential
-    return await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
-  }
-
-  await signOutWithGoogle().catchError((_) => null);
-  final auth = await (await _googleSignIn.signIn())?.authentication;
-  if (auth == null) {
-    return null;
-  }
-  final credential = GoogleAuthProvider.credential(
-      idToken: auth.idToken, accessToken: auth.accessToken);
-  return FirebaseAuth.instance.signInWithCredential(credential);
-}
-
-Future signOutWithGoogle() => _googleSignIn.signOut();
+Future<dynamic> googleSignInFunc() async => null;
+Future signOutWithGoogle() async {}

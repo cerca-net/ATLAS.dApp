@@ -46,7 +46,7 @@ class CatalogueRecord extends FirestoreRecord {
   bool hasCatalogueBuzzwords() => _catalogueBuzzwords != null;
 
   void _initializeFields() {
-    _userRef = snapshotData['user_ref'] as DocumentReference?;
+    _userRef = safeDocRef(snapshotData['user_ref']);
     _catalalogueName = snapshotData['catalalogue_name'] as String?;
     _catalogueChoicechips = getDataList(snapshotData['catalogue_choicechips']);
     _catalogueItems = getStructList(

@@ -755,25 +755,35 @@ class _UserpageWidgetState extends State<UserpageWidget>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       StreamBuilder<UsersRecord>(
-                        stream: UsersRecord.getDocument(currentUserReference!),
+                        stream: currentUserReference != null
+                            ? UsersRecord.getDocument(currentUserReference!)
+                            : null,
+                        initialData: currentUserDocument,
                         builder: (context, snapshot) {
-                          // Customize what your widget looks like when it's loading.
-                          if (!snapshot.hasData) {
-                            return Center(
-                              child: SizedBox(
-                                width: 50.0,
-                                height: 50.0,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    FlutterFlowTheme.of(context).primary,
-                                  ),
+                          // Use currentUserDocument as fallback if stream hasn't emitted yet
+                          final userRecord = snapshot.data ?? currentUserDocument;
+                          if (snapshot.hasError) {
+                            debugPrint('User profile stream error: ${snapshot.error}');
+                          }
+                          // If we still have no data, show a placeholder instead of spinner
+                          if (userRecord == null) {
+                            return Container(
+                              width: double.infinity,
+                              height: 240.0,
+                              decoration: BoxDecoration(
+                                color: FlutterFlowTheme.of(context).alternate,
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Loading profile...',
+                                  style: FlutterFlowTheme.of(context).bodyMedium,
                                 ),
                               ),
                             );
                           }
 
-                          final userProfileContainerUsersRecord =
-                              snapshot.data!;
+                          final userProfileContainerUsersRecord = userRecord;
 
                           return Container(
                             width: double.infinity,

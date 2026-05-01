@@ -6,10 +6,11 @@ import 'package:hex/hex.dart';
 import 'package:elliptic/elliptic.dart' as elliptic;
 import 'package:ecdsa/ecdsa.dart' as ecdsa;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// firebase_auth removed — using Supabase auth via auth_util.dart
 import 'blockchain_service.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import 'bip39_words.dart';
+import '/backend/supabase/supabase.dart';
 
 class WalletService {
   static final WalletService _instance = WalletService._internal();
@@ -24,7 +25,7 @@ class WalletService {
   static const String _privKey = 'wallet_privkey';
 
   String _getKey(String base) {
-    final authUid = FirebaseAuth.instance.currentUser?.uid ?? currentUserUid;
+    final authUid = currentUserUid;
     if (authUid.isEmpty) return base;
     return '${base}_$authUid';
   }
@@ -126,17 +127,33 @@ class WalletService {
       await _storage.write(key: _getKey(_privKey), value: privateKey.toHex());
       debugPrint('WalletService: Local storage complete');
 
-      // 7. Update user document in Firestore
-      if (currentUserReference != null) {
+      // 7. Update user wallet mapping in Supabase Data Layer
+      final uid = currentUserUid;
+      if (uid.isNotEmpty) {
         try {
-          await currentUserReference!.update({
-            'wallet_address': address,
-          });
-          debugPrint('WalletService: Firestore updated with $address');
+          // Update the user's explicit profile address
+          await SupaFlow.client
+              .from('users')
+              .update({'wallet_address': address})
+              .eq('id', uid);
+              
+          // Also track in the robust wallets table
+          await SupaFlow.client
+              .from('wallets')
+              .upsert({
+                'user_id': uid,
+                'public_adress': address,
+                'network': 'atlas-testnet',
+                'created_at': DateTime.now().toIso8601String(),
+              });
+              
+          debugPrint('WalletService: Supabase wallet relationships updated with $address for user $uid');
         } catch (e) {
-          debugPrint('WalletService: Firestore update failed: $e');
+          debugPrint('WalletService: Supabase update failed: $e');
         }
       }
+
+      // Supabase is the single source of truth — no legacy Firestore fallback needed.
 
       return {
         'address': address,
@@ -237,11 +254,28 @@ class WalletService {
       await _storage.write(key: _getKey(_mnemonicKey), value: mnemonic.trim());
       await _storage.write(key: _getKey(_privKey), value: privateKey.toHex());
 
-      if (currentUserReference != null) {
-        await currentUserReference!.update({
-          'wallet_address': address,
-        });
+      final uid = currentUserUid;
+      if (uid.isNotEmpty) {
+        try {
+          await SupaFlow.client
+              .from('users')
+              .update({'wallet_address': address})
+              .eq('id', uid);
+              
+          await SupaFlow.client
+              .from('wallets')
+              .upsert({
+                'user_id': uid,
+                'public_adress': address,
+                'network': 'atlas-testnet',
+                'created_at': DateTime.now().toIso8601String(),
+              });
+        } catch (e) {
+          debugPrint('WalletService: Import wallet Supabase update failed: $e');
+        }
       }
+
+      // Supabase is the single source of truth — no legacy Firestore fallback needed.
 
       return {
         'address': address,

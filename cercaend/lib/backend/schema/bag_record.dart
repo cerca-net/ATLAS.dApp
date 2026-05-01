@@ -36,13 +36,13 @@ class BagRecord extends FirestoreRecord {
   bool hasPublicUserRef() => _publicUserRef != null;
 
   void _initializeFields() {
-    _userRef = snapshotData['user_ref'] as DocumentReference?;
+    _userRef = safeDocRef(snapshotData['user_ref']);
     _items = getStructList(
       snapshotData['items'],
       BagItemStruct.fromMap,
     );
     _inBagItems = getDataList(snapshotData['in_bag_items']);
-    _publicUserRef = snapshotData['public_user_ref'] as DocumentReference?;
+    _publicUserRef = safeDocRef(snapshotData['public_user_ref']);
   }
 
   static CollectionReference get collection =>

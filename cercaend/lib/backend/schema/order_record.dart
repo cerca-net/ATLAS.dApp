@@ -182,13 +182,13 @@ class OrderRecord extends FirestoreRecord {
   bool hasRating() => _rating != null;
 
   void _initializeFields() {
-    _date = snapshotData['date'] as DateTime?;
+    _date = snapshotData['date'] is DateTime ? snapshotData['date'] as DateTime : null;
     _refValue = castToType<double>(snapshotData['ref_value']);
     _totalRefValue = castToType<double>(snapshotData['total_ref_value']);
-    _orderCompleted = snapshotData['order_completed'] as bool?;
+    _orderCompleted = snapshotData['order_completed'] is bool ? snapshotData['order_completed'] as bool : null;
     _paymentMethod = snapshotData['payment_method'] as String?;
-    _orderComlpletionDate = snapshotData['order_comlpletion_date'] as DateTime?;
-    _userRef = snapshotData['user_ref'] as DocumentReference?;
+    _orderComlpletionDate = snapshotData['order_comlpletion_date'] is DateTime ? snapshotData['order_comlpletion_date'] as DateTime : null;
+    _userRef = safeDocRef(snapshotData['user_ref']);
     _items = getStructList(
       snapshotData['items'],
       BagItemStruct.fromMap,
@@ -198,29 +198,29 @@ class OrderRecord extends FirestoreRecord {
         : ItemStruct.maybeFromMap(snapshotData['root_item']);
     _ordersCompleted = getDataList(snapshotData['ordersCompleted']);
     _itemsInorder = getDataList(snapshotData['items_inorder']);
-    _publicuserRef = snapshotData['publicuser_ref'] as DocumentReference?;
+    _publicuserRef = safeDocRef(snapshotData['publicuser_ref']);
     _orderStats = snapshotData['order_stats'] is OrderStatuses
         ? snapshotData['order_stats']
         : deserializeEnum<OrderStatuses>(snapshotData['order_stats']);
-    _orderMethod = snapshotData['order_method'] as DocumentReference?;
-    _walletMethod = snapshotData['wallet_method'] as DocumentReference?;
+    _orderMethod = safeDocRef(snapshotData['order_method']);
+    _walletMethod = safeDocRef(snapshotData['wallet_method']);
     _username = snapshotData['username'] as String?;
     _publicusername = snapshotData['publicusername'] as String?;
     _orderImage = snapshotData['order_image'] as String?;
-    _isOrderimageUploaded = snapshotData['is_orderimage_uploaded'] as bool?;
-    _methodOrder = snapshotData['method_order'] as DocumentReference?;
-    _methodWallet = snapshotData['method_wallet'] as DocumentReference?;
-    _isOrderAccepted = snapshotData['is_order_accepted'] as bool?;
-    _isOrderimageAccepted = snapshotData['is_orderimage_accepted'] as bool?;
+    _isOrderimageUploaded = snapshotData['is_orderimage_uploaded'] is bool ? snapshotData['is_orderimage_uploaded'] as bool : null;
+    _methodOrder = safeDocRef(snapshotData['method_order']);
+    _methodWallet = safeDocRef(snapshotData['method_wallet']);
+    _isOrderAccepted = snapshotData['is_order_accepted'] is bool ? snapshotData['is_order_accepted'] as bool : null;
+    _isOrderimageAccepted = snapshotData['is_orderimage_accepted'] is bool ? snapshotData['is_orderimage_accepted'] as bool : null;
     _key1 = snapshotData['key_1'] as String?;
     _key2 = snapshotData['key_2'] as String?;
     _revUser = castToType<int>(snapshotData['rev_user']);
     _revPubuser = castToType<int>(snapshotData['rev_pubuser']);
     _refListOrders = getDataList(snapshotData['ref_list_orders']);
-    _revbyMaker = snapshotData['revby_maker'] as bool?;
-    _revbyTaker = snapshotData['revby_taker'] as bool?;
-    _orderFinished = snapshotData['order_finished'] as bool?;
-    _orderClosed = snapshotData['order_closed'] as bool?;
+    _revbyMaker = snapshotData['revby_maker'] is bool ? snapshotData['revby_maker'] as bool : null;
+    _revbyTaker = snapshotData['revby_taker'] is bool ? snapshotData['revby_taker'] as bool : null;
+    _orderFinished = snapshotData['order_finished'] is bool ? snapshotData['order_finished'] as bool : null;
+    _orderClosed = snapshotData['order_closed'] is bool ? snapshotData['order_closed'] as bool : null;
     _rating = getDataList(snapshotData['rating']);
   }
 

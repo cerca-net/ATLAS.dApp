@@ -187,9 +187,9 @@ class SubmissionRecord extends FirestoreRecord {
 
   void _initializeFields() {
     _image = snapshotData['image'] as String?;
-    _date = snapshotData['date'] as DateTime?;
+    _date = snapshotData['date'] is DateTime ? snapshotData['date'] as DateTime : null;
     _header = snapshotData['header'] as String?;
-    _poster = snapshotData['poster'] as DocumentReference?;
+    _poster = safeDocRef(snapshotData['poster']);
     _imagesextra = getDataList(snapshotData['imagesextra']);
     _type1choice = snapshotData['type1choice'] as String?;
     _type2choice = snapshotData['type2choice'] as String?;
@@ -200,7 +200,7 @@ class SubmissionRecord extends FirestoreRecord {
     _downvote = getDataList(snapshotData['downvote']);
     _refvalue = snapshotData['refvalue'] as String?;
     _type0choice = snapshotData['type0choice'] as String?;
-    _submittedDate = snapshotData['submitted_date'] as DateTime?;
+    _submittedDate = snapshotData['submitted_date'] is DateTime ? snapshotData['submitted_date'] as DateTime : null;
     _typeOrder = snapshotData['type_order'] as String?;
     _typeActivity = snapshotData['type_activity'] as String?;
     _typeTicket = snapshotData['type_ticket'] as String?;
@@ -209,9 +209,9 @@ class SubmissionRecord extends FirestoreRecord {
         snapshotData['profilePictureObjectPost'] as String?;
     _ups = castToType<int>(snapshotData['ups']);
     _pins = getDataList(snapshotData['pins']);
-    _objectIsEdited = snapshotData['object_is_edited'] as bool?;
+    _objectIsEdited = snapshotData['object_is_edited'] is bool ? snapshotData['object_is_edited'] as bool : null;
     _shares = getDataList(snapshotData['shares']);
-    _type0object = snapshotData['type0object'] as bool?;
+    _type0object = snapshotData['type0object'] is bool ? snapshotData['type0object'] as bool : null;
     _typeObject = snapshotData['type_object'] as String?;
     _thread = getDataList(snapshotData['thread']);
     _objectThread = snapshotData['object_thread'] is ThreadStruct
@@ -219,7 +219,7 @@ class SubmissionRecord extends FirestoreRecord {
         : ThreadStruct.maybeFromMap(snapshotData['object_thread']);
     _objectInBag = getDataList(snapshotData['object_in_bag']);
     _objectRefvalue = castToType<double>(snapshotData['object_refvalue']);
-    _analyticsRef = snapshotData['analytics_ref'] as DocumentReference?;
+    _analyticsRef = safeDocRef(snapshotData['analytics_ref']);
     _objectViews = castToType<int>(snapshotData['object_views']);
     _objectViewers = getDataList(snapshotData['object_viewers']);
     _objectViewsS = getDataList(snapshotData['objectViewsS']);
