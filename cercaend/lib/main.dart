@@ -15,6 +15,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'index.dart';
 import 'mainpages/block_explorer/block_explorer_widget.dart';
+import 'services/blockchain/local_node_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,9 @@ void main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
 
   await SupaFlow.initialize();
+
+  // Start the embedded node if running natively on desktop
+  await LocalNodeManager().startEmbeddedNode();
 
   await FlutterFlowTheme.initialize();
 

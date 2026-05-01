@@ -42,4 +42,6 @@ state_snapshots/
 **/node_modules/
 .idea/
 .vscode/
-*.db.gz
+ATLAS.BC0.0.1/.data_admin/
+ATLAS.BC0.0.1/.data_app/
+
