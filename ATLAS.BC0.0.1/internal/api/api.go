@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -52,6 +53,7 @@ type APIServer struct {
 	governanceManager  *governance.GovernanceManager
 	shardManager       *sharding.ShardManager
 	TreasuryWallet     *wallet.Wallet // Wallet for faucet/treasury operations
+	rateLimiter        *RateLimiter   // Per-IP API rate limiter
 	// Node control state
 	nodeLogs      []NodeLogEntry
 	nodeLogsMutex sync.RWMutex
@@ -86,11 +88,17 @@ func NewAPIServer(bm *blockchain.BlockManager, tm *blockchain.TransactionManager
 		shardManager:       shm,
 		nodeLogs:           make([]NodeLogEntry, 0),
 		maxNodeLogs:        100,
+		rateLimiter:        NewRateLimiter(30, 60, time.Second),
 	}
 
-	// Initialize Treasury Wallet (Fixed Mnemonic for consistency)
-	// "canyon vision beer orange notice wrong savage coin fashion roam ranch weasel"
-	treasuryMnemonic := "canyon vision beer orange notice wrong savage coin fashion roam ranch weasel"
+	// Initialize Treasury Wallet from environment variable
+	// For production: set TREASURY_MNEMONIC env var
+	// Fallback is for local development ONLY
+	treasuryMnemonic := os.Getenv("TREASURY_MNEMONIC")
+	if treasuryMnemonic == "" {
+		treasuryMnemonic = "canyon vision beer orange notice wrong savage coin fashion roam ranch weasel"
+		log.Printf("⚠️ TREASURY_MNEMONIC not set — using development fallback. DO NOT use in production!")
+	}
 	if treasuryWallet, err := wallet.NewWalletFromMnemonic(treasuryMnemonic); err == nil {
 		api.TreasuryWallet = treasuryWallet
 		// Ensure Treasury has initial Genesis supply
@@ -213,78 +221,88 @@ func withCORS(handler http.HandlerFunc) http.HandlerFunc {
 }
 
 func (api *APIServer) Start(addr string) {
-	http.HandleFunc("/block", withCORS(api.handleGetBlock))
-	http.HandleFunc("/blocks", withCORS(api.handleListBlocks))
-	http.HandleFunc("/transaction", withCORS(api.handleGetTransaction))
-	http.HandleFunc("/mempool", withCORS(api.handleGetMempool))
-	http.HandleFunc("/submit-transaction", withCORS(api.handleSubmitTransaction))
-	http.HandleFunc("/balance", withCORS(api.handleGetBalance))
-	http.HandleFunc("/status", withCORS(api.handleGetStatus))
-	http.HandleFunc("/validators", withCORS(api.handleListValidators))
-	http.HandleFunc("/validator", withCORS(api.handleGetValidator))
-	http.HandleFunc("/register-validator", withCORS(api.handleRegisterValidator))
-	http.HandleFunc("/update-stake", withCORS(api.handleUpdateStake))
-	http.HandleFunc("/update-user-stake", withCORS(api.handleUpdateUserStake))
-	http.HandleFunc("/node-address", withCORS(api.handleGetNodeAddress))
-	http.HandleFunc("/peers", withCORS(api.handleGetPeers))
-	http.HandleFunc("/connect-peer", withCORS(api.handleConnectPeer))
-	http.HandleFunc("/faucet", withCORS(api.handleFaucet))
-	http.HandleFunc("/admin/faucet", withCORS(api.handleAdminFaucet))
-	http.HandleFunc("/admin/treasury-history", withCORS(api.handleAdminTreasuryHistory))
-	http.HandleFunc("/nonce", withCORS(api.handleGetNonce))
-	http.HandleFunc("/run-tests", withCORS(api.handleRunTests))
-	http.HandleFunc("/test-performance", withCORS(api.handleTestPerformance))
-	http.HandleFunc("/test-security", withCORS(api.handleTestSecurity))
-	http.HandleFunc("/test-integration", withCORS(api.handleTestIntegration))
-	http.HandleFunc("/start-test-env", withCORS(api.handleStartTestEnv))
-	http.HandleFunc("/stop-test-env", withCORS(api.handleStopTestEnv))
-	http.HandleFunc("/test-env-status", withCORS(api.handleTestEnvStatus))
+	// rl wraps a handler with CORS + rate limiting
+	rl := func(handler http.HandlerFunc) http.HandlerFunc {
+		return RateLimitMiddleware(api.rateLimiter, withCORS(handler))
+	}
+
+	// admin wraps a handler with CORS + rate limiting + admin API key auth
+	admin := func(handler http.HandlerFunc) http.HandlerFunc {
+		return RateLimitMiddleware(api.rateLimiter, withCORS(AdminAuthMiddleware(handler)))
+	}
+
+	http.HandleFunc("/block", rl(api.handleGetBlock))
+	http.HandleFunc("/blocks", rl(api.handleListBlocks))
+	http.HandleFunc("/transaction", rl(api.handleGetTransaction))
+	http.HandleFunc("/mempool", rl(api.handleGetMempool))
+	http.HandleFunc("/submit-transaction", rl(api.handleSubmitTransaction))
+	http.HandleFunc("/balance", rl(api.handleGetBalance))
+	http.HandleFunc("/status", rl(api.handleGetStatus))
+	http.HandleFunc("/validators", rl(api.handleListValidators))
+	http.HandleFunc("/validator", rl(api.handleGetValidator))
+	http.HandleFunc("/register-validator", rl(api.handleRegisterValidator))
+	http.HandleFunc("/update-stake", rl(api.handleUpdateStake))
+	http.HandleFunc("/update-user-stake", rl(api.handleUpdateUserStake))
+	http.HandleFunc("/node-address", rl(api.handleGetNodeAddress))
+	http.HandleFunc("/peers", rl(api.handleGetPeers))
+	http.HandleFunc("/connect-peer", rl(api.handleConnectPeer))
+	http.HandleFunc("/faucet", rl(api.handleFaucet))
+	http.HandleFunc("/admin/faucet", admin(api.handleAdminFaucet))
+	http.HandleFunc("/admin/treasury-history", admin(api.handleAdminTreasuryHistory))
+	http.HandleFunc("/nonce", rl(api.handleGetNonce))
+	http.HandleFunc("/run-tests", admin(api.handleRunTests))
+	http.HandleFunc("/test-performance", admin(api.handleTestPerformance))
+	http.HandleFunc("/test-security", admin(api.handleTestSecurity))
+	http.HandleFunc("/test-integration", admin(api.handleTestIntegration))
+	http.HandleFunc("/start-test-env", admin(api.handleStartTestEnv))
+	http.HandleFunc("/stop-test-env", admin(api.handleStopTestEnv))
+	http.HandleFunc("/test-env-status", admin(api.handleTestEnvStatus))
 	// Node control endpoints are registered below, duplicates removed here
-	http.HandleFunc("/create-wallet", withCORS(api.handleCreateWallet))
-	http.HandleFunc("/import-wallet", withCORS(api.handleImportWallet))
-	http.HandleFunc("/fee-info", withCORS(api.handleFeeInfo))
+	http.HandleFunc("/create-wallet", rl(api.handleCreateWallet))
+	http.HandleFunc("/import-wallet", rl(api.handleImportWallet))
+	http.HandleFunc("/fee-info", rl(api.handleFeeInfo))
 
 	// Identity management endpoints for social-commerce-governance platform
-	http.HandleFunc("/identity/create", withCORS(api.handleCreateIdentity))
-	http.HandleFunc("/identity/get", withCORS(api.handleGetIdentity))
-	http.HandleFunc("/identity/update-profile", withCORS(api.handleUpdateProfile))
+	http.HandleFunc("/identity/create", rl(api.handleCreateIdentity))
+	http.HandleFunc("/identity/get", rl(api.handleGetIdentity))
+	http.HandleFunc("/identity/update-profile", rl(api.handleUpdateProfile))
 	// Identity endpoints commented out - handlers not implemented yet
-	// http.HandleFunc("/identity/add-credential", withCORS(api.handleAddCredential))
-	// http.HandleFunc("/identity/add-attestation", withCORS(api.handleAddAttestation))
-	// http.HandleFunc("/identity/update-privacy", withCORS(api.handleUpdatePrivacy))
-	// http.HandleFunc("/identity/update-kyc", withCORS(api.handleUpdateKYC))
-	http.HandleFunc("/identity/update-activity", withCORS(api.handleUpdateActivity))
-	http.HandleFunc("/identity/create-proof", withCORS(api.handleCreatePrivacyProof))
-	http.HandleFunc("/identity/verify-proof", withCORS(api.handleVerifyPrivacyProof))
-	http.HandleFunc("/identity/social", withCORS(api.handleGetIdentityForSocial))
-	http.HandleFunc("/treasury", withCORS(api.handleGetTreasury))
-	http.HandleFunc("/token", withCORS(api.handleGetTokenInfo))
-	http.HandleFunc("/staking", withCORS(api.handleGetStakingInfo))
-	http.HandleFunc("/marketplace", withCORS(api.handleGetMarketplaceInfo))
-	http.HandleFunc("/governance-contract", withCORS(api.handleGetGovernanceContractInfo))
-	http.HandleFunc("/identity/commerce", withCORS(api.handleGetIdentityForCommerce))
-	http.HandleFunc("/identity/governance", withCORS(api.handleGetIdentityForGovernance))
+	// http.HandleFunc("/identity/add-credential", rl(api.handleAddCredential))
+	// http.HandleFunc("/identity/add-attestation", rl(api.handleAddAttestation))
+	// http.HandleFunc("/identity/update-privacy", rl(api.handleUpdatePrivacy))
+	// http.HandleFunc("/identity/update-kyc", rl(api.handleUpdateKYC))
+	http.HandleFunc("/identity/update-activity", rl(api.handleUpdateActivity))
+	http.HandleFunc("/identity/create-proof", rl(api.handleCreatePrivacyProof))
+	http.HandleFunc("/identity/verify-proof", rl(api.handleVerifyPrivacyProof))
+	http.HandleFunc("/identity/social", rl(api.handleGetIdentityForSocial))
+	http.HandleFunc("/treasury", rl(api.handleGetTreasury))
+	http.HandleFunc("/token", rl(api.handleGetTokenInfo))
+	http.HandleFunc("/staking", rl(api.handleGetStakingInfo))
+	http.HandleFunc("/marketplace", rl(api.handleGetMarketplaceInfo))
+	http.HandleFunc("/governance-contract", rl(api.handleGetGovernanceContractInfo))
+	http.HandleFunc("/identity/commerce", rl(api.handleGetIdentityForCommerce))
+	http.HandleFunc("/identity/governance", rl(api.handleGetIdentityForGovernance))
 
 	// FlutterFlow Integration Endpoints
-	http.HandleFunc("/flutterflow/connect-wallet", withCORS(api.handleFlutterFlowConnectWallet))
-	http.HandleFunc("/flutterflow/authenticate", withCORS(api.handleFlutterFlowAuthenticate))
-	http.HandleFunc("/flutterflow/wallet-info", withCORS(api.handleFlutterFlowWalletInfo))
-	http.HandleFunc("/flutterflow/send-transaction", withCORS(api.handleFlutterFlowSendTransaction))
-	http.HandleFunc("/flutterflow/transaction-history", withCORS(api.handleFlutterFlowTransactionHistory))
-	http.HandleFunc("/flutterflow/disconnect", withCORS(api.handleFlutterFlowDisconnect))
+	http.HandleFunc("/flutterflow/connect-wallet", rl(api.handleFlutterFlowConnectWallet))
+	http.HandleFunc("/flutterflow/authenticate", rl(api.handleFlutterFlowAuthenticate))
+	http.HandleFunc("/flutterflow/wallet-info", rl(api.handleFlutterFlowWalletInfo))
+	http.HandleFunc("/flutterflow/send-transaction", rl(api.handleFlutterFlowSendTransaction))
+	http.HandleFunc("/flutterflow/transaction-history", rl(api.handleFlutterFlowTransactionHistory))
+	http.HandleFunc("/flutterflow/disconnect", rl(api.handleFlutterFlowDisconnect))
 
 	// Governance endpoints
-	http.HandleFunc("/governance/proposals", withCORS(api.handleListProposals))
-	http.HandleFunc("/governance/proposal", withCORS(api.handleGetProposal))
-	http.HandleFunc("/governance/submit-proposal", withCORS(api.handleSubmitProposal))
-	http.HandleFunc("/governance/vote", withCORS(api.handleVote))
+	http.HandleFunc("/governance/proposals", rl(api.handleListProposals))
+	http.HandleFunc("/governance/proposal", rl(api.handleGetProposal))
+	http.HandleFunc("/governance/submit-proposal", rl(api.handleSubmitProposal))
+	http.HandleFunc("/governance/vote", rl(api.handleVote))
 
-	http.HandleFunc("/oracle/submit", withCORS(api.handleOracleSubmit))
-	http.HandleFunc("/oracle/latest", withCORS(api.handleOracleLatest))
+	http.HandleFunc("/oracle/submit", rl(api.handleOracleSubmit))
+	http.HandleFunc("/oracle/latest", rl(api.handleOracleLatest))
 
 	// Privacy endpoints
-	http.HandleFunc("/privacy/encrypt", withCORS(api.handleEncryptData))
-	http.HandleFunc("/privacy/decrypt", withCORS(api.handleDecryptData))
+	http.HandleFunc("/privacy/encrypt", rl(api.handleEncryptData))
+	http.HandleFunc("/privacy/decrypt", rl(api.handleDecryptData))
 	// ZK-related endpoints are disabled due to ZK code being commented out
 	/*
 		func (api *APIServer) handleCreateProof(w http.ResponseWriter, r *http.Request) {
@@ -295,93 +313,93 @@ func (api *APIServer) Start(addr string) {
 			// Disabled: ZK proof verification endpoint
 		}
 	*/
-	http.HandleFunc("/privacy/gdpr-delete", withCORS(api.handleGDPRDelete))
-	http.HandleFunc("/privacy/gdpr-anonymize", withCORS(api.handleGDPRAnonymize))
+	http.HandleFunc("/privacy/gdpr-delete", rl(api.handleGDPRDelete))
+	http.HandleFunc("/privacy/gdpr-anonymize", rl(api.handleGDPRAnonymize))
 
 	// Sharding endpoints
-	http.HandleFunc("/sharding/status", withCORS(api.handleShardingStatus))
-	http.HandleFunc("/sharding/shard", withCORS(api.handleGetShard))
-	http.HandleFunc("/sharding/assign-validator", withCORS(api.handleAssignValidator))
-	http.HandleFunc("/sharding/cross-shard-tx", withCORS(api.handleCrossShardTransaction))
-	http.HandleFunc("/sharding/statistics", withCORS(api.handleShardingStatistics))
+	http.HandleFunc("/sharding/status", rl(api.handleShardingStatus))
+	http.HandleFunc("/sharding/shard", rl(api.handleGetShard))
+	http.HandleFunc("/sharding/assign-validator", rl(api.handleAssignValidator))
+	http.HandleFunc("/sharding/cross-shard-tx", rl(api.handleCrossShardTransaction))
+	http.HandleFunc("/sharding/statistics", rl(api.handleShardingStatistics))
 
 	// Monitoring endpoints
-	http.HandleFunc("/monitoring/status", withCORS(api.handleMonitoringStatus))
-	http.HandleFunc("/monitoring/metrics", withCORS(api.handleMonitoringMetrics))
-	http.HandleFunc("/monitoring/health", withCORS(api.handleMonitoringHealth))
-	http.HandleFunc("/monitoring/alerts", withCORS(api.handleMonitoringAlerts))
-	http.HandleFunc("/monitoring/performance", withCORS(api.handleMonitoringPerformance))
-	http.HandleFunc("/monitoring/history", withCORS(api.handleMonitoringHistory))
-	http.HandleFunc("/monitoring/trends", withCORS(api.handleMonitoringTrends))
+	http.HandleFunc("/monitoring/status", rl(api.handleMonitoringStatus))
+	http.HandleFunc("/monitoring/metrics", rl(api.handleMonitoringMetrics))
+	http.HandleFunc("/monitoring/health", rl(api.handleMonitoringHealth))
+	http.HandleFunc("/monitoring/alerts", rl(api.handleMonitoringAlerts))
+	http.HandleFunc("/monitoring/performance", rl(api.handleMonitoringPerformance))
+	http.HandleFunc("/monitoring/history", rl(api.handleMonitoringHistory))
+	http.HandleFunc("/monitoring/trends", rl(api.handleMonitoringTrends))
 
 	// Fast Sync endpoints
-	http.HandleFunc("/snapshot/create", withCORS(api.handleCreateSnapshot))
-	http.HandleFunc("/snapshot/latest", withCORS(api.handleGetLatestSnapshot))
-	http.HandleFunc("/snapshot/load", withCORS(api.handleLoadSnapshot))
+	http.HandleFunc("/snapshot/create", rl(api.handleCreateSnapshot))
+	http.HandleFunc("/snapshot/latest", rl(api.handleGetLatestSnapshot))
+	http.HandleFunc("/snapshot/load", rl(api.handleLoadSnapshot))
 
 	// Peer Management endpoints
-	http.HandleFunc("/peers/status", withCORS(api.handleGetPeerStatus))
-	http.HandleFunc("/peers/reconnect", withCORS(api.handleReconnectPeers))
-	http.HandleFunc("/peers/validators", withCORS(api.handleGetValidatorPeers))
+	http.HandleFunc("/peers/status", rl(api.handleGetPeerStatus))
+	http.HandleFunc("/peers/reconnect", rl(api.handleReconnectPeers))
+	http.HandleFunc("/peers/validators", rl(api.handleGetValidatorPeers))
 
 	// Chain synchronization endpoints
-	http.HandleFunc("/sync/status", withCORS(api.handleSyncStatus))
-	http.HandleFunc("/sync/start", withCORS(api.handleSyncStart))
+	http.HandleFunc("/sync/status", rl(api.handleSyncStatus))
+	http.HandleFunc("/sync/start", rl(api.handleSyncStart))
 
 	// Database backup and recovery endpoints
-	http.HandleFunc("/backup/status", withCORS(api.handleBackupStatus))
-	http.HandleFunc("/backup/list", withCORS(api.handleBackupList))
-	http.HandleFunc("/backup/create", withCORS(api.handleBackupCreate))
+	http.HandleFunc("/backup/status", rl(api.handleBackupStatus))
+	http.HandleFunc("/backup/list", rl(api.handleBackupList))
+	http.HandleFunc("/backup/create", rl(api.handleBackupCreate))
 
 	// Social Media API endpoints
-	http.HandleFunc("/social/post/create", withCORS(api.handleCreatePost))
-	http.HandleFunc("/social/post/get", withCORS(api.handleGetPost))
-	http.HandleFunc("/social/comment/create", withCORS(api.handleCreateComment))
-	http.HandleFunc("/social/like", withCORS(api.handleLikePost))
-	http.HandleFunc("/social/unlike", withCORS(api.handleUnlikePost))
-	http.HandleFunc("/social/tip", withCORS(api.handleTipPost))
-	http.HandleFunc("/social/feed", withCORS(api.handleGetFeed))
-	http.HandleFunc("/social/search", withCORS(api.handleSearchPosts))
-	http.HandleFunc("/social/trending", withCORS(api.handleGetTrendingHashtags))
-	http.HandleFunc("/social/report", withCORS(api.handleReportContent))
+	http.HandleFunc("/social/post/create", rl(api.handleCreatePost))
+	http.HandleFunc("/social/post/get", rl(api.handleGetPost))
+	http.HandleFunc("/social/comment/create", rl(api.handleCreateComment))
+	http.HandleFunc("/social/like", rl(api.handleLikePost))
+	http.HandleFunc("/social/unlike", rl(api.handleUnlikePost))
+	http.HandleFunc("/social/tip", rl(api.handleTipPost))
+	http.HandleFunc("/social/feed", rl(api.handleGetFeed))
+	http.HandleFunc("/social/search", rl(api.handleSearchPosts))
+	http.HandleFunc("/social/trending", rl(api.handleGetTrendingHashtags))
+	http.HandleFunc("/social/report", rl(api.handleReportContent))
 
 	// Object Energy Physics endpoints (bridges Firebase objects with blockchain energy)
-	http.HandleFunc("/social/object/energy", withCORS(api.handleGetObjectEnergy))
-	http.HandleFunc("/social/object/energize", withCORS(api.handleEnergizeObject))
+	http.HandleFunc("/social/object/energy", rl(api.handleGetObjectEnergy))
+	http.HandleFunc("/social/object/energize", rl(api.handleEnergizeObject))
 
 	// Enhanced Governance API endpoints
-	http.HandleFunc("/governance/proposal/create", withCORS(api.handleCreateProposal))
-	http.HandleFunc("/governance/proposal/get", withCORS(api.handleGetProposal))
-	http.HandleFunc("/governance/proposal/activate", withCORS(api.handleActivateProposal))
-	http.HandleFunc("/governance/proposal/vote", withCORS(api.handleVoteProposal))
-	http.HandleFunc("/governance/proposal/execute", withCORS(api.handleExecuteProposal))
-	http.HandleFunc("/governance/proposal/discuss", withCORS(api.handleAddDiscussionComment))
-	http.HandleFunc("/governance/proposals/active", withCORS(api.handleGetActiveProposals))
-	http.HandleFunc("/governance/proposals/category", withCORS(api.handleGetProposalsByCategory))
-	http.HandleFunc("/admin/resolve-dispute", withCORS(api.handleAdminResolveDispute))
-	http.HandleFunc("/admin/disputes", withCORS(api.handleAdminGetDisputes))
-	http.HandleFunc("/governance/referendum/create", withCORS(api.handleCreateReferendum))
-	http.HandleFunc("/governance/referendum/vote", withCORS(api.handleVoteReferendum))
+	http.HandleFunc("/governance/proposal/create", rl(api.handleCreateProposal))
+	http.HandleFunc("/governance/proposal/get", rl(api.handleGetProposal))
+	http.HandleFunc("/governance/proposal/activate", rl(api.handleActivateProposal))
+	http.HandleFunc("/governance/proposal/vote", rl(api.handleVoteProposal))
+	http.HandleFunc("/governance/proposal/execute", rl(api.handleExecuteProposal))
+	http.HandleFunc("/governance/proposal/discuss", rl(api.handleAddDiscussionComment))
+	http.HandleFunc("/governance/proposals/active", rl(api.handleGetActiveProposals))
+	http.HandleFunc("/governance/proposals/category", rl(api.handleGetProposalsByCategory))
+	http.HandleFunc("/admin/resolve-dispute", admin(api.handleAdminResolveDispute))
+	http.HandleFunc("/admin/disputes", admin(api.handleAdminGetDisputes))
+	http.HandleFunc("/governance/referendum/create", rl(api.handleCreateReferendum))
+	http.HandleFunc("/governance/referendum/vote", rl(api.handleVoteReferendum))
 
 	// Smart Contract endpoints
-	http.HandleFunc("/contract/deploy", withCORS(api.handleDeployContract))
-	http.HandleFunc("/contract/call", withCORS(api.handleCallContract))
-	http.HandleFunc("/contract/list", withCORS(api.handleListContracts))
-	http.HandleFunc("/contract/info", withCORS(api.handleGetContractInfo))
-	http.HandleFunc("/contract/examples", withCORS(api.handleGetContractExamples))
+	http.HandleFunc("/contract/deploy", admin(api.handleDeployContract))
+	http.HandleFunc("/contract/call", rl(api.handleCallContract))
+	http.HandleFunc("/contract/list", rl(api.handleListContracts))
+	http.HandleFunc("/contract/info", rl(api.handleGetContractInfo))
+	http.HandleFunc("/contract/examples", rl(api.handleGetContractExamples))
 
 	// Network Architecture endpoint
-	http.HandleFunc("/network/architecture", withCORS(api.handleGetNetworkArchitecture))
+	http.HandleFunc("/network/architecture", rl(api.handleGetNetworkArchitecture))
 
-	// Node Control endpoints
-	http.HandleFunc("/node/start", withCORS(api.handleNodeStart))
-	http.HandleFunc("/node/stop", withCORS(api.handleNodeStop))
-	http.HandleFunc("/node/pause", withCORS(api.handleNodePause))
-	http.HandleFunc("/node/sync", withCORS(api.handleNodeSync))
-	http.HandleFunc("/node/status", withCORS(api.handleNodeStatus))
-	http.HandleFunc("/node/logs", withCORS(api.handleNodeLogs))
+	// Node Control endpoints (admin-protected)
+	http.HandleFunc("/node/start", admin(api.handleNodeStart))
+	http.HandleFunc("/node/stop", admin(api.handleNodeStop))
+	http.HandleFunc("/node/pause", admin(api.handleNodePause))
+	http.HandleFunc("/node/sync", admin(api.handleNodeSync))
+	http.HandleFunc("/node/status", admin(api.handleNodeStatus))
+	http.HandleFunc("/node/logs", admin(api.handleNodeLogs))
 
-	// Serve static frontend files
+	// Serve static frontend files (no rate limit on static assets)
 	fs := http.FileServer(http.Dir("./web/frontend"))
 	http.HandleFunc("/", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		fs.ServeHTTP(w, r)
@@ -394,8 +412,8 @@ func (api *APIServer) Start(addr string) {
 // GET /block?hash=...
 func (api *APIServer) handleGetBlock(w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("hash")
-	if hash == "" {
-		http.Error(w, "Missing block hash", http.StatusBadRequest)
+	if ve := ValidateHash(hash); ve != nil {
+		WriteValidationError(w, ve)
 		return
 	}
 	block := api.blockManager.GetBlockByHash(hash)
@@ -409,8 +427,8 @@ func (api *APIServer) handleGetBlock(w http.ResponseWriter, r *http.Request) {
 // GET /transaction?hash=...
 func (api *APIServer) handleGetTransaction(w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("hash")
-	if hash == "" {
-		http.Error(w, "Missing transaction hash", http.StatusBadRequest)
+	if ve := ValidateHash(hash); ve != nil {
+		WriteValidationError(w, ve)
 		return
 	}
 	tx := api.transactionManager.GetTransactionByHash(hash)
@@ -457,8 +475,8 @@ func (api *APIServer) handleSubmitTransaction(w http.ResponseWriter, r *http.Req
 // GET /balance?address=...
 func (api *APIServer) handleGetBalance(w http.ResponseWriter, r *http.Request) {
 	address := r.URL.Query().Get("address")
-	if address == "" {
-		http.Error(w, "Missing address", http.StatusBadRequest)
+	if ve := ValidateAddress(address); ve != nil {
+		WriteValidationError(w, ve)
 		return
 	}
 

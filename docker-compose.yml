@@ -1,7 +1,9 @@
 # =============================================================================
 # Cerca Network - Production Docker Compose
 # =============================================================================
-# Usage: docker compose up -d
+# Usage:
+#   1. Copy .env.example to .env and fill in secrets
+#   2. docker compose up -d
 # =============================================================================
 
 version: "3.9"
@@ -17,15 +19,19 @@ services:
     container_name: cerca-blockchain
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${API_PORT:-8080}:8080"
     volumes:
       - blockchain-data:/data
     environment:
       - API_PORT=8080
       - DATABASE_PATH=/data/blockchain.db
       - NODE_KEY_PATH=/data/nodekey.priv
-      - LOG_LEVEL=info
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
       - NETWORK_MODE=production
+      - TREASURY_MNEMONIC=${TREASURY_MNEMONIC}
+      - ADMIN_API_KEY=${ADMIN_API_KEY}
+      - BOOTSTRAP_PEERS=${BOOTSTRAP_PEERS:-}
     networks:
       - cerca-network
     healthcheck:
@@ -33,24 +39,30 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 15s
 
   # ---------------------------------------------------------------------------
-  # CercaEnd Frontend
+  # CercaEnd Frontend (Flutter Web)
   # ---------------------------------------------------------------------------
   frontend:
     build:
       context: ./cercaend
       dockerfile: Dockerfile
       args:
-        - BLOCKCHAIN_API_URL=http://blockchain:8080
+        - BLOCKCHAIN_API_URL=${BLOCKCHAIN_API_URL:-http://blockchain:8080}
+        - SUPABASE_URL=${SUPABASE_URL}
+        - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
     container_name: cerca-frontend
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       blockchain:
         condition: service_healthy
+    volumes:
+      - ./deploy/nginx/cercachain.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot-data:/etc/letsencrypt:ro
     networks:
       - cerca-network
     healthcheck:
@@ -59,6 +71,26 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # Admin Panel (React/Vite - Static Build)
+  # ---------------------------------------------------------------------------
+  admin:
+    build:
+      context: ./cerca-admin-panel
+      dockerfile: Dockerfile
+    container_name: cerca-admin-panel
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    depends_on:
+      blockchain:
+        condition: service_healthy
+    environment:
+      - VITE_NODE_URL=${BLOCKCHAIN_API_URL:-http://blockchain:8080}
+      - VITE_ADMIN_API_KEY=${ADMIN_API_KEY}
+    networks:
+      - cerca-network
 
 # -----------------------------------------------------------------------------
 # Networks
@@ -75,4 +107,6 @@ networks:
 # -----------------------------------------------------------------------------
 volumes:
   blockchain-data:
+    driver: local
+  certbot-data:
     driver: local

@@ -1,8 +1,26 @@
-// Central API config - change this to point to wherever the node is running
-export const NODE_URL = 'http://localhost:8080';
+// Central API config — uses environment variables for production builds.
+// For Vite, prefix env vars with VITE_ in .env files.
 
+export const NODE_URL = import.meta.env.VITE_NODE_URL || 'http://localhost:8080';
+const ADMIN_API_KEY = import.meta.env.VITE_ADMIN_API_KEY || '';
+
+/**
+ * Fetch wrapper that adds the admin API key to all requests.
+ * If VITE_ADMIN_API_KEY is not set, requests go without auth (dev mode).
+ */
 export async function apiFetch(path: string, options?: RequestInit) {
-  return fetch(`${NODE_URL}${path}`, options);
+  const headers: Record<string, string> = {
+    ...(options?.headers as Record<string, string>),
+  };
+
+  if (ADMIN_API_KEY) {
+    headers['Authorization'] = `Bearer ${ADMIN_API_KEY}`;
+  }
+
+  return fetch(`${NODE_URL}${path}`, {
+    ...options,
+    headers,
+  });
 }
 
 export function timeAgo(unixTimestamp: number): string {

@@ -631,10 +631,16 @@ func produceBlocks() {
 			}
 			log.Printf("✅ Chosen validator: %s (Our address: %s)", validator.Address, node.ValidatorAddress)
 
-			// DEBUG: Force allow if we are the only validator or if strict mode is disabled
-			isLocalValidator := true // DevNet OVERRIDE: Prevent chain stall if chosen validator is offline
+			// Real validator check: forge only when we are the chosen validator
+			// Fallback: if we are the ONLY validator, always allow (single-node devnet safety)
+			allValidators := consensusManager.GetAllValidators()
+			isLocalValidator := validator.Address == node.ValidatorAddress
+			if !isLocalValidator && len(allValidators) == 1 {
+				log.Printf("⚠️ Single-validator mode — assuming block production responsibility")
+				isLocalValidator = true
+			}
 
-			// If we are the validator (or forced), forge a new block
+			// If we are the chosen validator, forge a new block
 			if isLocalValidator {
 				log.Printf("🎯 We are the chosen validator! Attempting to forge block with %d transactions...", poolSize)
 

@@ -1,0 +1,188 @@
+name: CercaChain CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  GO_VERSION: '1.22'
+  FLUTTER_VERSION: '3.24.0'
+  NODE_VERSION: '20'
+
+jobs:
+  # ─────────────────────────── Go Blockchain Node ───────────────────────────
+  blockchain-lint-test:
+    name: Blockchain — Lint & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ATLAS.BC0.0.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: ATLAS.BC0.0.1/go.sum
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build -o atlas-node ./cmd/
+
+      - name: Test
+        run: go test ./... -v -race -timeout 120s
+
+  blockchain-build:
+    name: Blockchain — Cross-compile
+    needs: blockchain-lint-test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+        exclude:
+          - goos: windows
+            goarch: arm64
+    defaults:
+      run:
+        working-directory: ./ATLAS.BC0.0.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: ATLAS.BC0.0.1/go.sum
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          ext=""
+          if [ "$GOOS" = "windows" ]; then ext=".exe"; fi
+          go build -ldflags="-s -w" -o "dist/atlas-node-${GOOS}-${GOARCH}${ext}" ./cmd/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-node-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: ATLAS.BC0.0.1/dist/
+
+  # ─────────────────────────── Flutter App ──────────────────────────────────
+  flutter-analyze:
+    name: Flutter — Analyze
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cercaend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+        continue-on-error: true  # Allow warnings during migration period
+
+  flutter-build-web:
+    name: Flutter — Build Web
+    needs: flutter-analyze
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cercaend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build web
+        run: |
+          flutter build web --release \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
+            --dart-define=BLOCKCHAIN_API_URL=${{ secrets.BLOCKCHAIN_API_URL }}
+
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: cercaend-web
+          path: cercaend/build/web/
+
+  # ─────────────────────────── Admin Panel ──────────────────────────────────
+  admin-panel:
+    name: Admin Panel — Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cerca-admin-panel
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: cerca-admin-panel/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-panel
+          path: cerca-admin-panel/dist/
+
+  # ─────────────────────────── Docker Build ─────────────────────────────────
+  docker:
+    name: Docker — Build Images
+    needs: [blockchain-lint-test, flutter-analyze, admin-panel]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build blockchain image
+        run: |
+          docker build -t cerca-blockchain:latest ./ATLAS.BC0.0.1
+
+      - name: Build frontend image
+        run: |
+          docker build -t cerca-frontend:latest ./cercaend \
+            --build-arg BLOCKCHAIN_API_URL=${{ secrets.BLOCKCHAIN_API_URL }}
