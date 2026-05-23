@@ -8,7 +8,7 @@ import 'package:ecdsa/ecdsa.dart' as ecdsa;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // firebase_auth removed — using Supabase auth via auth_util.dart
 import 'blockchain_service.dart';
-import '/auth/firebase_auth/auth_util.dart';
+import '/auth/auth_util.dart';
 import 'bip39_words.dart';
 import '/backend/supabase/supabase.dart';
 

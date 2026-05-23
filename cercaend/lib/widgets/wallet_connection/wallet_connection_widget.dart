@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/services/blockchain/wallet_service.dart';
 import '/app_state.dart';
-import '/auth/firebase_auth/auth_util.dart';
+import '/auth/auth_util.dart';
 
 class WalletConnectionWidget extends StatefulWidget {
   const WalletConnectionWidget({super.key});

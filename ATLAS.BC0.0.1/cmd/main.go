@@ -6,6 +6,7 @@ import (
 	"atlas-blockchain/internal/defi"
 	"atlas-blockchain/internal/governance"
 	"atlas-blockchain/internal/identity"
+	"atlas-blockchain/internal/indexer"
 	"atlas-blockchain/internal/social"
 	"atlas-blockchain/pkg/block"
 	"atlas-blockchain/pkg/config"
@@ -49,6 +50,7 @@ var (
 	validatorMode      *bool
 	p2pNode            *network.P2PNode // Add P2P node
 	isTestMode         bool             // Flag to indicate if we're running in test mode
+	supabaseIndexer    *indexer.SupabaseIndexer
 )
 
 // SetTestMode sets the test mode flag
@@ -155,6 +157,9 @@ func main() {
 	// Initialize governance manager for proposals, voting, and community governance
 	governanceManager = governance.NewGovernanceManager(socialManager, defiManager, identityManager)
 
+	// Initialize Supabase Indexer
+	supabaseIndexer = indexer.NewSupabaseIndexer()
+
 	// Initialize shard manager
 	shardConfig := &sharding.ShardConfig{
 		TotalShards:     4,
@@ -257,6 +262,10 @@ func main() {
 		}
 		// 3. Remove transactions from mempool that were included in the block
 		transactionManager.RemoveTransactions(blk.Transactions)
+		// 4. Index the block to Supabase (hybrid consistency)
+		if supabaseIndexer != nil {
+			supabaseIndexer.ProcessBlock(blk)
+		}
 	})
 
 	// Example: Broadcast new transactions (if you have an event/callback for new transactions)

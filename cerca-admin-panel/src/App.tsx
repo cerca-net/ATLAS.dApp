@@ -23,6 +23,7 @@ import { ContractsPage }       from './components/ContractsPage';
 import { FaucetPage }          from './components/Faucet';
 import { TreasuryHistoryPage } from './components/TreasuryHistory';
 import { ArbitrationPage }     from './components/Arbitration';
+import { GovernancePage }      from './components/GovernancePage';
 
 type Page =
   | 'dashboard'
@@ -32,6 +33,7 @@ type Page =
   | 'treasury'
   | 'treasury-history'
   | 'arbitration'
+  | 'governance'
   | 'node-control'
   | 'peers';
 
@@ -55,6 +57,7 @@ const NAV: NavItem[] = [
   { id: 'treasury',          label: 'Treasury',           icon: <Coins size={18} />,           section: 'TREASURY' },
   { id: 'treasury-history',  label: 'Tx History',         icon: <History size={18} /> },
   { id: 'arbitration',       label: 'Arbitration',        icon: <Scale size={18} /> },
+  { id: 'governance',        label: 'Governance',         icon: <Scale size={18} /> },
 
   // ── NODE ──────────────────────────────────────
   { id: 'node-control',      label: 'Node Control',       icon: <Cpu size={18} />,             section: 'NODE' },
@@ -124,6 +127,7 @@ function App() {
           {active === 'treasury'         && <FaucetPage />}
           {active === 'treasury-history' && <TreasuryHistoryPage />}
           {active === 'arbitration'      && <ArbitrationPage />}
+          {active === 'governance'       && <GovernancePage />}
           {active === 'node-control'     && <NodeControlPage />}
           {active === 'peers'            && <PeersPage />}
         </div>

@@ -1,4 +1,4 @@
-import '/auth/firebase_auth/auth_util.dart';
+import '/auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/components/object/object_widget.dart';
 import '/flutter_flow/flutter_flow_audio_player.dart';

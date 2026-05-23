@@ -1,6 +1,6 @@
 import '/services/blockchain/wallet_service.dart';
 import '/services/blockchain/blockchain_service.dart';
-import '/auth/firebase_auth/auth_util.dart';
+import '/auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/components/catalogue/catalogue_widget.dart';
 import '/components/settings/settings_widget.dart';
