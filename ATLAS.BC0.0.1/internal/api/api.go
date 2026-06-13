@@ -937,6 +937,15 @@ func (api *APIServer) handleAdminFaucet(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Broadcast transaction to network
+	if api.p2pNode != nil {
+		go func() {
+			if err := api.p2pNode.BroadcastTransaction(tx); err != nil {
+				log.Printf("[ADMIN FAUCET] Failed to broadcast transaction: %v", err)
+			}
+		}()
+	}
+
 	log.Printf("[ADMIN FAUCET] 💸 Emitted %d TCOIN from Treasury to %s", req.Amount, req.Address)
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
