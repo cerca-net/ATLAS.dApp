@@ -38,9 +38,14 @@ export function PeersPage() {
       const res = await apiFetch('/connect-peer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: newPeerAddr }),
+        body: JSON.stringify({ peer_address: newPeerAddr }),
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (err) {
+        data = { message: 'Invalid server response' };
+      }
       setConnectMsg(data.message || (res.ok ? 'Connected!' : 'Failed to connect'));
       if (res.ok) { setNewPeerAddr(''); fetchData(); }
     } catch (e: any) {
