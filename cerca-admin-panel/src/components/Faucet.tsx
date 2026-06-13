@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Droplet, Send, AlertTriangle, CheckCircle } from 'lucide-react';
+import { apiFetch } from '../api';
 
 const NODE_URL = 'http://localhost:8080';
 
@@ -41,7 +42,7 @@ export function FaucetPage() {
     setSubmitting(true);
     setLastTxHash('');
     try {
-      const response = await fetch(`${NODE_URL}/admin/faucet`, {
+      const response = await apiFetch('/admin/faucet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address, amount: parseInt(amount, 10) }),
