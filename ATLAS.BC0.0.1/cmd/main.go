@@ -29,6 +29,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 
@@ -59,6 +60,11 @@ func SetTestMode(enabled bool) {
 }
 
 func main() {
+	// Try to load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Printf("⚠️  No .env file found or error loading it: %v", err)
+	}
+
 	// Parse command line flags early
 	port := flag.Int("port", 8000, "Port for peer discovery")
 	maxPeers := flag.Int("peers", 10, "Maximum number of peers")

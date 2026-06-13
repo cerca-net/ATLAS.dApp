@@ -35,3 +35,5 @@ export '/secondarypages/userrating/userrating_widget.dart'
     show UserratingWidget;
 export '/mainpages/m_a_i_n001_copy/m_a_i_n001_copy_widget.dart'
     show MAIN001CopyWidget;
+export '/secondarypages/settingspages/system/connection_settings_widget.dart'
+    show ConnectionSettingsWidget;

@@ -50,6 +50,7 @@ export function PeersPage() {
   };
 
   const peerList: any[] = peers.peers || [];
+  const totalStaked = validators.reduce((sum, v: any) => sum + (Number(v.Stake || v.stake) || 0), 0);
 
   return (
     <>
@@ -70,11 +71,11 @@ export function PeersPage() {
         </div>
         <div className="stat-card">
           <div className="stat-card-title">Total Staked</div>
-          <div className="stat-card-value">{formatNumber(staking.total_staked ?? 0)} T</div>
+          <div className="stat-card-value">{formatNumber(totalStaked)} T</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-title">Min Stake</div>
-          <div className="stat-card-value">{formatNumber(staking.minimum_stake ?? 0)} T</div>
+          <div className="stat-card-value">{formatNumber(staking?.min_stake ?? 0)} T</div>
         </div>
       </div>
 

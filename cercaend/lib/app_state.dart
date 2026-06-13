@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FFAppState extends ChangeNotifier {
   static FFAppState _instance = FFAppState._internal();
@@ -13,7 +14,14 @@ class FFAppState extends ChangeNotifier {
     _instance = FFAppState._internal();
   }
 
-  Future initializePersistedState() async {}
+  Future initializePersistedState() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isLocalNodeMode = prefs.getBool('isLocalNodeMode') ?? false;
+    _localNodeUrl = prefs.getString('localNodeUrl') ?? 'http://localhost:8081';
+    _remoteNodeUrl = prefs.getString('remoteNodeUrl') ?? 'http://localhost:8080';
+    _adminApiKey = prefs.getString('adminApiKey') ?? 'cerca-dev-admin-secret-key';
+    _blockchainUrl = _isLocalNodeMode ? _localNodeUrl : _remoteNodeUrl;
+  }
 
   void update(VoidCallback callback) {
     callback();
@@ -197,10 +205,49 @@ class FFAppState extends ChangeNotifier {
     _connectionError = value;
   }
 
-  String _blockchainUrl = '';
-  String get blockchainUrl => _blockchainUrl;
+  String _blockchainUrl = 'http://localhost:8080';
+  String get blockchainUrl => _blockchainUrl.isNotEmpty ? _blockchainUrl : (_isLocalNodeMode ? _localNodeUrl : _remoteNodeUrl);
   set blockchainUrl(String value) {
     _blockchainUrl = value;
+  }
+
+  bool _isLocalNodeMode = false;
+  bool get isLocalNodeMode => _isLocalNodeMode;
+  set isLocalNodeMode(bool value) {
+    _isLocalNodeMode = value;
+    blockchainUrl = value ? _localNodeUrl : _remoteNodeUrl;
+    SharedPreferences.getInstance().then((prefs) => prefs.setBool('isLocalNodeMode', value));
+    notifyListeners();
+  }
+
+  String _localNodeUrl = 'http://localhost:8081';
+  String get localNodeUrl => _localNodeUrl;
+  set localNodeUrl(String value) {
+    _localNodeUrl = value;
+    if (_isLocalNodeMode) {
+      blockchainUrl = value;
+    }
+    SharedPreferences.getInstance().then((prefs) => prefs.setString('localNodeUrl', value));
+    notifyListeners();
+  }
+
+  String _remoteNodeUrl = 'http://localhost:8080';
+  String get remoteNodeUrl => _remoteNodeUrl;
+  set remoteNodeUrl(String value) {
+    _remoteNodeUrl = value;
+    if (!_isLocalNodeMode) {
+      blockchainUrl = value;
+    }
+    SharedPreferences.getInstance().then((prefs) => prefs.setString('remoteNodeUrl', value));
+    notifyListeners();
+  }
+
+  String _adminApiKey = 'cerca-dev-admin-secret-key';
+  String get adminApiKey => _adminApiKey;
+  set adminApiKey(String value) {
+    _adminApiKey = value;
+    SharedPreferences.getInstance().then((prefs) => prefs.setString('adminApiKey', value));
+    notifyListeners();
   }
 
   String _contactAdress = '';

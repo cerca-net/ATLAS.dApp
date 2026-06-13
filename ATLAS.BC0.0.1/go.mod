@@ -5,6 +5,7 @@ go 1.24.6
 require (
 	github.com/consensys/gnark v0.14.0
 	github.com/consensys/gnark-crypto v0.19.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/libp2p/go-libp2p v0.47.0
 	github.com/libp2p/go-libp2p-pubsub v0.15.0
 	github.com/mattn/go-sqlite3 v1.14.29
@@ -35,6 +36,7 @@ require (
 	github.com/ipfs/go-cid v0.5.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jbenet/go-temp-err-catcher v0.1.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/koron/go-ssdp v0.0.6 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect

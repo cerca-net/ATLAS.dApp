@@ -1,19 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../app_state.dart';
 
 /// Blockchain service for integrating with ATLAS blockchain
 class BlockchainService {
-  final String baseUrl;
+  final String? _customBaseUrl;
 
-  /// URL is configurable via --dart-define=BLOCKCHAIN_API_URL=...
-  /// Defaults to localhost:8081 for local development.
+  String get baseUrl => _customBaseUrl ?? (FFAppState().blockchainUrl.isNotEmpty ? FFAppState().blockchainUrl : _defaultUrl);
+
   static const String _defaultUrl = String.fromEnvironment(
     'BLOCKCHAIN_API_URL',
-    defaultValue: 'http://localhost:8081',
+    defaultValue: 'http://localhost:8080',
   );
 
-  BlockchainService({this.baseUrl = _defaultUrl}); // Local App Node
+  BlockchainService({String? baseUrl}) : _customBaseUrl = baseUrl;
 
   /// Connect wallet to ATLAS blockchain
   Future<WalletConnectionResponse> connectWallet(
@@ -119,7 +120,13 @@ class BlockchainService {
   /// Start the node
   Future<void> startNode() async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/node/start'));
+      final response = await http.post(
+        Uri.parse('$baseUrl/node/start'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${FFAppState().adminApiKey}',
+        },
+      );
       if (response.statusCode != 200) {
         throw BlockchainException('Failed to start node: ${response.body}');
       }
@@ -131,7 +138,13 @@ class BlockchainService {
   /// Stop the node
   Future<void> stopNode() async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/node/stop'));
+      final response = await http.post(
+        Uri.parse('$baseUrl/node/stop'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${FFAppState().adminApiKey}',
+        },
+      );
       if (response.statusCode != 200) {
         throw BlockchainException('Failed to stop node: ${response.body}');
       }
@@ -143,7 +156,13 @@ class BlockchainService {
   /// Pause the node
   Future<void> pauseNode() async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/node/pause'));
+      final response = await http.post(
+        Uri.parse('$baseUrl/node/pause'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${FFAppState().adminApiKey}',
+        },
+      );
       if (response.statusCode != 200) {
         throw BlockchainException('Failed to pause node: ${response.body}');
       }
@@ -155,7 +174,13 @@ class BlockchainService {
   /// Sync the node
   Future<void> syncNode() async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/node/sync'));
+      final response = await http.post(
+        Uri.parse('$baseUrl/node/sync'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${FFAppState().adminApiKey}',
+        },
+      );
       if (response.statusCode != 200) {
         throw BlockchainException('Failed to sync node: ${response.body}');
       }
@@ -196,7 +221,12 @@ class BlockchainService {
   /// Get node status
   Future<NodeStatusResponse> getNodeStatus() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/node/status'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/node/status'),
+        headers: {
+          'Authorization': 'Bearer ${FFAppState().adminApiKey}',
+        },
+      );
       if (response.statusCode == 200) {
         return NodeStatusResponse.fromJson(jsonDecode(response.body));
       } else {
@@ -211,8 +241,12 @@ class BlockchainService {
   /// Get node logs
   Future<NodeLogsResponse> getNodeLogs({int limit = 50}) async {
     try {
-      final response =
-          await http.get(Uri.parse('$baseUrl/node/logs?limit=$limit'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/node/logs?limit=$limit'),
+        headers: {
+          'Authorization': 'Bearer ${FFAppState().adminApiKey}',
+        },
+      );
       if (response.statusCode == 200) {
         return NodeLogsResponse.fromJson(jsonDecode(response.body));
       } else {

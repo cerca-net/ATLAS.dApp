@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/blockchain/blockchain_service.dart';
+import '../../app_state.dart';
 
 class NodeDashboardWidget extends StatefulWidget {
   const NodeDashboardWidget({super.key});
@@ -27,8 +28,13 @@ class NodeDashboardWidgetState extends State<NodeDashboardWidget> {
   void initState() {
     super.initState();
     _refreshData();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+    if (FFAppState().isLocalNodeMode) {
       _pollLogs();
+    }
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (FFAppState().isLocalNodeMode) {
+        _pollLogs();
+      }
       _refreshData(isBackground: true);
     });
   }
@@ -68,6 +74,7 @@ class NodeDashboardWidgetState extends State<NodeDashboardWidget> {
   }
 
   Future<void> _pollLogs() async {
+    if (!FFAppState().isLocalNodeMode) return;
     try {
       final logsReq = await _blockchainService.getNodeLogs(limit: 50);
       if (mounted) {
@@ -174,6 +181,7 @@ class NodeDashboardWidgetState extends State<NodeDashboardWidget> {
   }
 
   Widget _buildControlsCard() {
+    final isLocal = FFAppState().isLocalNodeMode;
     return Card(
       color: const Color(0xFF27293D),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -184,14 +192,37 @@ class NodeDashboardWidgetState extends State<NodeDashboardWidget> {
           children: [
             const Text('Node Controls', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
+            if (!isLocal) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Local node controls are disabled when connected to a remote seed node.',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             Wrap(
               spacing: 12,
               runSpacing: 12,
               children: [
-                _buildButton(Icons.play_arrow, 'Start', Colors.green, () => _executeNodeCommand('start')),
-                _buildButton(Icons.pause, 'Pause', Colors.orange, () => _executeNodeCommand('pause')),
-                _buildButton(Icons.stop, 'Stop', Colors.red, () => _executeNodeCommand('stop')),
-                _buildButton(Icons.sync, 'Sync', Colors.blue, () => _executeNodeCommand('sync')),
+                _buildButton(Icons.play_arrow, 'Start', Colors.green, isLocal ? () => _executeNodeCommand('start') : null),
+                _buildButton(Icons.pause, 'Pause', Colors.orange, isLocal ? () => _executeNodeCommand('pause') : null),
+                _buildButton(Icons.stop, 'Stop', Colors.red, isLocal ? () => _executeNodeCommand('stop') : null),
+                _buildButton(Icons.sync, 'Sync', Colors.blue, isLocal ? () => _executeNodeCommand('sync') : null),
               ],
             )
           ],
@@ -200,12 +231,12 @@ class NodeDashboardWidgetState extends State<NodeDashboardWidget> {
     );
   }
 
-  Widget _buildButton(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildButton(IconData icon, String label, Color color, VoidCallback? onTap) {
     return ElevatedButton.icon(
-      icon: Icon(icon, color: Colors.white, size: 18),
-      label: Text(label, style: const TextStyle(color: Colors.white)),
+      icon: Icon(icon, color: onTap == null ? Colors.white30 : Colors.white, size: 18),
+      label: Text(label, style: TextStyle(color: onTap == null ? Colors.white30 : Colors.white)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: color,
+        backgroundColor: onTap == null ? const Color(0xFF3A3B4C) : color,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -253,6 +284,7 @@ class NodeDashboardWidgetState extends State<NodeDashboardWidget> {
   }
 
   Widget _buildTerminalCard() {
+    final isLocal = FFAppState().isLocalNodeMode;
     return Card(
       color: const Color(0xFF13131A), // Darker for terminal
       shape: RoundedRectangleBorder(side: const BorderSide(color: Colors.white12), borderRadius: BorderRadius.circular(12)),
@@ -276,7 +308,7 @@ class NodeDashboardWidgetState extends State<NodeDashboardWidget> {
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: ListView.builder(
+              child: isLocal ? ListView.builder(
                 controller: _logScrollController,
                 itemCount: _logs.length,
                 itemBuilder: (context, index) {
@@ -286,11 +318,24 @@ class NodeDashboardWidgetState extends State<NodeDashboardWidget> {
                   else if (log.level.toLowerCase().contains('warn')) { logColor = Colors.orangeAccent; }
                   else if (log.level.toLowerCase().contains('info')) { logColor = Colors.greenAccent; }
 
-            return Padding(
+                  return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2.0),
                     child: Text('[${log.level.toUpperCase()}] ${log.timestamp}: ${log.message}', style: TextStyle(color: logColor, fontFamily: 'monospace', fontSize: 12)),
                   );
                 },
+              ) : const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.lock_outline, color: Colors.white30, size: 48),
+                    SizedBox(height: 12),
+                    Text(
+                      'Terminal logs are disabled in remote node mode.',
+                      style: TextStyle(color: Colors.white30, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             )
           ],

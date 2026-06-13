@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import '../../mainpages/userpage/userpage_model.dart';
 import '../../flutter_flow/flutter_flow_theme.dart';
+import '../../secondarypages/settingspages/system/connection_settings_widget.dart';
 
 class NodeValidatorCardWidget extends StatelessWidget {
   final UserpageModel model;
@@ -178,41 +180,54 @@ class NodeValidatorCardWidget extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: (model.networkStatus?.isValidator == true)
-                          ? Colors.green.withValues(alpha: 0.2)
-                          : Colors.grey.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: (model.nodeStatus?.state == 'running')
-                                ? Colors.greenAccent
-                                : (model.nodeStatus?.state == 'paused'
-                                    ? Colors.amber
-                                    : Colors.grey),
-                            shape: BoxShape.circle,
-                          ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (model.networkStatus?.isValidator == true)
+                              ? Colors.green.withValues(alpha: 0.2)
+                              : Colors.grey.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          (model.networkStatus?.isValidator == true)
-                              ? 'ONLINE'
-                              : 'OFFLINE',
-                          style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: (model.nodeStatus?.state == 'running')
+                                    ? Colors.greenAccent
+                                    : (model.nodeStatus?.state == 'paused'
+                                        ? Colors.amber
+                                        : Colors.grey),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              (model.networkStatus?.isValidator == true)
+                                  ? 'ONLINE'
+                                  : 'OFFLINE',
+                              style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.settings_outlined, color: Colors.white70, size: 20),
+                        onPressed: () {
+                          context.pushNamed(ConnectionSettingsWidget.routeName);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

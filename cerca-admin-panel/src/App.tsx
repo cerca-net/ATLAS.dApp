@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Cpu,
@@ -11,6 +11,8 @@ import {
   Network,
   Activity,
   History,
+  LogOut,
+  Loader2,
 } from 'lucide-react';
 import './App.css';
 
@@ -24,6 +26,8 @@ import { FaucetPage }          from './components/Faucet';
 import { TreasuryHistoryPage } from './components/TreasuryHistory';
 import { ArbitrationPage }     from './components/Arbitration';
 import { GovernancePage }      from './components/GovernancePage';
+import { LoginPage }           from './components/Login';
+import { supabase }            from './supabaseClient';
 
 type Page =
   | 'dashboard'
@@ -66,6 +70,66 @@ const NAV: NavItem[] = [
 
 function App() {
   const [active, setActive] = useState<Page>('dashboard');
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Monitor auth state changes
+  useEffect(() => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (initialSession) {
+        const user = initialSession.user;
+        const role = user.app_metadata?.role || user.user_metadata?.role;
+        if (role === 'admin') {
+          setSession(initialSession);
+        } else {
+          supabase.auth.signOut();
+        }
+      }
+      setLoading(false);
+    });
+
+    // Handle authentication updates
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+      if (currentSession) {
+        const user = currentSession.user;
+        const role = user.app_metadata?.role || user.user_metadata?.role;
+        if (role === 'admin') {
+          setSession(currentSession);
+        } else {
+          await supabase.auth.signOut();
+          setSession(null);
+        }
+      } else {
+        setSession(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setLoading(true);
+    await supabase.auth.signOut();
+    setSession(null);
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="login-overlay" style={{ flexDirection: 'column', gap: '1rem' }}>
+        <Loader2 size={36} className="spinner" style={{ color: 'var(--accent-primary)' }} />
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading Admin Workspace...</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <LoginPage onAuthSuccess={(sess) => setSession(sess)} />;
+  }
 
   return (
     <div className="app-container">
@@ -105,13 +169,38 @@ function App() {
           ))}
         </nav>
 
-        <div className="sidebar-footer" style={{ marginTop: 'auto', fontSize: '0.75rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
-            <Activity size={11} color="var(--accent-success)" />
-            <span style={{ color: 'var(--accent-success)' }}>API Connected</span>
+        <div className="sidebar-footer" style={{ marginTop: 'auto', fontSize: '0.75rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
+              <Activity size={11} color="var(--accent-success)" />
+              <span style={{ color: 'var(--accent-success)' }}>API Connected</span>
+            </div>
+            <div>localhost:8080</div>
+            <div>v0.0.1 · ATLAS.BC0.0.1</div>
           </div>
-          <div>localhost:8080</div>
-          <div>v0.0.1 · ATLAS.BC0.0.1</div>
+
+          <button
+            onClick={handleLogout}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              width: '100%',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              color: '#fca5a5',
+              padding: '0.55rem 0.75rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.75rem',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <LogOut size={13} />
+            Sign Out
+          </button>
         </div>
       </aside>
 

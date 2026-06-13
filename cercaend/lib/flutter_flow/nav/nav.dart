@@ -225,6 +225,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           builder: (context, params) => const SystemWidget(),
         ),
         FFRoute(
+          name: ConnectionSettingsWidget.routeName,
+          path: ConnectionSettingsWidget.routePath,
+          builder: (context, params) => const ConnectionSettingsWidget(),
+        ),
+        FFRoute(
           name: PinnedObjectsWidget.routeName,
           path: PinnedObjectsWidget.routePath,
           builder: (context, params) => const PinnedObjectsWidget(),

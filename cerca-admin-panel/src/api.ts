@@ -1,19 +1,23 @@
-// Central API config — uses environment variables for production builds.
-// For Vite, prefix env vars with VITE_ in .env files.
+import { supabase } from './supabaseClient';
 
 export const NODE_URL = import.meta.env.VITE_NODE_URL || 'http://localhost:8080';
-const ADMIN_API_KEY = import.meta.env.VITE_ADMIN_API_KEY || '';
+const ADMIN_API_KEY = import.meta.env.VITE_ADMIN_API_KEY || 'cerca-dev-admin-secret-key';
 
 /**
- * Fetch wrapper that adds the admin API key to all requests.
- * If VITE_ADMIN_API_KEY is not set, requests go without auth (dev mode).
+ * Fetch wrapper that adds the admin API key or Supabase user JWT to all requests.
  */
 export async function apiFetch(path: string, options?: RequestInit) {
   const headers: Record<string, string> = {
     ...(options?.headers as Record<string, string>),
   };
 
-  if (ADMIN_API_KEY) {
+  // Dynamically obtain the Supabase access token (JWT)
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  } else if (ADMIN_API_KEY) {
     headers['Authorization'] = `Bearer ${ADMIN_API_KEY}`;
   }
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Shield } from 'lucide-react';
+import { apiFetch } from '../api';
 
 interface Proposal {
   ID: string;
@@ -25,10 +26,13 @@ export const GovernancePage: React.FC = () => {
   const fetchGovernance = async () => {
     try {
       const [propRes, statRes] = await Promise.all([
-        fetch(`${API_BASE}/governance/proposals`),
-        fetch(`${API_BASE}/governance/stats`)
+        apiFetch('/governance/proposals'),
+        apiFetch('/governance/stats')
       ]);
-      if (propRes.ok) setProposals(await propRes.json());
+      if (propRes.ok) {
+        const data = await propRes.json();
+        setProposals(Array.isArray(data) ? data : (data?.proposals || []));
+      }
       if (statRes.ok) setStats(await statRes.json());
     } catch (err: any) {
       setError(err.message || 'Failed to fetch governance data');
@@ -42,7 +46,7 @@ export const GovernancePage: React.FC = () => {
   const handleCreateProposal = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE}/governance/submit-proposal`, {
+      const res = await apiFetch('/governance/submit-proposal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProp)
@@ -58,7 +62,7 @@ export const GovernancePage: React.FC = () => {
   const handleVote = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE}/governance/vote`, {
+      const res = await apiFetch('/governance/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(vote)
