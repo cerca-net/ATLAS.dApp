@@ -42,9 +42,14 @@ export function PeersPage() {
       });
       let data;
       try {
-        data = await res.json();
+        const text = await res.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { message: text || 'Invalid server response' };
+        }
       } catch (err) {
-        data = { message: 'Invalid server response' };
+        data = { message: 'Network error' };
       }
       setConnectMsg(data.message || (res.ok ? 'Connected!' : 'Failed to connect'));
       if (res.ok) { setNewPeerAddr(''); fetchData(); }
