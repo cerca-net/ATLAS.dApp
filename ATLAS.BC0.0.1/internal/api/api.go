@@ -591,7 +591,7 @@ func (api *APIServer) handleGetPeers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	peers := api.p2pNode.Host.Peerstore().Peers()
+	peers := api.p2pNode.Host.Network().Peers()
 	peerList := make([]map[string]interface{}, 0)
 
 	for _, peerID := range peers {
