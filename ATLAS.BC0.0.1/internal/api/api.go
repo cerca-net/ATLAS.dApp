@@ -195,16 +195,64 @@ func NewAPIServer(bm *blockchain.BlockManager, tm *blockchain.TransactionManager
 	return api
 }
 
+var (
+	corsAllowedOrigins []string
+	corsInitOnce       sync.Once
+)
+
+func initCORS() {
+	corsInitOnce.Do(func() {
+		originsStr := os.Getenv("CORS_ALLOWED_ORIGINS")
+		if originsStr == "" {
+			log.Printf("[API] Warning: CORS_ALLOWED_ORIGINS is unset. Defaulting to fully open CORS '*'")
+			return
+		}
+		for _, o := range strings.Split(originsStr, ",") {
+			o = strings.TrimSpace(o)
+			if o != "" {
+				corsAllowedOrigins = append(corsAllowedOrigins, o)
+			}
+		}
+		log.Printf("[API] CORS initialized with allowed origins: %v", corsAllowedOrigins)
+	})
+}
+
 func withCORS(handler http.HandlerFunc) http.HandlerFunc {
+	initCORS()
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Log the request for debugging
 		log.Printf("[API] Handling %s request for %s", r.Method, r.URL.Path)
 
 		origin := r.Header.Get("Origin")
-		if origin != "" {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
+		var allowedOrigin string
+
+		if len(corsAllowedOrigins) == 0 {
+			// CORS is fully open
+			if origin != "" {
+				allowedOrigin = origin
+			} else {
+				allowedOrigin = "*"
+			}
 		} else {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
+			// CORS is restricted. Verify the request's origin matches allowed list.
+			isAllowed := false
+			for _, allowed := range corsAllowedOrigins {
+				if allowed == origin {
+					isAllowed = true
+					break
+				}
+			}
+			if isAllowed {
+				allowedOrigin = origin
+			} else if origin != "" {
+				log.Printf("[API] Blocked request from unauthorized Origin: %s", origin)
+				w.WriteHeader(http.StatusForbidden)
+				return
+			}
+		}
+
+		if allowedOrigin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		}
 
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")

@@ -26,6 +26,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -76,6 +77,7 @@ func main() {
 	dataDir := flag.String("datadir", ".", "Directory to store blockchain data (db, snapshots, backups)")
 	validatorKeyPath := flag.String("validator-key", "", "Path to validator private key file (hex). If empty, generates ephemeral wallet.")
 	genesisFile := flag.String("genesis", "genesis.json", "Path to genesis.json file")
+	bootstrapFlag := flag.String("bootstrap", "", "Comma-separated list of bootstrap multiaddresses to dial at startup")
 	flag.Parse()
 
 	// Set test mode flag
@@ -220,22 +222,39 @@ func main() {
 	}
 	log.Printf("[DEBUG] Peerstore peers at startup: %v", p2pNode.Host.Peerstore().Peers())
 
-	// Improved: Always attempt manual connection if NODE1_MULTIADDR is set
-	addrStr := os.Getenv("NODE1_MULTIADDR")
-	if addrStr != "" {
-		log.Printf("[P2P] Attempting manual connection to: %s", addrStr)
-		info, err := peer.AddrInfoFromString(addrStr)
-		if err == nil {
-			log.Printf("[DEBUG] Peerstore before connect: %v", p2pNode.Host.Peerstore().Peers())
-			if err := p2pNode.Host.Connect(ctx, *info); err != nil {
-				log.Printf("[P2P] Failed to connect to peer: %v (%T)", err, err)
-			} else {
-				log.Printf("[P2P] Successfully connected to peer: %s", info.ID.String())
+	// Write our multiaddr to <datadir>/multiaddr.txt for script discovery
+	multiaddrFile := filepath.Join(*dataDir, "multiaddr.txt")
+	if err := p2pNode.WriteMultiaddressToFile(multiaddrFile); err != nil {
+		log.Printf("[P2P] Warning: failed to write multiaddr to file: %v", err)
+	}
+
+	// Parse bootstrap peers
+	var bootstrapPeers []string
+	bootstrapStr := *bootstrapFlag
+	if bootstrapStr == "" {
+		bootstrapStr = os.Getenv("BOOTSTRAP_PEERS")
+	}
+	if bootstrapStr != "" {
+		for _, p := range strings.Split(bootstrapStr, ",") {
+			p = strings.TrimSpace(p)
+			if p != "" {
+				bootstrapPeers = append(bootstrapPeers, p)
 			}
-			log.Printf("[DEBUG] Peerstore after connect: %v", p2pNode.Host.Peerstore().Peers())
-		} else {
-			log.Printf("[P2P] Invalid multiaddress: %v", err)
 		}
+	}
+	// Backward compatibility fallback to NODE1_MULTIADDR
+	if len(bootstrapPeers) == 0 {
+		node1Str := os.Getenv("NODE1_MULTIADDR")
+		if node1Str != "" {
+			bootstrapPeers = append(bootstrapPeers, node1Str)
+		}
+	}
+
+	// Connect to bootstrap peers
+	if len(bootstrapPeers) > 0 {
+		log.Printf("[P2P] Attempting to connect to bootstrap peers: %v", bootstrapPeers)
+		connectedPeers := p2pNode.ConnectToBootstrapPeers(ctx, bootstrapPeers)
+		log.Printf("[P2P] Connected to %d/%d bootstrap peers: %v", len(connectedPeers), len(bootstrapPeers), connectedPeers)
 	}
 
 	// Assign block and transaction processing callbacks

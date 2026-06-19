@@ -8,8 +8,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
+	"path/filepath"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/libp2p/go-libp2p"
@@ -351,5 +354,138 @@ func (node *P2PNode) BroadcastMessage(ctx context.Context, msg NetworkMessage) e
 	}
 
 	log.Printf("[P2P] Broadcasted %s to %d peers", msg.Type, successCount)
+	return nil
+}
+
+// ConnectToBootstrapPeers connects to a list of bootstrap peer multiaddresses.
+// It returns the slice of Peer IDs that were successfully connected to.
+func (node *P2PNode) ConnectToBootstrapPeers(ctx context.Context, addresses []string) []peer.ID {
+	var connected []peer.ID
+	for _, addr := range addresses {
+		addr = strings.TrimSpace(addr)
+		if addr == "" {
+			continue
+		}
+		log.Printf("[P2P] Parsing bootstrap address: %s", addr)
+		info, err := peer.AddrInfoFromString(addr)
+		if err != nil {
+			log.Printf("[P2P] Invalid bootstrap multiaddress '%s': %v", addr, err)
+			continue
+		}
+
+		// Don't connect to ourselves
+		if info.ID == node.Host.ID() {
+			log.Printf("[P2P] Skipping bootstrap address: self-connection (%s)", info.ID)
+			continue
+		}
+
+		// Attempt manual connection with retries
+		connectedToPeer := false
+		maxAttempts := 3
+		backoff := 5 * time.Second
+
+		for attempt := 1; attempt <= maxAttempts; attempt++ {
+			log.Printf("[P2P] Attempt %d/%d to connect to bootstrap peer: %s", attempt, maxAttempts, info.ID)
+			dialCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			err = node.Host.Connect(dialCtx, *info)
+			cancel()
+
+			if err == nil {
+				log.Printf("[P2P] Successfully connected to bootstrap peer: %s (attempt %d)", info.ID, attempt)
+				connected = append(connected, info.ID)
+				connectedToPeer = true
+				break
+			}
+
+			log.Printf("[P2P] Failed to connect to bootstrap peer %s (attempt %d): %v", info.ID, attempt, err)
+			if attempt < maxAttempts {
+				select {
+				case <-ctx.Done():
+					log.Printf("[P2P] Connection aborted due to context cancellation")
+					return connected
+				case <-time.After(backoff):
+				}
+			}
+		}
+
+		if !connectedToPeer {
+			log.Printf("[P2P] Exhausted retry attempts to connect to bootstrap peer: %s", info.ID)
+		}
+	}
+	return connected
+}
+
+// GetMultiaddress returns a representable multiaddress for this node,
+// prioritizing a non-loopback IPv4 address if available.
+func (node *P2PNode) GetMultiaddress() string {
+	peerID := node.Host.ID().String()
+	
+	// Try to find a non-loopback address in Host.Addrs() first
+	var fallback string
+	for _, addr := range node.Host.Addrs() {
+		addrStr := addr.String()
+		// If it's not a loopback address or wildcard, we can use it
+		if !strings.Contains(addrStr, "/127.0.0.1") && !strings.Contains(addrStr, "/0.0.0.0") && !strings.Contains(addrStr, "/::1") {
+			return fmt.Sprintf("%s/p2p/%s", addrStr, peerID)
+		}
+		if strings.Contains(addrStr, "/127.0.0.1") && fallback == "" {
+			fallback = fmt.Sprintf("%s/p2p/%s", addrStr, peerID)
+		}
+	}
+
+	// If we only have wildcard (0.0.0.0) addresses, let's resolve our local IP
+	localIP := getLocalIP()
+	if localIP != "" {
+		for _, addr := range node.Host.Addrs() {
+			addrStr := addr.String()
+			// Replace 0.0.0.0 with our actual local IP
+			if strings.Contains(addrStr, "/0.0.0.0") {
+				replaced := strings.Replace(addrStr, "/0.0.0.0", "/"+localIP, 1)
+				return fmt.Sprintf("%s/p2p/%s", replaced, peerID)
+			}
+		}
+	}
+
+	if fallback != "" {
+		return fallback
+	}
+
+	// Ultimate fallback: if no addresses exist, just use loopback with port 8000
+	return fmt.Sprintf("/ip4/127.0.0.1/tcp/8000/p2p/%s", peerID)
+}
+
+// getLocalIP finds a non-loopback IPv4 address on the host interfaces.
+func getLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, address := range addrs {
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
+}
+
+// WriteMultiaddressToFile writes the node's representable multiaddress to the specified file path.
+func (node *P2PNode) WriteMultiaddressToFile(filePath string) error {
+	multiaddr := node.GetMultiaddress()
+	
+	// Ensure parent directory exists
+	dir := filepath.Dir(filePath)
+	if dir != "" && dir != "." {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("failed to create directory for multiaddress file: %v", err)
+		}
+	}
+
+	err := ioutil.WriteFile(filePath, []byte(multiaddr), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write multiaddress to %s: %v", filePath, err)
+	}
+	log.Printf("[P2P] Wrote multiaddress to %s: %s", filePath, multiaddr)
 	return nil
 }

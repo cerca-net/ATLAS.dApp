@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -47,12 +46,15 @@ func AdminAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		currentSupabaseSecret := os.Getenv("SUPABASE_JWT_SECRET")
 
 		if currentSupabaseSecret != "" {
-			// Extract claims using ParseUnverified to bypass ES256 signature check temporarily
-			// TODO: Implement JWKS fetching to securely verify ES256 signatures in production!
-			token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
-			if err != nil {
-				log.Printf("⚠️ Auth failed: Could not parse token: %v", err)
-				http.Error(w, fmt.Sprintf(`{"error":"forbidden","message":"Invalid token format: %v"}`, err), http.StatusForbidden)
+			token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+				}
+				return []byte(currentSupabaseSecret), nil
+			})
+			if err != nil || !token.Valid {
+				log.Printf("⚠️ Auth failed: Invalid token: %v", err)
+				http.Error(w, fmt.Sprintf(`{"error":"forbidden","message":"Invalid token: %v"}`, err), http.StatusForbidden)
 				return
 			}
 
@@ -60,14 +62,6 @@ func AdminAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			if !ok {
 				http.Error(w, `{"error":"forbidden","message":"Invalid token claims"}`, http.StatusForbidden)
 				return
-			}
-
-			// Check expiration
-			if expFloat, ok := claims["exp"].(float64); ok {
-				if time.Now().Unix() > int64(expFloat) {
-					http.Error(w, `{"error":"forbidden","message":"Token has expired"}`, http.StatusForbidden)
-					return
-				}
 			}
 
 			// Check role in app_metadata or user_metadata

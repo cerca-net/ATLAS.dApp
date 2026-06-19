@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../services/blockchain/blockchain_service.dart';
 import '../../app_state.dart';
@@ -192,6 +193,29 @@ class NodeDashboardWidgetState extends State<NodeDashboardWidget> {
           children: [
             const Text('Node Controls', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
+            if (kIsWeb && isLocal) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orangeAccent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.2)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.orangeAccent, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Running in Web Browser: Web apps cannot spawn or directly control background node processes. Please download the ATLAS Desktop app or run the node daemon manually on your machine.',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             if (!isLocal) ...[
               Container(
                 padding: const EdgeInsets.all(12),
