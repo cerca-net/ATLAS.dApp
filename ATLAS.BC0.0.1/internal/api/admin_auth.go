@@ -43,8 +43,19 @@ func AdminAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		tokenStr := auth[len(prefix):]
 
 		// Fetch env keys dynamically inside the handler to adapt to config changes/tests
-		currentSupabaseSecret := os.Getenv("SUPABASE_JWT_SECRET")
+		currentAdminKey := os.Getenv("ADMIN_API_KEY")
+		if currentAdminKey == "" {
+			currentAdminKey = "cerca-dev-admin-secret-key"
+		}
 
+		// 1. Try static admin API key first (constant-time comparison)
+		if subtle.ConstantTimeCompare([]byte(tokenStr), []byte(currentAdminKey)) == 1 {
+			next(w, r)
+			return
+		}
+
+		// 2. Try Supabase JWT if configured
+		currentSupabaseSecret := os.Getenv("SUPABASE_JWT_SECRET")
 		if currentSupabaseSecret != "" {
 			token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -52,60 +63,40 @@ func AdminAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 				}
 				return []byte(currentSupabaseSecret), nil
 			})
-			if err != nil || !token.Valid {
-				log.Printf("⚠️ Auth failed: Invalid token: %v", err)
-				http.Error(w, fmt.Sprintf(`{"error":"forbidden","message":"Invalid token: %v"}`, err), http.StatusForbidden)
-				return
-			}
+			if err == nil && token.Valid {
+				claims, ok := token.Claims.(jwt.MapClaims)
+				if ok {
+					// Check role in app_metadata or user_metadata
+					isAdmin := false
 
-			claims, ok := token.Claims.(jwt.MapClaims)
-			if !ok {
-				http.Error(w, `{"error":"forbidden","message":"Invalid token claims"}`, http.StatusForbidden)
-				return
-			}
+					// Check app_metadata
+					if appMetadata, ok := claims["app_metadata"].(map[string]interface{}); ok {
+						if role, ok := appMetadata["role"].(string); ok && role == "admin" {
+							isAdmin = true
+						}
+					}
 
-			// Check role in app_metadata or user_metadata
-			isAdmin := false
+					// Check user_metadata as fallback
+					if !isAdmin {
+						if userMetadata, ok := claims["user_metadata"].(map[string]interface{}); ok {
+							if role, ok := userMetadata["role"].(string); ok && role == "admin" {
+								isAdmin = true
+							}
+						}
+					}
 
-			// Check app_metadata
-			if appMetadata, ok := claims["app_metadata"].(map[string]interface{}); ok {
-				if role, ok := appMetadata["role"].(string); ok && role == "admin" {
-					isAdmin = true
-				}
-			}
-
-			// Check user_metadata as fallback
-			if !isAdmin {
-				if userMetadata, ok := claims["user_metadata"].(map[string]interface{}); ok {
-					if role, ok := userMetadata["role"].(string); ok && role == "admin" {
-						isAdmin = true
+					if isAdmin {
+						next(w, r)
+						return
 					}
 				}
 			}
-
-			if !isAdmin {
-				log.Printf("⚠️ Auth failed: Token does not have admin role")
-				http.Error(w, `{"error":"forbidden","message":"Access denied. Admin role required."}`, http.StatusForbidden)
-				return
-			}
-
-			// Authorized successfully!
-			next(w, r)
-			return
+			
+			// If we got here, it's either an invalid token or not an admin
+			log.Printf("⚠️ Auth failed: Supabase JWT parsing or role check failed: %v", err)
 		}
 
-		// Fallback to static ADMIN_API_KEY
-		currentAdminKey := os.Getenv("ADMIN_API_KEY")
-		if currentAdminKey == "" {
-			currentAdminKey = "cerca-dev-admin-secret-key"
-		}
-
-		// Constant-time comparison to prevent timing attacks
-		if subtle.ConstantTimeCompare([]byte(tokenStr), []byte(currentAdminKey)) != 1 {
-			http.Error(w, `{"error":"forbidden","message":"Invalid admin API key"}`, http.StatusForbidden)
-			return
-		}
-
-		next(w, r)
+		// Deny access if neither succeeded
+		http.Error(w, `{"error":"forbidden","message":"Invalid admin API key or Supabase JWT"}`, http.StatusForbidden)
 	}
 }

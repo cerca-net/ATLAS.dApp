@@ -143,4 +143,15 @@ func TestAdminAuthMiddlewareSupabaseJWT(t *testing.T) {
 	if w.Code != http.StatusForbidden {
 		t.Errorf("Expected Forbidden (403) for bad signature token, got %v", w.Code)
 	}
+
+	// Case 6: Static Admin API Key fallback when SUPABASE_JWT_SECRET is set
+	os.Setenv("ADMIN_API_KEY", "static-admin-key-override")
+	defer os.Setenv("ADMIN_API_KEY", "")
+	req = httptest.NewRequest("GET", "/admin/faucet", nil)
+	req.Header.Set("Authorization", "Bearer static-admin-key-override")
+	w = httptest.NewRecorder()
+	authHandler.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected OK (200) for static admin API key when Supabase JWT secret is configured, got %v", w.Code)
+	}
 }
