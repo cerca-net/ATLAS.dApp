@@ -1,11 +1,15 @@
 @echo off
 cd /d "%~dp0"
 echo Killing existing app node processes...
-taskkill /IM main.exe /F >nul 2>&1
-taskkill /IM atlas_node.exe /F >nul 2>&1
+taskkill /IM atlas_app.exe /F >nul 2>&1
+
+echo Building App Node binary...
+cd ATLAS.BC0.0.1
+go build -o atlas_app.exe cmd/main.go
+cd ..
 
 echo Starting App Node...
-start "ATLAS App Node" powershell -NoExit -Command "Set-Location '%~dp0ATLAS.BC0.0.1'; $addr = try { (Get-Content -Path './.data_admin/multiaddr.txt' -Raw -ErrorAction Stop).Trim() } catch { '' }; go run cmd/main.go --port 8001 --api 8081 --datadir .data_app --bootstrap $addr"
+start "ATLAS App Node" powershell -NoExit -Command "Set-Location '%~dp0ATLAS.BC0.0.1'; $addr = try { (Get-Content -Path './.data_admin/multiaddr.txt' -Raw -ErrorAction Stop).Trim() } catch { '' }; .\atlas_app.exe --port 8001 --api 8081 --datadir .data_app --bootstrap $addr"
 
 echo Waiting for node to initialize...
 timeout /t 5
