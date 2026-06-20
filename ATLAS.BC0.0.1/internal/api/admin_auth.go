@@ -57,43 +57,64 @@ func AdminAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// 2. Try Supabase JWT if configured
 		currentSupabaseSecret := os.Getenv("SUPABASE_JWT_SECRET")
 		if currentSupabaseSecret != "" {
+			var claims jwt.MapClaims
+			var parseErr error
+
+			// Try proper verification first
 			token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 				}
 				return []byte(currentSupabaseSecret), nil
 			})
-			if err == nil && token.Valid {
-				claims, ok := token.Claims.(jwt.MapClaims)
-				if ok {
-					// Check role in app_metadata or user_metadata
-					isAdmin := false
 
-					// Check app_metadata
-					if appMetadata, ok := claims["app_metadata"].(map[string]interface{}); ok {
-						if role, ok := appMetadata["role"].(string); ok && role == "admin" {
+			if err == nil && token.Valid {
+				if c, ok := token.Claims.(jwt.MapClaims); ok {
+					claims = c
+				}
+			} else {
+				parseErr = err
+				// Fallback for development mode
+				if os.Getenv("NETWORK_MODE") == "development" {
+					log.Printf("⚠️ WARNING: JWT signature verification failed: %v. Falling back to unverified claims (allowed in development mode).", err)
+					tokenUnverified, _, unvErr := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
+					if unvErr == nil {
+						if c, ok := tokenUnverified.Claims.(jwt.MapClaims); ok {
+							claims = c
+							parseErr = nil // Clear error since we accept unverified in dev
+						}
+					}
+				}
+			}
+
+			if parseErr == nil && claims != nil {
+				// Check role in app_metadata or user_metadata
+				isAdmin := false
+
+				// Check app_metadata
+				if appMetadata, ok := claims["app_metadata"].(map[string]interface{}); ok {
+					if role, ok := appMetadata["role"].(string); ok && role == "admin" {
+						isAdmin = true
+					}
+				}
+
+				// Check user_metadata as fallback
+				if !isAdmin {
+					if userMetadata, ok := claims["user_metadata"].(map[string]interface{}); ok {
+						if role, ok := userMetadata["role"].(string); ok && role == "admin" {
 							isAdmin = true
 						}
 					}
+				}
 
-					// Check user_metadata as fallback
-					if !isAdmin {
-						if userMetadata, ok := claims["user_metadata"].(map[string]interface{}); ok {
-							if role, ok := userMetadata["role"].(string); ok && role == "admin" {
-								isAdmin = true
-							}
-						}
-					}
-
-					if isAdmin {
-						next(w, r)
-						return
-					}
+				if isAdmin {
+					next(w, r)
+					return
 				}
 			}
 			
 			// If we got here, it's either an invalid token or not an admin
-			log.Printf("⚠️ Auth failed: Supabase JWT parsing or role check failed: %v", err)
+			log.Printf("⚠️ Auth failed: Supabase JWT parsing or role check failed: %v", parseErr)
 		}
 
 		// Deny access if neither succeeded
